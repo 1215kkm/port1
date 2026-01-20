@@ -1058,10 +1058,41 @@ class PageInitializer {
         const menuContainer = document.querySelector('[data-content="menu"]');
         if (!menuContainer) return;
 
-        const visibleMenus = this.data.menuItems.filter(m => m.visible);
+        // Sort menu items by sectionOrder
+        const sectionOrder = this.data.sectionOrder || [];
+        const sortedMenus = [...this.data.menuItems].sort((a, b) => {
+            const indexA = sectionOrder.indexOf(a.id);
+            const indexB = sectionOrder.indexOf(b.id);
+            return indexA - indexB;
+        });
+
+        const visibleMenus = sortedMenus.filter(m => m.visible);
         menuContainer.innerHTML = visibleMenus.map(item =>
             `<a href="#${item.id}" class="nav-link">${item.label}</a>`
         ).join('');
+
+        // Apply section order to DOM
+        this.applySectionOrder();
+    }
+
+    applySectionOrder() {
+        const sectionOrder = this.data.sectionOrder || [];
+        const mainContainer = document.querySelector('main') || document.querySelector('.main');
+        if (!mainContainer) return;
+
+        // Get all sections
+        const sections = [];
+        sectionOrder.forEach(sectionId => {
+            const section = document.getElementById(sectionId);
+            if (section) {
+                sections.push(section);
+            }
+        });
+
+        // Reorder sections in DOM
+        sections.forEach(section => {
+            mainContainer.appendChild(section);
+        });
     }
 }
 
