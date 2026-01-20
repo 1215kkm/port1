@@ -286,10 +286,7 @@ class AdminPanel {
 
     saveEmojiIcons() {
         const getIconData = (prefix) => {
-            const type = document.getElementById(`icon-${prefix}-type`)?.value || 'emoji';
-            const emoji = document.getElementById(`emoji-${prefix}`)?.value || '';
-            const imageUrl = this.iconImageData?.[prefix] || '';
-            return { type, emoji, imageUrl };
+            return this.iconData?.[prefix] || { type: 'emoji', emoji: '', imageUrl: '' };
         };
 
         const emojiIcons = {
@@ -893,34 +890,31 @@ class AdminPanel {
             'contact-email': getIconValue(contact.email, '✉️')
         };
 
-        // Store current image data for later retrieval
-        this.iconImageData = this.iconImageData || {};
+        // Store current icon data
+        this.iconData = this.iconData || {};
 
         // Set values and setup event listeners for each icon
         Object.entries(icons).forEach(([prefix, data]) => {
-            const typeEl = document.getElementById(`icon-${prefix}-type`);
             const emojiEl = document.getElementById(`emoji-${prefix}`);
             const fileEl = document.getElementById(`icon-${prefix}-file`);
             const previewEl = document.getElementById(`icon-${prefix}-preview`);
 
-            if (typeEl) typeEl.value = data.type;
+            // Store icon data
+            this.iconData[prefix] = { ...data };
+
+            // Set emoji input value
             if (emojiEl) emojiEl.value = data.emoji;
 
-            // Store existing image URL
-            this.iconImageData[prefix] = data.imageUrl;
+            // Update preview
+            this.updateIconPreview(prefix);
 
-            // Toggle visibility based on type
-            this.toggleIconInputs(prefix, data.type);
-
-            // Update preview if image
-            if (data.type === 'image' && data.imageUrl && previewEl) {
-                previewEl.innerHTML = `<img src="${data.imageUrl}" style="max-width: 100%; max-height: 100%; object-fit: contain;">`;
-            }
-
-            // Add type change listener
-            if (typeEl) {
-                typeEl.addEventListener('change', (e) => {
-                    this.toggleIconInputs(prefix, e.target.value);
+            // Add emoji input change listener
+            if (emojiEl) {
+                emojiEl.addEventListener('input', () => {
+                    this.iconData[prefix].type = 'emoji';
+                    this.iconData[prefix].emoji = emojiEl.value;
+                    this.iconData[prefix].imageUrl = '';
+                    this.updateIconPreview(prefix);
                 });
             }
 
@@ -932,10 +926,9 @@ class AdminPanel {
                         const reader = new FileReader();
                         reader.onload = (event) => {
                             const base64 = event.target.result;
-                            this.iconImageData[prefix] = base64;
-                            if (previewEl) {
-                                previewEl.innerHTML = `<img src="${base64}" style="max-width: 100%; max-height: 100%; object-fit: contain;">`;
-                            }
+                            this.iconData[prefix].type = 'image';
+                            this.iconData[prefix].imageUrl = base64;
+                            this.updateIconPreview(prefix);
                         };
                         reader.readAsDataURL(file);
                     }
@@ -953,19 +946,15 @@ class AdminPanel {
         });
     }
 
-    toggleIconInputs(prefix, type) {
-        const emojiEl = document.getElementById(`emoji-${prefix}`);
-        const imageGroupEl = document.getElementById(`icon-${prefix}-image-group`);
+    updateIconPreview(prefix) {
         const previewEl = document.getElementById(`icon-${prefix}-preview`);
+        if (!previewEl) return;
 
-        if (type === 'image') {
-            if (emojiEl) emojiEl.style.display = 'none';
-            if (imageGroupEl) imageGroupEl.style.display = 'block';
-            if (previewEl) previewEl.style.display = 'block';
+        const data = this.iconData[prefix];
+        if (data.type === 'image' && data.imageUrl) {
+            previewEl.innerHTML = `<img src="${data.imageUrl}" style="max-width: 100%; max-height: 100%; object-fit: contain;">`;
         } else {
-            if (emojiEl) emojiEl.style.display = 'block';
-            if (imageGroupEl) imageGroupEl.style.display = 'none';
-            if (previewEl) previewEl.style.display = 'none';
+            previewEl.textContent = data.emoji || '';
         }
     }
 
