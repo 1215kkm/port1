@@ -813,15 +813,21 @@ class PageInitializer {
         const font = settings?.font || {};
         const colors = font.colors || {};
 
-        // Apply @font-face if provided
-        if (font.fontFaceCode) {
+        // Combine both @font-face codes
+        const fontFaceCodes = [];
+        if (font.fontFaceTitle) fontFaceCodes.push(font.fontFaceTitle);
+        if (font.fontFaceContent) fontFaceCodes.push(font.fontFaceContent);
+        // Support legacy fontFaceCode
+        if (font.fontFaceCode) fontFaceCodes.push(font.fontFaceCode);
+
+        if (fontFaceCodes.length > 0) {
             let styleEl = document.getElementById('custom-font-face');
             if (!styleEl) {
                 styleEl = document.createElement('style');
                 styleEl.id = 'custom-font-face';
                 document.head.appendChild(styleEl);
             }
-            styleEl.textContent = font.fontFaceCode;
+            styleEl.textContent = fontFaceCodes.join('\n');
         }
 
         // Apply font families

@@ -212,7 +212,8 @@ class AdminPanel {
         const logoImageUrl = document.getElementById('logo-image-url').value;
         const fontTitle = document.getElementById('font-title').value;
         const fontContent = document.getElementById('font-content').value;
-        const fontFaceCode = document.getElementById('font-face-code').value;
+        const fontFaceTitle = document.getElementById('font-face-title').value;
+        const fontFaceContent = document.getElementById('font-face-content').value;
         const fontColorTitle1 = document.getElementById('font-color-title1-text').value || '#212529';
         const fontColorTitle2 = document.getElementById('font-color-title2-text').value || '#212529';
         const fontColorContent = document.getElementById('font-color-content-text').value || '#212529';
@@ -222,7 +223,8 @@ class AdminPanel {
             font: {
                 title: fontTitle,
                 content: fontContent,
-                fontFaceCode: fontFaceCode,
+                fontFaceTitle: fontFaceTitle,
+                fontFaceContent: fontFaceContent,
                 colors: {
                     title1: fontColorTitle1,
                     title2: fontColorTitle2,
@@ -530,9 +532,10 @@ class AdminPanel {
         }
 
         // Font
-        document.getElementById('font-title').value = settings.font?.title || 'Paperlogse';
-        document.getElementById('font-content').value = settings.font?.content || 'Pretendard';
-        document.getElementById('font-face-code').value = settings.font?.fontFaceCode || '';
+        document.getElementById('font-title').value = settings.font?.title || 'Paperozi';
+        document.getElementById('font-content').value = settings.font?.content || 'Paperozi';
+        document.getElementById('font-face-title').value = settings.font?.fontFaceTitle || '';
+        document.getElementById('font-face-content').value = settings.font?.fontFaceContent || '';
 
         // Font Colors
         const fontColors = settings.font?.colors || {};
