@@ -505,62 +505,6 @@
         <main class="admin-main">
             <!-- Solo Page Settings -->
             <div class="admin-panel active" id="panel-solo">
-                <!-- Site Settings -->
-                <div class="settings-section" id="section-site">
-                    <h2 class="settings-section-title">사이트 설정</h2>
-                    <div class="settings-section-content">
-                        <h3 style="margin-bottom: var(--space-md);">로고 설정</h3>
-                        <div class="settings-row" style="margin-bottom: var(--space-lg);">
-                            <div class="form-group">
-                                <label class="form-label">로고 타입</label>
-                                <select class="form-select" id="logo-type">
-                                    <option value="text">텍스트</option>
-                                    <option value="image">이미지</option>
-                                </select>
-                            </div>
-                            <div class="form-group" id="logo-text-group">
-                                <label class="form-label">로고 텍스트</label>
-                                <input type="text" class="form-input" id="logo-text">
-                            </div>
-                            <div class="form-group" id="logo-image-group" style="display: none;">
-                                <label class="form-label">로고 이미지</label>
-                                <div style="display: flex; gap: var(--space-md); align-items: flex-start;">
-                                    <div style="flex: 1;">
-                                        <input type="text" class="form-input" id="logo-image-url" placeholder="이미지 URL 또는 파일 업로드">
-                                        <input type="file" id="logo-image-file" accept="image/*" style="display: none;">
-                                        <button type="button" class="btn btn-secondary" id="btn-logo-upload" style="margin-top: var(--space-sm);">이미지 파일 선택</button>
-                                    </div>
-                                    <div id="logo-preview" style="width: 100px; height: 50px; border: 1px solid var(--color-border); border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; overflow: hidden;">
-                                        <span style="color: var(--color-text-muted); font-size: var(--font-xs);">미리보기</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <h3 style="margin-bottom: var(--space-md);">폰트 설정</h3>
-                        <div class="settings-row">
-                            <div class="form-group">
-                                <label class="form-label">제목 폰트명</label>
-                                <input type="text" class="form-input" id="font-title" placeholder="예: Paperozi">
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">내용 폰트명</label>
-                                <input type="text" class="form-input" id="font-content" placeholder="예: Pretendard">
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">@font-face 코드 (웹폰트 주소 입력)</label>
-                            <textarea class="form-textarea" id="font-face-code" rows="8" placeholder="@font-face {
-    font-family: 'Paperozi';
-    src: url('https://cdn.jsdelivr.net/...') format('woff2');
-    font-weight: 100;
-    font-display: swap;
-}"></textarea>
-                            <small style="color: var(--color-text-secondary);">여러 @font-face를 입력할 수 있습니다.</small>
-                        </div>
-                    </div>
-                </div>
-
                 <!-- Profile Settings -->
                 <div class="settings-section section-anchor" id="section-about">
                     <h2 class="settings-section-title">자기소개</h2>
@@ -817,6 +761,87 @@
 
             <!-- Skin Settings -->
             <div class="admin-panel" id="panel-skin">
+                <!-- Site Settings -->
+                <div class="settings-section" id="section-site">
+                    <h2 class="settings-section-title">사이트 설정</h2>
+                    <div class="settings-section-content">
+                        <h3 style="margin-bottom: var(--space-md);">로고 설정</h3>
+                        <div class="settings-row" style="margin-bottom: var(--space-lg);">
+                            <div class="form-group">
+                                <label class="form-label">로고 타입</label>
+                                <select class="form-select" id="logo-type">
+                                    <option value="text">텍스트</option>
+                                    <option value="image">이미지</option>
+                                </select>
+                            </div>
+                            <div class="form-group" id="logo-text-group">
+                                <label class="form-label">로고 텍스트</label>
+                                <input type="text" class="form-input" id="logo-text">
+                            </div>
+                            <div class="form-group" id="logo-image-group" style="display: none;">
+                                <label class="form-label">로고 이미지</label>
+                                <div style="display: flex; gap: var(--space-md); align-items: flex-start;">
+                                    <div style="flex: 1;">
+                                        <input type="text" class="form-input" id="logo-image-url" placeholder="이미지 URL 또는 파일 업로드">
+                                        <input type="file" id="logo-image-file" accept="image/*" style="display: none;">
+                                        <button type="button" class="btn btn-secondary" id="btn-logo-upload" style="margin-top: var(--space-sm);">이미지 파일 선택</button>
+                                    </div>
+                                    <div id="logo-preview" style="width: 100px; height: 50px; border: 1px solid var(--color-border); border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; overflow: hidden;">
+                                        <span style="color: var(--color-text-muted); font-size: var(--font-xs);">미리보기</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <h3 style="margin-bottom: var(--space-md);">폰트 설정</h3>
+                        <div class="settings-row" style="margin-bottom: var(--space-lg);">
+                            <div class="form-group">
+                                <label class="form-label">제목 폰트명</label>
+                                <input type="text" class="form-input" id="font-title" placeholder="예: Paperozi">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">내용 폰트명</label>
+                                <input type="text" class="form-input" id="font-content" placeholder="예: Pretendard">
+                            </div>
+                        </div>
+                        <div class="form-group" style="margin-bottom: var(--space-lg);">
+                            <label class="form-label">@font-face 코드 (웹폰트 주소 입력)</label>
+                            <textarea class="form-textarea" id="font-face-code" rows="8" placeholder="@font-face {
+    font-family: 'Paperozi';
+    src: url('https://cdn.jsdelivr.net/...') format('woff2');
+    font-weight: 100;
+    font-display: swap;
+}"></textarea>
+                            <small style="color: var(--color-text-secondary);">여러 @font-face를 입력할 수 있습니다.</small>
+                        </div>
+
+                        <h3 style="margin-bottom: var(--space-md);">글자 색상</h3>
+                        <div class="settings-row-3">
+                            <div class="form-group">
+                                <label class="form-label">큰제목 색상</label>
+                                <div style="display: flex; gap: var(--space-sm); align-items: center;">
+                                    <input type="color" id="font-color-title1" value="#212529" style="width: 40px; height: 32px; border: none; cursor: pointer;">
+                                    <input type="text" class="form-input" id="font-color-title1-text" placeholder="#212529" style="flex: 1;">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">중간제목 색상</label>
+                                <div style="display: flex; gap: var(--space-sm); align-items: center;">
+                                    <input type="color" id="font-color-title2" value="#212529" style="width: 40px; height: 32px; border: none; cursor: pointer;">
+                                    <input type="text" class="form-input" id="font-color-title2-text" placeholder="#212529" style="flex: 1;">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">내용 색상</label>
+                                <div style="display: flex; gap: var(--space-sm); align-items: center;">
+                                    <input type="color" id="font-color-content" value="#212529" style="width: 40px; height: 32px; border: none; cursor: pointer;">
+                                    <input type="text" class="form-input" id="font-color-content-text" placeholder="#212529" style="flex: 1;">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Theme Modes -->
                 <div class="settings-section">
                     <h2 class="settings-section-title">테마 모드 관리</h2>

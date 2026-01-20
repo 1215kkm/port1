@@ -734,6 +734,9 @@ class PageInitializer {
         // Initialize portfolio renderers
         this.initPortfolios();
 
+        // Apply font settings
+        this.applyFontSettings();
+
         // Render dynamic content
         this.renderLogo();
         this.renderProfile();
@@ -760,6 +763,7 @@ class PageInitializer {
     }
 
     renderAll() {
+        this.applyFontSettings();
         this.renderLogo();
         this.renderProfile();
         this.renderAITools();
@@ -801,6 +805,42 @@ class PageInitializer {
             logoEl.innerHTML = `<img src="${settings.logo.imageUrl}" alt="Logo" style="max-height: 50px; width: auto;">`;
         } else {
             logoEl.textContent = settings?.logo?.text || 'Portfolio';
+        }
+    }
+
+    applyFontSettings() {
+        const settings = this.data.siteSettings;
+        const font = settings?.font || {};
+        const colors = font.colors || {};
+
+        // Apply @font-face if provided
+        if (font.fontFaceCode) {
+            let styleEl = document.getElementById('custom-font-face');
+            if (!styleEl) {
+                styleEl = document.createElement('style');
+                styleEl.id = 'custom-font-face';
+                document.head.appendChild(styleEl);
+            }
+            styleEl.textContent = font.fontFaceCode;
+        }
+
+        // Apply font families
+        if (font.title) {
+            document.documentElement.style.setProperty('--font-title', `'${font.title}', 'Pretendard', sans-serif`);
+        }
+        if (font.content) {
+            document.documentElement.style.setProperty('--font-content', `'${font.content}', sans-serif`);
+        }
+
+        // Apply font colors
+        if (colors.title1) {
+            document.documentElement.style.setProperty('--color-title1', colors.title1);
+        }
+        if (colors.title2) {
+            document.documentElement.style.setProperty('--color-title2', colors.title2);
+        }
+        if (colors.content) {
+            document.documentElement.style.setProperty('--color-content', colors.content);
         }
     }
 

@@ -207,10 +207,22 @@ class AdminPanel {
         const fontTitle = document.getElementById('font-title').value;
         const fontContent = document.getElementById('font-content').value;
         const fontFaceCode = document.getElementById('font-face-code').value;
+        const fontColorTitle1 = document.getElementById('font-color-title1-text').value || '#212529';
+        const fontColorTitle2 = document.getElementById('font-color-title2-text').value || '#212529';
+        const fontColorContent = document.getElementById('font-color-content-text').value || '#212529';
 
         dataManager.updateSiteSettings({
             logo: { type: logoType, text: logoText, imageUrl: logoImageUrl },
-            font: { title: fontTitle, content: fontContent, fontFaceCode: fontFaceCode }
+            font: {
+                title: fontTitle,
+                content: fontContent,
+                fontFaceCode: fontFaceCode,
+                colors: {
+                    title1: fontColorTitle1,
+                    title2: fontColorTitle2,
+                    content: fontColorContent
+                }
+            }
         });
     }
 
@@ -511,6 +523,40 @@ class AdminPanel {
         document.getElementById('font-title').value = settings.font?.title || 'Paperlogse';
         document.getElementById('font-content').value = settings.font?.content || 'Pretendard';
         document.getElementById('font-face-code').value = settings.font?.fontFaceCode || '';
+
+        // Font Colors
+        const fontColors = settings.font?.colors || {};
+        const colorTitle1 = fontColors.title1 || '#212529';
+        const colorTitle2 = fontColors.title2 || '#212529';
+        const colorContent = fontColors.content || '#212529';
+
+        document.getElementById('font-color-title1').value = colorTitle1;
+        document.getElementById('font-color-title1-text').value = colorTitle1;
+        document.getElementById('font-color-title2').value = colorTitle2;
+        document.getElementById('font-color-title2-text').value = colorTitle2;
+        document.getElementById('font-color-content').value = colorContent;
+        document.getElementById('font-color-content-text').value = colorContent;
+
+        // Sync color picker with text input
+        this.setupColorSync('font-color-title1');
+        this.setupColorSync('font-color-title2');
+        this.setupColorSync('font-color-content');
+    }
+
+    setupColorSync(baseId) {
+        const colorInput = document.getElementById(baseId);
+        const textInput = document.getElementById(`${baseId}-text`);
+
+        if (colorInput && textInput) {
+            colorInput.addEventListener('input', () => {
+                textInput.value = colorInput.value;
+            });
+            textInput.addEventListener('input', () => {
+                if (/^#[0-9A-Fa-f]{6}$/.test(textInput.value)) {
+                    colorInput.value = textInput.value;
+                }
+            });
+        }
     }
 
     renderProfile() {

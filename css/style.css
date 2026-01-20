@@ -80,6 +80,11 @@
     --font-title: 'Paperlogse', 'Pretendard', sans-serif;
     --font-content: 'Pretendard', sans-serif;
 
+    /* Font Colors */
+    --color-title1: #212529;
+    --color-title2: #212529;
+    --color-content: #212529;
+
     /* Container */
     --container-sm: 640px;
     --container-md: 768px;
@@ -376,12 +381,12 @@ ul, ol {
     font-weight: 700;
     font-family: var(--font-title);
     margin-bottom: var(--space-xl);
-    color: var(--color-text);
+    color: var(--color-title1);
 }
 
 .section-subtitle {
     font-size: var(--font-lg);
-    color: var(--color-text-secondary);
+    color: var(--color-title2);
     margin-bottom: var(--space-2xl);
 }
 
@@ -432,11 +437,12 @@ ul, ol {
     font-weight: 700;
     font-family: var(--font-title);
     margin-bottom: var(--space-md);
+    color: var(--color-title2);
 }
 
 .intro-card-desc {
     font-size: var(--font-sm);
-    color: var(--color-text-secondary);
+    color: var(--color-content);
 }
 
 /* About Section */
@@ -500,6 +506,7 @@ ul, ol {
     align-items: center;
     gap: var(--space-md);
     padding: var(--space-md) 0;
+    color: var(--color-title1);
 }
 
 .about-badge {
@@ -899,6 +906,7 @@ ul, ol {
     font-size: var(--font-lg);
     font-weight: 600;
     margin-bottom: var(--space-sm);
+    color: var(--color-title2);
 }
 
 .portfolio-meta {

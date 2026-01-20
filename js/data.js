@@ -12,7 +12,12 @@ const defaultData = {
         font: {
             title: 'Paperlogse',
             content: 'Pretendard',
-            fontFaceCode: ''
+            fontFaceCode: '',
+            colors: {
+                title1: '#212529',
+                title2: '#212529',
+                content: '#212529'
+            }
         }
     },
 
