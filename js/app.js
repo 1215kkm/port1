@@ -969,6 +969,7 @@ class PageInitializer {
 
     renderContact() {
         const contact = this.data.contact;
+        const emojiIcons = this.data.emojiIcons?.contact || {};
 
         const nameEl = document.querySelector('[data-content="contact-name"]');
         if (nameEl) nameEl.textContent = contact.name;
@@ -981,6 +982,16 @@ class PageInitializer {
 
         const messageEl = document.querySelector('[data-content="contact-message"]');
         if (messageEl) messageEl.textContent = contact.message;
+
+        // Render emoji icons
+        const nameIcon = document.querySelector('[data-emoji="contact-name"]');
+        if (nameIcon && emojiIcons.name) nameIcon.textContent = emojiIcons.name;
+
+        const phoneIcon = document.querySelector('[data-emoji="contact-phone"]');
+        if (phoneIcon && emojiIcons.phone) phoneIcon.textContent = emojiIcons.phone;
+
+        const emailIcon = document.querySelector('[data-emoji="contact-email"]');
+        if (emailIcon && emojiIcons.email) emailIcon.textContent = emojiIcons.email;
     }
 
     renderMenu() {

@@ -32,6 +32,7 @@ class AdminPanel {
         this.renderPortfolioAI();
         this.renderPortfolioTeam();
         this.renderContact();
+        this.renderEmojiIcons();
         this.renderInterviews();
         this.renderThemeModes();
         this.renderCSSVariables();
@@ -191,6 +192,7 @@ class AdminPanel {
         this.saveEvaluation();
         this.saveVideo();
         this.saveContact();
+        this.saveEmojiIcons();
         this.saveCSSVariables();
         this.saveAllThemes();
 
@@ -256,6 +258,22 @@ class AdminPanel {
             message: document.getElementById('contact-message').value
         };
         dataManager.updateContact(updates);
+    }
+
+    saveEmojiIcons() {
+        const emojiIcons = {
+            intro: {
+                solo: document.getElementById('emoji-intro-solo')?.value || '👤',
+                ai: document.getElementById('emoji-intro-ai')?.value || '🤖',
+                team: document.getElementById('emoji-intro-team')?.value || '👥'
+            },
+            contact: {
+                name: document.getElementById('emoji-contact-name')?.value || '👤',
+                phone: document.getElementById('emoji-contact-phone')?.value || '📞',
+                email: document.getElementById('emoji-contact-email')?.value || '✉️'
+            }
+        };
+        dataManager.set('emojiIcons', emojiIcons);
     }
 
     saveCSSVariables() {
@@ -779,6 +797,26 @@ class AdminPanel {
         document.getElementById('contact-phone').value = contact.phone || '';
         document.getElementById('contact-email').value = contact.email || '';
         document.getElementById('contact-message').value = contact.message || '';
+    }
+
+    renderEmojiIcons() {
+        const emojiIcons = this.data.emojiIcons || {};
+        const intro = emojiIcons.intro || {};
+        const contact = emojiIcons.contact || {};
+
+        const soloEl = document.getElementById('emoji-intro-solo');
+        const aiEl = document.getElementById('emoji-intro-ai');
+        const teamEl = document.getElementById('emoji-intro-team');
+        const nameEl = document.getElementById('emoji-contact-name');
+        const phoneEl = document.getElementById('emoji-contact-phone');
+        const emailEl = document.getElementById('emoji-contact-email');
+
+        if (soloEl) soloEl.value = intro.solo || '👤';
+        if (aiEl) aiEl.value = intro.ai || '🤖';
+        if (teamEl) teamEl.value = intro.team || '👥';
+        if (nameEl) nameEl.value = contact.name || '👤';
+        if (phoneEl) phoneEl.value = contact.phone || '📞';
+        if (emailEl) emailEl.value = contact.email || '✉️';
     }
 
     renderInterviews() {

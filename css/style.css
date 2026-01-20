@@ -596,14 +596,19 @@ ul, ol {
 .ai-item-number {
     width: 32px;
     height: 32px;
+    min-width: 32px;
+    min-height: 32px;
+    max-width: 32px;
+    max-height: 32px;
     display: flex;
     align-items: center;
     justify-content: center;
     background: var(--color-primary);
     color: white;
-    border-radius: var(--radius-full);
+    border-radius: 50%;
     font-size: var(--font-sm);
     font-weight: 600;
+    flex-shrink: 0;
 }
 
 .ai-item-name {

@@ -35,17 +35,7 @@ const defaultData = {
     aiTools: [
         { id: 1, name: "미드저니", description: "비쥬얼 이미지를 제작하여 포토샵으로 보정후 활용가능" },
         { id: 2, name: "gpt", description: "레이아웃 구성과 각 섹션 문구를 추천받음" },
-        { id: 3, name: "클로드", description: "막히는 스크립트 도움을 받음" },
-        { id: 4, name: "이디오그램", description: "시안 뽑을때 레퍼런스로 사용해봄" },
-        { id: 5, name: "달리", description: "이미지 생성 및 편집에 활용" },
-        { id: 6, name: "스테이블 디퓨전", description: "고품질 이미지 생성" },
-        { id: 7, name: "캔바 AI", description: "빠른 디자인 작업에 활용" },
-        { id: 8, name: "어도비 파이어플라이", description: "이미지 편집 및 생성" },
-        { id: 9, name: "노션 AI", description: "문서 작성 및 정리" },
-        { id: 10, name: "깃허브 코파일럿", description: "코드 작성 보조" },
-        { id: 11, name: "피그마 AI", description: "디자인 자동화" },
-        { id: 12, name: "런웨이", description: "영상 편집 및 생성" },
-        { id: 13, name: "일레븐랩스", description: "음성 생성" }
+        { id: 3, name: "클로드", description: "막히는 스크립트 도움을 받음" }
     ],
 
     // Related Experience
@@ -53,10 +43,7 @@ const defaultData = {
         totalPeriod: "총 2년 3개월",
         items: [
             { id: 1, company: "[웹에이전시] 주노소프트", period: "2024.03 ~ 2025.02", duration: "1년" },
-            { id: 2, company: "[게임개발업체] 아이즈앤터테인먼트", period: "2024.03 ~ 2025.02", duration: "1년" },
-            { id: 3, company: "[쇼핑몰] 주노소프트", period: "2024.03 ~ 2025.02", duration: "1년" },
-            { id: 4, company: "[SI 업체] 주노소프트", period: "2024.03 ~ 2025.02", duration: "1년" },
-            { id: 5, company: "[웹에이전시] 주노소프트", period: "2024.03 ~ 2025.02", duration: "1년" }
+            { id: 2, company: "[게임개발업체] 아이즈앤터테인먼트", period: "2024.03 ~ 2025.02", duration: "1년" }
         ]
     },
 
@@ -65,10 +52,7 @@ const defaultData = {
         totalPeriod: "총 8년 3개월",
         items: [
             { id: 1, company: "[CU] 점장", period: "2024.03 ~ 2025.02", duration: "1년" },
-            { id: 2, company: "[GS25] 파트타임 알바", period: "2024.03 ~ 2025.02", duration: "1년" },
-            { id: 3, company: "[웹에이전시] 주노소프트", period: "2024.03 ~ 2025.02", duration: "1년" },
-            { id: 4, company: "[웹에이전시] 주노소프트", period: "2024.03 ~ 2025.02", duration: "1년" },
-            { id: 5, company: "[웹에이전시] 주노소프트", period: "2024.03 ~ 2025.02", duration: "1년" }
+            { id: 2, company: "[GS25] 파트타임 알바", period: "2024.03 ~ 2025.02", duration: "1년" }
         ]
     },
 
@@ -94,7 +78,21 @@ const defaultData = {
     // Video
     video: {
         type: "youtube",
-        url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+        url: "https://youtu.be/GIxKCoINhTM?si=6TDEA6G0dtDclc1y"
+    },
+
+    // Emoji Icons
+    emojiIcons: {
+        intro: {
+            solo: "👤",
+            ai: "🤖",
+            team: "👥"
+        },
+        contact: {
+            name: "👤",
+            phone: "📞",
+            email: "✉️"
+        }
     },
 
     // Menu Items
@@ -309,6 +307,42 @@ GPT를 통해 UX 라이팅과 메뉴 구조를 최적화했고, 클로드로 복
                     { stage: "최종 요청", request: "전체 톤과 구조가 만족스럽습니다. 메인 배너가 특히 좋아요.", response: "최종 디자인 확정 후 전달 완료" }
                 ],
                 videoUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+            },
+            {
+                id: 2,
+                title: "여행플래너 APP 제작",
+                links: [
+                    { label: "프로토타입", url: "https://figma.com/prototype2" }
+                ],
+                team: "4명 (기획1, 디자이너1, 프론트엔드1, 백엔드1)",
+                myRole: "디자이너, 퍼블리셔",
+                duration: {
+                    total: "3개월",
+                    planning: "기획~2주",
+                    design: "디자인~1개월",
+                    publishing: "퍼블~1개월"
+                },
+                images: [
+                    "https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=400&h=300&fit=crop",
+                    "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=400&h=300&fit=crop"
+                ],
+                myRoleDetail: [
+                    "UI 디자인 전담",
+                    "반응형 퍼블리싱"
+                ],
+                contributionBars: [
+                    { label: "기획", value: 30 },
+                    { label: "디자인", value: 80 },
+                    { label: "퍼블", value: 70 }
+                ],
+                descriptions: {
+                    aiUsage: `ChatGPT로 여행 추천 알고리즘을 기획하고, 미드저니로 배경 이미지를 생성했습니다.`,
+                    explanation: `여행지 추천 및 일정 관리 앱의 전체 UI를 설계했습니다.`,
+                    challenges: `다양한 여행 스타일에 맞는 유연한 UI 구조 설계가 어려웠습니다.`,
+                    conclusion: `AI를 활용해 다양한 시안을 빠르게 테스트할 수 있었습니다.`
+                },
+                clientFeedback: [],
+                videoUrl: ""
             }
         ]
     },
@@ -364,6 +398,42 @@ Slack과 Notion을 통해 디자인 피드백을 체계적으로 관리했습니
                     { stage: "최종 검수", request: "예상보다 훨씬 좋은 결과물입니다.", response: "런칭 후 모니터링 및 개선 계획 공유" }
                 ],
                 videoUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+            },
+            {
+                id: 2,
+                title: "사내 업무 관리 시스템",
+                links: [
+                    { label: "라이브 데모", url: "https://demo.example.com" }
+                ],
+                team: "5명 (PM1, 디자이너1, 프론트엔드2, 백엔드1)",
+                myRole: "UI/UX 디자이너",
+                duration: {
+                    total: "4개월",
+                    planning: "기획~1개월",
+                    design: "디자인~1.5개월",
+                    publishing: "개발~1.5개월"
+                },
+                images: [
+                    "https://images.unsplash.com/photo-1551434678-e076c223a692?w=400&h=300&fit=crop",
+                    "https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=400&h=300&fit=crop"
+                ],
+                myRoleDetail: [
+                    "대시보드 UI 설계",
+                    "사용자 플로우 최적화"
+                ],
+                contributionBars: [
+                    { label: "기획", value: 40 },
+                    { label: "디자인", value: 85 },
+                    { label: "퍼블", value: 20 }
+                ],
+                descriptions: {
+                    aiUsage: `Figma 플러그인을 활용하여 디자인 협업을 진행했습니다.`,
+                    explanation: `기업 내부에서 사용할 업무 관리 시스템의 UI를 설계했습니다.`,
+                    challenges: `복잡한 데이터 구조를 직관적으로 시각화하는 것이 과제였습니다.`,
+                    conclusion: `팀원들과의 긴밀한 협업으로 프로젝트를 성공적으로 완료했습니다.`
+                },
+                clientFeedback: [],
+                videoUrl: ""
             }
         ]
     },

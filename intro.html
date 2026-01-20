@@ -134,7 +134,7 @@
 
         <div class="intro-grid">
             <a href="index.html" class="intro-card intro-card-solo">
-                <div class="intro-card-icon">👤</div>
+                <div class="intro-card-icon" data-emoji="solo">👤</div>
                 <h2 class="intro-card-title">혼자제작</h2>
                 <p class="intro-card-desc">
                     개인 프로젝트 및<br>
@@ -143,7 +143,7 @@
             </a>
 
             <a href="ai.html" class="intro-card intro-card-ai">
-                <div class="intro-card-icon">🤖</div>
+                <div class="intro-card-icon" data-emoji="ai">🤖</div>
                 <h2 class="intro-card-title">AI활용</h2>
                 <p class="intro-card-desc">
                     AI 도구를 활용하여<br>
@@ -152,7 +152,7 @@
             </a>
 
             <a href="team.html" class="intro-card intro-card-team">
-                <div class="intro-card-icon">👥</div>
+                <div class="intro-card-icon" data-emoji="team">👥</div>
                 <h2 class="intro-card-title">팀플제작</h2>
                 <p class="intro-card-desc">
                     팀원들과 협업하여<br>
@@ -161,11 +161,6 @@
             </a>
         </div>
 
-        <footer class="intro-footer">
-            <div class="intro-footer-links">
-                <a href="admin.html" class="btn btn-secondary">관리자 설정</a>
-            </div>
-        </footer>
     </div>
 
     <!-- Theme Toggle -->
@@ -208,6 +203,18 @@
                     option.classList.add('active');
                 });
             });
+
+            // Load emoji icons from settings
+            const data = dataManager.getData();
+            const emojiIcons = data.emojiIcons?.intro || {};
+
+            const soloEl = document.querySelector('[data-emoji="solo"]');
+            const aiEl = document.querySelector('[data-emoji="ai"]');
+            const teamEl = document.querySelector('[data-emoji="team"]');
+
+            if (soloEl && emojiIcons.solo) soloEl.textContent = emojiIcons.solo;
+            if (aiEl && emojiIcons.ai) aiEl.textContent = emojiIcons.ai;
+            if (teamEl && emojiIcons.team) teamEl.textContent = emojiIcons.team;
         });
     </script>
 </body>
