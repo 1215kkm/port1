@@ -208,13 +208,25 @@
             const data = dataManager.getData();
             const emojiIcons = data.emojiIcons?.intro || {};
 
+            // Helper function to render icon (emoji or image)
+            const renderIcon = (el, iconData, defaultEmoji) => {
+                if (!el) return;
+                if (typeof iconData === 'string') {
+                    el.textContent = iconData || defaultEmoji;
+                } else if (iconData?.type === 'image' && iconData?.imageUrl) {
+                    el.innerHTML = `<img src="${iconData.imageUrl}" style="width: 100%; height: 100%; object-fit: contain;">`;
+                } else {
+                    el.textContent = iconData?.emoji || defaultEmoji;
+                }
+            };
+
             const soloEl = document.querySelector('[data-emoji="solo"]');
             const aiEl = document.querySelector('[data-emoji="ai"]');
             const teamEl = document.querySelector('[data-emoji="team"]');
 
-            if (soloEl && emojiIcons.solo) soloEl.textContent = emojiIcons.solo;
-            if (aiEl && emojiIcons.ai) aiEl.textContent = emojiIcons.ai;
-            if (teamEl && emojiIcons.team) teamEl.textContent = emojiIcons.team;
+            renderIcon(soloEl, emojiIcons.solo, '👤');
+            renderIcon(aiEl, emojiIcons.ai, '🤖');
+            renderIcon(teamEl, emojiIcons.team, '👥');
         });
     </script>
 </body>
