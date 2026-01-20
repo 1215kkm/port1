@@ -1018,20 +1018,38 @@
             // User is logged in, load admin scripts
             const dataScript = document.createElement('script');
             dataScript.src = 'js/data.js';
+
+            let adminLoaded = false;
+            function loadAdmin() {
+                if (adminLoaded) return;
+                adminLoaded = true;
+
+                const adminScript = document.createElement('script');
+                adminScript.src = 'js/admin.js';
+                document.body.appendChild(adminScript);
+
+                // Load owner menu
+                const ownerMenuScript = document.createElement('script');
+                ownerMenuScript.type = 'module';
+                ownerMenuScript.src = 'js/owner-menu.js';
+                document.body.appendChild(ownerMenuScript);
+            }
+
             dataScript.onload = () => {
                 // Wait for dataManager to be ready
-                window.addEventListener('dataManagerReady', () => {
-                    const adminScript = document.createElement('script');
-                    adminScript.src = 'js/admin.js';
-                    document.body.appendChild(adminScript);
-                });
+                window.addEventListener('dataManagerReady', loadAdmin);
 
-                // If dataManager is already ready (cached)
+                // Check if dataManager is already ready
                 if (window.dataManager && window.dataManager.data) {
-                    const adminScript = document.createElement('script');
-                    adminScript.src = 'js/admin.js';
-                    document.body.appendChild(adminScript);
+                    loadAdmin();
                 }
+
+                // Fallback: load after a short delay if event doesn't fire
+                setTimeout(() => {
+                    if (window.dataManager) {
+                        loadAdmin();
+                    }
+                }, 500);
             };
             document.body.appendChild(dataScript);
         }

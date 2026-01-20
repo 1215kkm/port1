@@ -75,6 +75,7 @@
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
     <script src="js/data.js"></script>
     <script src="js/app.js"></script>
+    <script type="module" src="js/owner-menu.js"></script>
     <script>
         // Team Page Specific Renderer
         class TeamPageRenderer {
@@ -105,14 +106,14 @@
                     return;
                 }
 
-                this.container.innerHTML = projects.map(project => this.renderProject(project)).join('');
+                this.container.innerHTML = projects.map((project, index) => this.renderProject(project, index + 1)).join('');
             }
 
-            renderProject(project) {
+            renderProject(project, number) {
                 return `
                     <article class="project-detail" style="margin-bottom: var(--space-4xl); padding-bottom: var(--space-4xl); border-bottom: 1px solid var(--color-border);">
                         <div class="project-header">
-                            <h2 class="section-title">${project.title || '프로젝트 제목'}</h2>
+                            <h2 class="section-title"><span style="color: var(--color-primary); margin-right: 8px;">${number}.</span>${project.title || '프로젝트 제목'}</h2>
 
                             <!-- Project Links -->
                             <div class="project-links">
