@@ -76,6 +76,10 @@
     --z-modal: 400;
     --z-tooltip: 500;
 
+    /* Fonts */
+    --font-title: 'Paperlogse', 'Pretendard', sans-serif;
+    --font-content: 'Pretendard', sans-serif;
+
     /* Container */
     --container-sm: 640px;
     --container-md: 768px;
@@ -370,6 +374,7 @@ ul, ol {
 .section-title {
     font-size: var(--font-3xl);
     font-weight: 700;
+    font-family: var(--font-title);
     margin-bottom: var(--space-xl);
     color: var(--color-text);
 }
@@ -425,6 +430,7 @@ ul, ol {
 .intro-card-title {
     font-size: var(--font-2xl);
     font-weight: 700;
+    font-family: var(--font-title);
     margin-bottom: var(--space-md);
 }
 
@@ -489,6 +495,7 @@ ul, ol {
 .about-name {
     font-size: var(--font-4xl);
     font-weight: 700;
+    font-family: var(--font-title);
     display: flex;
     align-items: center;
     gap: var(--space-md);
@@ -914,14 +921,26 @@ ul, ol {
     margin-bottom: var(--space-lg);
 }
 
-.portfolio-contribution {
+.portfolio-contribution,
+.portfolio-contributions {
     margin-bottom: var(--space-lg);
+}
+
+.portfolio-contributions {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+}
+
+.contribution-item {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
 }
 
 .contribution-label {
     font-size: var(--font-xs);
     color: var(--color-text-muted);
-    margin-bottom: var(--space-xs);
 }
 
 .contribution-bar {
@@ -1383,6 +1402,27 @@ ul, ol {
     display: flex;
     gap: var(--space-md);
     margin-top: var(--space-xl);
+}
+
+/* Contribution Input Item */
+.contribution-input-item {
+    display: flex;
+    gap: var(--space-sm);
+    align-items: center;
+}
+
+.contribution-input-item .form-input {
+    flex: 1;
+    margin-bottom: 0;
+}
+
+.contribution-input-item .form-input[data-field="value"] {
+    flex: 0 0 80px;
+}
+
+.contribution-input-item .btn-sm {
+    padding: 6px 10px;
+    flex-shrink: 0;
 }
 
 /* Card List for Admin */

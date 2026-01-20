@@ -451,8 +451,9 @@ class Calendar {
             if (isToday) classes.push('today');
             if (hasEvent) classes.push('has-event');
 
-            // Show "(회사명 면접)" on days with interview events
-            const eventLabel = hasEvent ? `<span class="calendar-day-event">(${dayEvent.company} 면접)</span>` : '';
+            // Show "(회사명 면접) (위치)" on days with interview events
+            const locationText = dayEvent?.location ? ` (${dayEvent.location})` : '';
+            const eventLabel = hasEvent ? `<span class="calendar-day-event">${dayEvent.company} 면접${locationText}</span>` : '';
             html += `<div class="${classes.join(' ')}" data-date="${dateStr}"><span class="calendar-day-num">${day}</span>${eventLabel}</div>`;
         }
 
@@ -475,10 +476,11 @@ class Calendar {
             html += '<div class="calendar-events">';
             monthEvents.forEach(event => {
                 const eventDate = new Date(event.date);
+                const locationText = event.location ? ` (${event.location})` : '';
                 html += `
                     <div class="calendar-event">
                         <span class="calendar-event-date">${eventDate.getDate()}일</span>
-                        <span class="calendar-event-title">${event.company}</span>
+                        <span class="calendar-event-title">${event.company} 면접${locationText}</span>
                         <span class="calendar-event-time">${event.time}</span>
                     </div>
                 `;
@@ -609,6 +611,17 @@ class PortfolioRenderer {
             `<a href="${link.url}" target="_blank" class="btn btn-primary">${link.label}</a>`
         ).join('');
 
+        // Support both old (contribution) and new (contributions) format
+        const contributions = item.contributions || (item.contribution ? [{ label: '기여도', value: item.contribution }] : []);
+        const contributionsHTML = contributions.map(c => `
+            <div class="contribution-item">
+                <span class="contribution-label">${c.label}: ${c.value}%</span>
+                <div class="contribution-bar">
+                    <div class="contribution-fill" style="width: ${c.value}%"></div>
+                </div>
+            </div>
+        `).join('');
+
         return `
             <article class="portfolio-item">
                 <div class="portfolio-thumbnail">
@@ -621,11 +634,8 @@ class PortfolioRenderer {
                         ${item.target ? `<span class="portfolio-meta-item">타겟: ${item.target}</span>` : ''}
                     </div>
                     ${item.review ? `<p class="portfolio-desc">${item.review}</p>` : ''}
-                    <div class="portfolio-contribution">
-                        <span class="contribution-label">기여도: ${item.contribution}%</span>
-                        <div class="contribution-bar">
-                            <div class="contribution-fill" style="width: ${item.contribution}%"></div>
-                        </div>
+                    <div class="portfolio-contributions">
+                        ${contributionsHTML}
                     </div>
                     <div class="portfolio-links">
                         ${linksHTML}

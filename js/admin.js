@@ -204,13 +204,13 @@ class AdminPanel {
         const logoType = document.getElementById('logo-type').value;
         const logoText = document.getElementById('logo-text').value;
         const logoImageUrl = document.getElementById('logo-image-url').value;
-        const fontPrimary = document.getElementById('font-primary').value;
-        const fontSecondary = document.getElementById('font-secondary').value;
-        const fontGoogleUrl = document.getElementById('font-google-url').value;
+        const fontTitle = document.getElementById('font-title').value;
+        const fontContent = document.getElementById('font-content').value;
+        const fontFaceCode = document.getElementById('font-face-code').value;
 
         dataManager.updateSiteSettings({
             logo: { type: logoType, text: logoText, imageUrl: logoImageUrl },
-            font: { primary: fontPrimary, secondary: fontSecondary, googleFontUrl: fontGoogleUrl }
+            font: { title: fontTitle, content: fontContent, fontFaceCode: fontFaceCode }
         });
     }
 
@@ -508,9 +508,9 @@ class AdminPanel {
         }
 
         // Font
-        document.getElementById('font-primary').value = settings.font?.primary || 'Paperlogse';
-        document.getElementById('font-secondary').value = settings.font?.secondary || 'Pretendard';
-        document.getElementById('font-google-url').value = settings.font?.googleFontUrl || '';
+        document.getElementById('font-title').value = settings.font?.title || 'Paperlogse';
+        document.getElementById('font-content').value = settings.font?.content || 'Pretendard';
+        document.getElementById('font-face-code').value = settings.font?.fontFaceCode || '';
     }
 
     renderProfile() {
@@ -827,7 +827,7 @@ class AdminPanel {
             <div class="item-card">
                 <div class="item-card-content">
                     <div class="item-card-title">${item.company} 면접</div>
-                    <div class="item-card-desc">${item.date} ${item.time}</div>
+                    <div class="item-card-desc">${item.date} ${item.time}${item.location ? ` - ${item.location}` : ''}</div>
                 </div>
                 <div class="item-card-actions">
                     <button class="btn-icon btn-icon-edit" data-action="edit-interview" data-id="${item.id}">✏️</button>
@@ -1170,6 +1170,17 @@ class AdminPanel {
             .map(m => `<option value="${m.id}" ${(existing?.section || section) === m.id ? 'selected' : ''}>${m.label}</option>`)
             .join('');
 
+        // Get existing contributions or create default
+        const existingContributions = existing?.contributions || (existing?.contribution ? [{ label: '기여도', value: existing.contribution }] : [{ label: '디자인', value: 50 }]);
+
+        const contributionsHTML = existingContributions.map((c, i) => `
+            <div class="contribution-input-item" data-index="${i}">
+                <input type="text" class="form-input" value="${c.label}" data-field="label" placeholder="역할명 (예: 기획)">
+                <input type="number" class="form-input" value="${c.value}" data-field="value" min="0" max="100" placeholder="%">
+                <button type="button" class="btn btn-accent btn-sm" data-action="remove-contribution">✕</button>
+            </div>
+        `).join('');
+
         const content = `
             <div class="form-group">
                 <label class="form-label">섹션</label>
@@ -1190,8 +1201,11 @@ class AdminPanel {
                 <input type="text" class="form-input" id="modal-portfolio-target" value="${existing?.target || ''}">
             </div>
             <div class="form-group">
-                <label class="form-label">기여도 (%)</label>
-                <input type="number" class="form-input" id="modal-portfolio-contribution" value="${existing?.contribution || 50}" min="0" max="100">
+                <label class="form-label">기여도 (역할별)</label>
+                <div id="contributions-container" style="display: flex; flex-direction: column; gap: var(--space-sm);">
+                    ${contributionsHTML}
+                </div>
+                <button type="button" class="btn btn-secondary btn-sm" id="btn-add-contribution" style="margin-top: var(--space-sm);">+ 기여도 추가</button>
             </div>
             <div class="form-group">
                 <label class="form-label">제작후기</label>
@@ -1213,23 +1227,51 @@ class AdminPanel {
 
         this.openModal(existing ? '작품 수정' : '작품 추가', content);
 
+        // Add contribution button
+        document.getElementById('btn-add-contribution')?.addEventListener('click', () => {
+            const container = document.getElementById('contributions-container');
+            const index = container.children.length;
+            const newItem = document.createElement('div');
+            newItem.className = 'contribution-input-item';
+            newItem.dataset.index = index;
+            newItem.innerHTML = `
+                <input type="text" class="form-input" value="" data-field="label" placeholder="역할명 (예: 기획)">
+                <input type="number" class="form-input" value="50" data-field="value" min="0" max="100" placeholder="%">
+                <button type="button" class="btn btn-accent btn-sm" data-action="remove-contribution">✕</button>
+            `;
+            container.appendChild(newItem);
+            this.bindContributionRemove();
+        });
+
+        this.bindContributionRemove();
+
         document.getElementById('modal-save').addEventListener('click', () => {
             const selectedSection = document.getElementById('modal-portfolio-section').value;
             const title = document.getElementById('modal-portfolio-title').value.trim();
             const subject = document.getElementById('modal-portfolio-subject').value.trim();
             const target = document.getElementById('modal-portfolio-target').value.trim();
-            const contribution = parseInt(document.getElementById('modal-portfolio-contribution').value) || 50;
             const review = document.getElementById('modal-portfolio-review').value.trim();
             const thumbnails = document.getElementById('modal-portfolio-thumbnails').value.split(',').map(s => s.trim()).filter(s => s);
             const linkUrl = document.getElementById('modal-portfolio-link').value.trim();
             const links = linkUrl ? [{ label: '상세보기', url: linkUrl }] : [];
+
+            // Collect contributions
+            const contributionsContainer = document.getElementById('contributions-container');
+            const contributions = [];
+            contributionsContainer.querySelectorAll('.contribution-input-item').forEach(item => {
+                const label = item.querySelector('[data-field="label"]').value.trim();
+                const value = parseInt(item.querySelector('[data-field="value"]').value) || 0;
+                if (label) {
+                    contributions.push({ label, value });
+                }
+            });
 
             if (!title) {
                 alert('제목을 입력해주세요.');
                 return;
             }
 
-            const item = { title, subject, target, contribution, review, thumbnails, links };
+            const item = { title, subject, target, contributions, review, thumbnails, links };
 
             if (existing) {
                 dataManager.updatePortfolioItem(editId, { ...item, section: selectedSection });
@@ -1243,6 +1285,19 @@ class AdminPanel {
         });
 
         document.getElementById('modal-cancel').addEventListener('click', () => this.closeModal());
+    }
+
+    bindContributionRemove() {
+        document.querySelectorAll('[data-action="remove-contribution"]').forEach(btn => {
+            btn.onclick = () => {
+                const container = document.getElementById('contributions-container');
+                if (container.children.length > 1) {
+                    btn.closest('.contribution-input-item').remove();
+                } else {
+                    alert('최소 1개의 기여도가 필요합니다.');
+                }
+            };
+        });
     }
 
     showProjectModal(projectType, editId = null) {
@@ -1378,6 +1433,10 @@ class AdminPanel {
                 <label class="form-label">시간 (HH:MM)</label>
                 <input type="time" class="form-input" id="modal-interview-time" value="${existing?.time || ''}">
             </div>
+            <div class="form-group">
+                <label class="form-label">위치</label>
+                <input type="text" class="form-input" id="modal-interview-location" value="${existing?.location || ''}" placeholder="예: 강남역 2번출구">
+            </div>
             <div class="form-actions">
                 <button class="btn btn-primary" id="modal-save">${existing ? '수정' : '추가'}</button>
                 <button class="btn btn-secondary" id="modal-cancel">취소</button>
@@ -1390,6 +1449,7 @@ class AdminPanel {
             const company = document.getElementById('modal-interview-company').value.trim();
             const date = document.getElementById('modal-interview-date').value;
             const time = document.getElementById('modal-interview-time').value;
+            const location = document.getElementById('modal-interview-location').value.trim();
 
             if (!company || !date) {
                 alert('회사명과 날짜를 입력해주세요.');
@@ -1397,9 +1457,9 @@ class AdminPanel {
             }
 
             if (existing) {
-                dataManager.updateInterview(editId, { company, date, time });
+                dataManager.updateInterview(editId, { company, date, time, location });
             } else {
-                dataManager.addInterview({ company, date, time });
+                dataManager.addInterview({ company, date, time, location });
             }
 
             this.data = dataManager.getData();
