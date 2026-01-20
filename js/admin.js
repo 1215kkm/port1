@@ -100,6 +100,13 @@ class AdminPanel {
         document.getElementById('btn-add-interview')?.addEventListener('click', () => this.showInterviewModal());
         document.getElementById('btn-add-theme')?.addEventListener('click', () => this.showThemeModal());
 
+        // Save emoji icons button
+        document.getElementById('btn-save-emoji')?.addEventListener('click', () => {
+            this.saveEmojiIcons();
+            dataManager.saveAll();
+            alert('이모지 아이콘이 저장되었습니다.');
+        });
+
         // Logo type change
         document.getElementById('logo-type')?.addEventListener('change', (e) => {
             const textGroup = document.getElementById('logo-text-group');
