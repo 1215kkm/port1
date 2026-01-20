@@ -20,7 +20,6 @@ class AdminPanel {
 
         // Initialize all renderers
         this.renderMenuList();
-        this.renderSectionOrder();
         this.renderSiteSettings();
         this.renderProfile();
         this.renderAITools();
@@ -327,7 +326,7 @@ class AdminPanel {
     // Drag and Drop
     // =====================
     initDragAndDrop() {
-        const container = document.getElementById('section-order');
+        const container = document.getElementById('menu-list');
         if (!container) return;
 
         let draggedItem = null;
@@ -342,7 +341,7 @@ class AdminPanel {
         container.addEventListener('dragend', (e) => {
             if (e.target.classList.contains('sort-item')) {
                 e.target.classList.remove('dragging');
-                this.saveSectionOrder();
+                this.saveMenuOrder();
             }
         });
 
@@ -373,11 +372,15 @@ class AdminPanel {
         }, { offset: Number.NEGATIVE_INFINITY }).element;
     }
 
-    saveSectionOrder() {
-        const container = document.getElementById('section-order');
+    saveMenuOrder() {
+        const container = document.getElementById('menu-list');
         const items = container.querySelectorAll('.sort-item');
         const newOrder = Array.from(items).map(item => item.dataset.section);
         dataManager.reorderSections(newOrder);
+        // Also reorder menuItems
+        const orderedMenuItems = newOrder.map(id => this.data.menuItems.find(m => m.id === id)).filter(Boolean);
+        dataManager.set('menuItems', orderedMenuItems);
+        this.data = dataManager.getData();
     }
 
     // =====================
@@ -450,13 +453,18 @@ class AdminPanel {
         const container = document.getElementById('menu-list');
         if (!container) return;
 
-        container.innerHTML = this.data.menuItems.map(item => `
-            <div class="item-card" style="background: #333; border-color: #444; color: #fff;">
-                <div class="item-card-content">
-                    <div class="item-card-title">${item.label}</div>
-                    <div class="item-card-desc" style="color: #888;">#${item.id} ${item.isPortfolio ? '(작품섹션)' : ''}</div>
-                </div>
-                <div class="item-card-actions">
+        // Sort menu items by sectionOrder
+        const orderedItems = [...this.data.menuItems].sort((a, b) => {
+            const indexA = this.data.sectionOrder.indexOf(a.id);
+            const indexB = this.data.sectionOrder.indexOf(b.id);
+            return indexA - indexB;
+        });
+
+        container.innerHTML = orderedItems.map(item => `
+            <div class="sort-item" draggable="true" data-section="${item.id}">
+                <span class="sort-handle">☰</span>
+                <span class="section-link" data-target="${item.id}">${item.label}</span>
+                <div class="item-card-actions" style="margin-left: auto;">
                     <button class="btn-icon btn-icon-edit" data-action="edit-menu" data-id="${item.id}" style="background: #444; border-color: #555;">✏️</button>
                     ${item.id !== 'about' && item.id !== 'contact' ? `
                         <button class="btn-icon btn-icon-delete" data-action="delete-menu" data-id="${item.id}" style="background: #444; border-color: #555;">🗑️</button>
@@ -465,44 +473,32 @@ class AdminPanel {
             </div>
         `).join('');
 
-        container.querySelectorAll('[data-action="edit-menu"]').forEach(btn => {
-            btn.addEventListener('click', () => this.showMenuModal(btn.dataset.id));
-        });
-
-        container.querySelectorAll('[data-action="delete-menu"]').forEach(btn => {
-            btn.addEventListener('click', () => {
-                if (confirm('이 메뉴를 삭제하시겠습니까?')) {
-                    dataManager.deleteMenuItem(btn.dataset.id);
-                    this.data = dataManager.getData();
-                    this.renderMenuList();
-                    this.renderSectionOrder();
-                    this.renderPortfolioSections();
-                }
-            });
-        });
-    }
-
-    renderSectionOrder() {
-        const container = document.getElementById('section-order');
-        if (!container) return;
-
-        const menuMap = {};
-        this.data.menuItems.forEach(m => menuMap[m.id] = m.label);
-
-        container.innerHTML = this.data.sectionOrder.map(sectionId => `
-            <div class="sort-item" draggable="true" data-section="${sectionId}">
-                <span class="sort-handle">☰</span>
-                <span class="section-link" data-target="${sectionId}">${menuMap[sectionId] || sectionId}</span>
-            </div>
-        `).join('');
-
-        // Section link click - scroll to section
+        // Click to scroll to section
         container.querySelectorAll('.section-link').forEach(link => {
             link.addEventListener('click', () => {
                 const target = link.dataset.target;
                 const section = document.getElementById(`section-${target}`);
                 if (section) {
                     section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
+
+        container.querySelectorAll('[data-action="edit-menu"]').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.showMenuModal(btn.dataset.id);
+            });
+        });
+
+        container.querySelectorAll('[data-action="delete-menu"]').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (confirm('이 메뉴를 삭제하시겠습니까?')) {
+                    dataManager.deleteMenuItem(btn.dataset.id);
+                    this.data = dataManager.getData();
+                    this.renderMenuList();
+                    this.renderPortfolioSections();
                 }
             });
         });
@@ -723,18 +719,21 @@ class AdminPanel {
 
                         <h3 style="margin-bottom: var(--space-md);">작품 목록</h3>
                         <div class="portfolio-items-list" data-section="${menu.id}">
-                            ${items.map(item => `
+                            ${items.map(item => {
+                                const contributions = item.contributions || (item.contribution ? [{ label: '기여도', value: item.contribution }] : []);
+                                const contributionText = contributions.map(c => `${c.label}: ${c.value}%`).join(', ') || '-';
+                                return `
                                 <div class="item-card">
                                     <div class="item-card-content">
                                         <div class="item-card-title">${item.title}</div>
-                                        <div class="item-card-desc">기여도: ${item.contribution}%</div>
+                                        <div class="item-card-desc">${contributionText}</div>
                                     </div>
                                     <div class="item-card-actions">
                                         <button class="btn-icon btn-icon-edit" data-action="edit-portfolio" data-id="${item.id}">✏️</button>
                                         <button class="btn-icon btn-icon-delete" data-action="delete-portfolio" data-id="${item.id}">🗑️</button>
                                     </div>
                                 </div>
-                            `).join('')}
+                            `}).join('')}
                         </div>
                         <button class="add-btn" data-action="add-portfolio" data-section="${menu.id}">+ 작품 추가</button>
                     </div>
@@ -1115,7 +1114,6 @@ class AdminPanel {
 
             this.data = dataManager.getData();
             this.renderMenuList();
-            this.renderSectionOrder();
             this.renderPortfolioSections();
             this.closeModal();
         });
