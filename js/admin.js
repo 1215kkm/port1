@@ -279,16 +279,23 @@ class AdminPanel {
     }
 
     saveEmojiIcons() {
+        const getIconData = (prefix) => {
+            const type = document.getElementById(`icon-${prefix}-type`)?.value || 'emoji';
+            const emoji = document.getElementById(`emoji-${prefix}`)?.value || '';
+            const imageUrl = document.getElementById(`icon-${prefix}-image`)?.value || '';
+            return { type, emoji, imageUrl };
+        };
+
         const emojiIcons = {
             intro: {
-                solo: document.getElementById('emoji-intro-solo')?.value || '👤',
-                ai: document.getElementById('emoji-intro-ai')?.value || '🤖',
-                team: document.getElementById('emoji-intro-team')?.value || '👥'
+                solo: getIconData('intro-solo'),
+                ai: getIconData('intro-ai'),
+                team: getIconData('intro-team')
             },
             contact: {
-                name: document.getElementById('emoji-contact-name')?.value || '👤',
-                phone: document.getElementById('emoji-contact-phone')?.value || '📞',
-                email: document.getElementById('emoji-contact-email')?.value || '✉️'
+                name: getIconData('contact-name'),
+                phone: getIconData('contact-phone'),
+                email: getIconData('contact-email')
             }
         };
         dataManager.set('emojiIcons', emojiIcons);
@@ -856,19 +863,78 @@ class AdminPanel {
         const intro = emojiIcons.intro || {};
         const contact = emojiIcons.contact || {};
 
-        const soloEl = document.getElementById('emoji-intro-solo');
-        const aiEl = document.getElementById('emoji-intro-ai');
-        const teamEl = document.getElementById('emoji-intro-team');
-        const nameEl = document.getElementById('emoji-contact-name');
-        const phoneEl = document.getElementById('emoji-contact-phone');
-        const emailEl = document.getElementById('emoji-contact-email');
+        // Helper to get icon data (supports both old string format and new object format)
+        const getIconValue = (data, defaultEmoji) => {
+            if (typeof data === 'string') {
+                return { type: 'emoji', emoji: data, imageUrl: '' };
+            }
+            return {
+                type: data?.type || 'emoji',
+                emoji: data?.emoji || defaultEmoji,
+                imageUrl: data?.imageUrl || ''
+            };
+        };
 
-        if (soloEl) soloEl.value = intro.solo || '👤';
-        if (aiEl) aiEl.value = intro.ai || '🤖';
-        if (teamEl) teamEl.value = intro.team || '👥';
-        if (nameEl) nameEl.value = contact.name || '👤';
-        if (phoneEl) phoneEl.value = contact.phone || '📞';
-        if (emailEl) emailEl.value = contact.email || '✉️';
+        const icons = {
+            'intro-solo': getIconValue(intro.solo, '👤'),
+            'intro-ai': getIconValue(intro.ai, '🤖'),
+            'intro-team': getIconValue(intro.team, '👥'),
+            'contact-name': getIconValue(contact.name, '👤'),
+            'contact-phone': getIconValue(contact.phone, '📞'),
+            'contact-email': getIconValue(contact.email, '✉️')
+        };
+
+        // Set values and setup event listeners for each icon
+        Object.entries(icons).forEach(([prefix, data]) => {
+            const typeEl = document.getElementById(`icon-${prefix}-type`);
+            const emojiEl = document.getElementById(`emoji-${prefix}`);
+            const imageEl = document.getElementById(`icon-${prefix}-image`);
+            const previewEl = document.getElementById(`icon-${prefix}-preview`);
+
+            if (typeEl) typeEl.value = data.type;
+            if (emojiEl) emojiEl.value = data.emoji;
+            if (imageEl) imageEl.value = data.imageUrl;
+
+            // Toggle visibility based on type
+            this.toggleIconInputs(prefix, data.type);
+
+            // Update preview if image
+            if (data.type === 'image' && data.imageUrl && previewEl) {
+                previewEl.innerHTML = `<img src="${data.imageUrl}" style="max-width: 100%; max-height: 100%; object-fit: contain;">`;
+            }
+
+            // Add type change listener
+            if (typeEl) {
+                typeEl.addEventListener('change', (e) => {
+                    this.toggleIconInputs(prefix, e.target.value);
+                });
+            }
+
+            // Add image URL change listener for preview
+            if (imageEl) {
+                imageEl.addEventListener('input', () => {
+                    if (previewEl && imageEl.value) {
+                        previewEl.innerHTML = `<img src="${imageEl.value}" style="max-width: 100%; max-height: 100%; object-fit: contain;">`;
+                    }
+                });
+            }
+        });
+    }
+
+    toggleIconInputs(prefix, type) {
+        const emojiEl = document.getElementById(`emoji-${prefix}`);
+        const imageEl = document.getElementById(`icon-${prefix}-image`);
+        const previewEl = document.getElementById(`icon-${prefix}-preview`);
+
+        if (type === 'image') {
+            if (emojiEl) emojiEl.style.display = 'none';
+            if (imageEl) imageEl.style.display = 'block';
+            if (previewEl) previewEl.style.display = 'block';
+        } else {
+            if (emojiEl) emojiEl.style.display = 'block';
+            if (imageEl) imageEl.style.display = 'none';
+            if (previewEl) previewEl.style.display = 'none';
+        }
     }
 
     renderInterviews() {

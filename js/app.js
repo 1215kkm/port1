@@ -1033,15 +1033,25 @@ class PageInitializer {
         const messageEl = document.querySelector('[data-content="contact-message"]');
         if (messageEl) messageEl.textContent = contact.message;
 
-        // Render emoji icons
-        const nameIcon = document.querySelector('[data-emoji="contact-name"]');
-        if (nameIcon && emojiIcons.name) nameIcon.textContent = emojiIcons.name;
+        // Render emoji/image icons
+        this.renderIcon('[data-emoji="contact-name"]', emojiIcons.name, '👤');
+        this.renderIcon('[data-emoji="contact-phone"]', emojiIcons.phone, '📞');
+        this.renderIcon('[data-emoji="contact-email"]', emojiIcons.email, '✉️');
+    }
 
-        const phoneIcon = document.querySelector('[data-emoji="contact-phone"]');
-        if (phoneIcon && emojiIcons.phone) phoneIcon.textContent = emojiIcons.phone;
+    // Helper to render icon (emoji or image)
+    renderIcon(selector, iconData, defaultEmoji) {
+        const el = document.querySelector(selector);
+        if (!el) return;
 
-        const emailIcon = document.querySelector('[data-emoji="contact-email"]');
-        if (emailIcon && emojiIcons.email) emailIcon.textContent = emojiIcons.email;
+        // Handle both old string format and new object format
+        if (typeof iconData === 'string') {
+            el.textContent = iconData || defaultEmoji;
+        } else if (iconData?.type === 'image' && iconData?.imageUrl) {
+            el.innerHTML = `<img src="${iconData.imageUrl}" style="width: 1em; height: 1em; vertical-align: middle; object-fit: contain;">`;
+        } else {
+            el.textContent = iconData?.emoji || defaultEmoji;
+        }
     }
 
     renderMenu() {
