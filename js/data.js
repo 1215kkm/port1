@@ -114,10 +114,10 @@ const defaultData = {
         "detail-page": "single"
     },
 
-    // Portfolio Items (Solo) - organized by section
+    // Portfolio Items (Solo) - organized by section (각 섹션 1개씩 샘플)
     portfolioSolo: {
         items: [
-            // 웹&모바일 섹션 샘플
+            // 웹&모바일 섹션 샘플 (1개)
             {
                 id: 1,
                 section: "web-mobile",
@@ -133,55 +133,10 @@ const defaultData = {
                 thumbnails: ["images/web-mobile-01.svg"],
                 links: [{ label: "상세보기", url: "#" }]
             },
+
+            // 팝업&배너 섹션 샘플 (1개)
             {
                 id: 2,
-                section: "web-mobile",
-                title: "쇼핑몰 모바일 앱 UI",
-                subject: "패션 쇼핑몰 앱",
-                target: "20-30대 여성",
-                contributions: [
-                    { label: "기획", value: 60 },
-                    { label: "디자인", value: 95 },
-                    { label: "퍼블", value: 80 }
-                ],
-                review: "사용자 여정 맵을 기반으로 직관적인 쇼핑 경험을 설계했습니다.",
-                thumbnails: ["images/web-mobile-02.svg"],
-                links: [{ label: "상세보기", url: "#" }]
-            },
-            {
-                id: 3,
-                section: "web-mobile",
-                title: "교육 플랫폼 웹사이트",
-                subject: "온라인 교육 서비스",
-                target: "학생 및 직장인",
-                contributions: [
-                    { label: "기획", value: 50 },
-                    { label: "디자인", value: 80 },
-                    { label: "퍼블", value: 75 }
-                ],
-                review: "학습 효율을 높이는 UI 컴포넌트를 설계하고 구현했습니다.",
-                thumbnails: ["images/web-mobile-03.svg"],
-                links: [{ label: "상세보기", url: "#" }]
-            },
-            {
-                id: 4,
-                section: "web-mobile",
-                title: "헬스케어 앱 리디자인",
-                subject: "건강 관리 앱",
-                target: "30-50대 건강 관심층",
-                contributions: [
-                    { label: "기획", value: 65 },
-                    { label: "디자인", value: 85 },
-                    { label: "퍼블", value: 80 }
-                ],
-                review: "데이터 시각화에 중점을 두어 사용자가 건강 상태를 쉽게 파악할 수 있도록 했습니다.",
-                thumbnails: ["images/web-mobile-04.svg"],
-                links: [{ label: "상세보기", url: "#" }]
-            },
-
-            // 팝업&배너 섹션 샘플
-            {
-                id: 5,
                 section: "popup-banner",
                 title: "시즌 세일 팝업 디자인",
                 subject: "프로모션 팝업",
@@ -193,50 +148,10 @@ const defaultData = {
                 thumbnails: ["images/popup-banner-01.svg"],
                 links: [{ label: "상세보기", url: "#" }]
             },
-            {
-                id: 6,
-                section: "popup-banner",
-                title: "신규 회원 가입 배너",
-                subject: "회원가입 유도 배너",
-                target: "비회원 방문자",
-                contributions: [
-                    { label: "디자인", value: 100 }
-                ],
-                review: "혜택을 명확히 전달하는 카피와 디자인으로 가입률을 높였습니다.",
-                thumbnails: ["images/popup-banner-02.svg"],
-                links: [{ label: "상세보기", url: "#" }]
-            },
-            {
-                id: 7,
-                section: "popup-banner",
-                title: "이벤트 공지 팝업",
-                subject: "이벤트 안내",
-                target: "전체 사용자",
-                contributions: [
-                    { label: "기획", value: 80 },
-                    { label: "디자인", value: 95 }
-                ],
-                review: "브랜드 톤앤매너를 유지하면서 정보 전달력을 높였습니다.",
-                thumbnails: ["images/popup-banner-03.svg"],
-                links: [{ label: "상세보기", url: "#" }]
-            },
-            {
-                id: 8,
-                section: "popup-banner",
-                title: "앱 다운로드 유도 배너",
-                subject: "앱 설치 배너",
-                target: "모바일 웹 방문자",
-                contributions: [
-                    { label: "디자인", value: 100 }
-                ],
-                review: "모바일 환경에 최적화된 배너로 앱 설치 전환율을 개선했습니다.",
-                thumbnails: ["images/popup-banner-04.svg"],
-                links: [{ label: "상세보기", url: "#" }]
-            },
 
-            // 상세페이지 섹션 샘플
+            // 상세페이지 섹션 샘플 (1개)
             {
-                id: 9,
+                id: 3,
                 section: "detail-page",
                 title: "화장품 상세페이지",
                 subject: "스킨케어 제품",
@@ -246,47 +161,6 @@ const defaultData = {
                 ],
                 review: "제품의 특장점을 시각적으로 효과적으로 전달하여 구매 전환율을 높였습니다.",
                 thumbnails: ["images/detail-page-01.svg"],
-                links: [{ label: "상세보기", url: "#" }]
-            },
-            {
-                id: 10,
-                section: "detail-page",
-                title: "가전제품 상세페이지",
-                subject: "공기청정기",
-                target: "가정주부",
-                contributions: [
-                    { label: "기획", value: 70 },
-                    { label: "디자인", value: 90 }
-                ],
-                review: "기술 스펙을 쉽게 이해할 수 있도록 인포그래픽을 활용했습니다.",
-                thumbnails: ["images/detail-page-02.svg"],
-                links: [{ label: "상세보기", url: "#" }]
-            },
-            {
-                id: 11,
-                section: "detail-page",
-                title: "식품 상세페이지",
-                subject: "건강식품",
-                target: "건강 관심층",
-                contributions: [
-                    { label: "디자인", value: 85 }
-                ],
-                review: "신뢰감을 주는 디자인과 성분 정보 시각화로 구매 결정을 도왔습니다.",
-                thumbnails: ["images/detail-page-03.svg"],
-                links: [{ label: "상세보기", url: "#" }]
-            },
-            {
-                id: 12,
-                section: "detail-page",
-                title: "패션 상세페이지",
-                subject: "의류 상품",
-                target: "20-30대",
-                contributions: [
-                    { label: "기획", value: 80 },
-                    { label: "디자인", value: 95 }
-                ],
-                review: "다양한 착용샷과 사이즈 가이드로 온라인 쇼핑의 불안감을 해소했습니다.",
-                thumbnails: ["images/detail-page-04.svg"],
                 links: [{ label: "상세보기", url: "#" }]
             }
         ]
@@ -483,10 +357,10 @@ Slack과 Notion을 통해 디자인 피드백을 체계적으로 관리했습니
 
     // Interview Schedule
     interviews: [
-        { id: 1, date: "2025-02-10", company: "주노소프트", time: "14:00", location: "강남역 2번출구" },
-        { id: 2, date: "2025-02-15", company: "웹네스트", time: "10:30", location: "판교 테크노밸리" },
-        { id: 3, date: "2025-02-20", company: "디자인허브", time: "15:00", location: "홍대입구역" },
-        { id: 4, date: "2025-02-25", company: "크리에이티브랩", time: "11:00", location: "삼성역 코엑스" }
+        { id: 1, date: "2026-01-15", company: "주노소프트", time: "14:00", location: "강남역 2번출구" },
+        { id: 2, date: "2026-01-22", company: "웹네스트", time: "10:30", location: "판교 테크노밸리" },
+        { id: 3, date: "2026-02-05", company: "디자인허브", time: "15:00", location: "홍대입구역" },
+        { id: 4, date: "2026-02-18", company: "크리에이티브랩", time: "11:00", location: "삼성역 코엑스" }
     ],
 
     // Theme Settings
