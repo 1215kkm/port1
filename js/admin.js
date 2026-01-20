@@ -1350,8 +1350,20 @@ class AdminPanel {
                 <textarea class="form-textarea" id="modal-portfolio-review">${existing?.review || ''}</textarea>
             </div>
             <div class="form-group">
-                <label class="form-label">썸네일 URL (쉼표로 구분)</label>
-                <input type="text" class="form-input" id="modal-portfolio-thumbnails" value="${(existing?.thumbnails || []).join(', ')}">
+                <label class="form-label">썸네일 이미지</label>
+                <div id="modal-portfolio-thumbnails-preview" style="display: flex; flex-wrap: wrap; gap: var(--space-sm); margin-bottom: var(--space-sm);">
+                    ${(existing?.thumbnails || []).map((url, i) => `
+                        <div class="thumbnail-preview-item" data-index="${i}" style="position: relative; width: 80px; height: 80px; border: 1px solid var(--color-border); border-radius: var(--radius-sm); overflow: hidden;">
+                            <img src="${url}" style="width: 100%; height: 100%; object-fit: cover;">
+                            <button type="button" class="btn-remove-thumbnail" data-index="${i}" style="position: absolute; top: 2px; right: 2px; width: 20px; height: 20px; border-radius: 50%; background: rgba(0,0,0,0.6); color: white; border: none; cursor: pointer; font-size: 12px;">✕</button>
+                        </div>
+                    `).join('')}
+                </div>
+                <div style="display: flex; gap: var(--space-sm);">
+                    <input type="file" id="modal-portfolio-file" accept="image/*" multiple style="display: none;">
+                    <button type="button" class="btn btn-secondary btn-sm" id="btn-portfolio-add-image">📁 이미지 추가</button>
+                </div>
+                <input type="hidden" id="modal-portfolio-thumbnails" value="${(existing?.thumbnails || []).join('|||')}">
             </div>
             <div class="form-group">
                 <label class="form-label">링크 URL</label>
@@ -1383,13 +1395,44 @@ class AdminPanel {
 
         this.bindContributionRemove();
 
+        // Image file upload for portfolio
+        const fileInput = document.getElementById('modal-portfolio-file');
+        const addImageBtn = document.getElementById('btn-portfolio-add-image');
+        const thumbnailsInput = document.getElementById('modal-portfolio-thumbnails');
+        const previewContainer = document.getElementById('modal-portfolio-thumbnails-preview');
+
+        addImageBtn?.addEventListener('click', () => fileInput?.click());
+
+        fileInput?.addEventListener('change', (e) => {
+            const files = e.target.files;
+            if (files.length > 0) {
+                Array.from(files).forEach(file => {
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        const base64 = event.target.result;
+                        // Add to thumbnails
+                        const currentThumbnails = thumbnailsInput.value ? thumbnailsInput.value.split('|||').filter(s => s) : [];
+                        currentThumbnails.push(base64);
+                        thumbnailsInput.value = currentThumbnails.join('|||');
+                        // Update preview
+                        this.updateThumbnailPreview(previewContainer, currentThumbnails);
+                    };
+                    reader.readAsDataURL(file);
+                });
+            }
+            fileInput.value = '';
+        });
+
+        // Bind remove buttons
+        this.bindThumbnailRemove(previewContainer, thumbnailsInput);
+
         document.getElementById('modal-save').addEventListener('click', () => {
             const selectedSection = document.getElementById('modal-portfolio-section').value;
             const title = document.getElementById('modal-portfolio-title').value.trim();
             const subject = document.getElementById('modal-portfolio-subject').value.trim();
             const target = document.getElementById('modal-portfolio-target').value.trim();
             const review = document.getElementById('modal-portfolio-review').value.trim();
-            const thumbnails = document.getElementById('modal-portfolio-thumbnails').value.split(',').map(s => s.trim()).filter(s => s);
+            const thumbnails = document.getElementById('modal-portfolio-thumbnails').value.split('|||').map(s => s.trim()).filter(s => s);
             const linkUrl = document.getElementById('modal-portfolio-link').value.trim();
             const links = linkUrl ? [{ label: '상세보기', url: linkUrl }] : [];
 
@@ -1423,6 +1466,54 @@ class AdminPanel {
         });
 
         document.getElementById('modal-cancel').addEventListener('click', () => this.closeModal());
+    }
+
+    updateThumbnailPreview(container, thumbnails) {
+        container.innerHTML = thumbnails.map((url, i) => `
+            <div class="thumbnail-preview-item" data-index="${i}" style="position: relative; width: 80px; height: 80px; border: 1px solid var(--color-border); border-radius: var(--radius-sm); overflow: hidden;">
+                <img src="${url}" style="width: 100%; height: 100%; object-fit: cover;">
+                <button type="button" class="btn-remove-thumbnail" data-index="${i}" style="position: absolute; top: 2px; right: 2px; width: 20px; height: 20px; border-radius: 50%; background: rgba(0,0,0,0.6); color: white; border: none; cursor: pointer; font-size: 12px;">✕</button>
+            </div>
+        `).join('');
+
+        const thumbnailsInput = document.getElementById('modal-portfolio-thumbnails');
+        this.bindThumbnailRemove(container, thumbnailsInput);
+    }
+
+    bindThumbnailRemove(container, thumbnailsInput) {
+        container.querySelectorAll('.btn-remove-thumbnail').forEach(btn => {
+            btn.onclick = () => {
+                const index = parseInt(btn.dataset.index);
+                const currentThumbnails = thumbnailsInput.value ? thumbnailsInput.value.split('|||').filter(s => s) : [];
+                currentThumbnails.splice(index, 1);
+                thumbnailsInput.value = currentThumbnails.join('|||');
+                this.updateThumbnailPreview(container, currentThumbnails);
+            };
+        });
+    }
+
+    updateProjectImagePreview(container, images) {
+        container.innerHTML = images.map((url, i) => `
+            <div class="thumbnail-preview-item" data-index="${i}" style="position: relative; width: 80px; height: 80px; border: 1px solid var(--color-border); border-radius: var(--radius-sm); overflow: hidden;">
+                <img src="${url}" style="width: 100%; height: 100%; object-fit: cover;">
+                <button type="button" class="btn-remove-project-image" data-index="${i}" style="position: absolute; top: 2px; right: 2px; width: 20px; height: 20px; border-radius: 50%; background: rgba(0,0,0,0.6); color: white; border: none; cursor: pointer; font-size: 12px;">✕</button>
+            </div>
+        `).join('');
+
+        const imagesInput = document.getElementById('modal-project-images');
+        this.bindProjectImageRemove(container, imagesInput);
+    }
+
+    bindProjectImageRemove(container, imagesInput) {
+        container.querySelectorAll('.btn-remove-project-image').forEach(btn => {
+            btn.onclick = () => {
+                const index = parseInt(btn.dataset.index);
+                const currentImages = imagesInput.value ? imagesInput.value.split('|||').filter(s => s) : [];
+                currentImages.splice(index, 1);
+                imagesInput.value = currentImages.join('|||');
+                this.updateProjectImagePreview(container, currentImages);
+            };
+        });
     }
 
     bindContributionRemove() {
@@ -1480,8 +1571,20 @@ class AdminPanel {
                 <textarea class="form-textarea" id="modal-project-conclusion">${existing?.descriptions?.conclusion || ''}</textarea>
             </div>
             <div class="form-group">
-                <label class="form-label">이미지 URL (쉼표로 구분)</label>
-                <input type="text" class="form-input" id="modal-project-images" value="${(existing?.images || []).join(', ')}">
+                <label class="form-label">이미지</label>
+                <div id="modal-project-images-preview" style="display: flex; flex-wrap: wrap; gap: var(--space-sm); margin-bottom: var(--space-sm);">
+                    ${(existing?.images || []).map((url, i) => `
+                        <div class="thumbnail-preview-item" data-index="${i}" style="position: relative; width: 80px; height: 80px; border: 1px solid var(--color-border); border-radius: var(--radius-sm); overflow: hidden;">
+                            <img src="${url}" style="width: 100%; height: 100%; object-fit: cover;">
+                            <button type="button" class="btn-remove-project-image" data-index="${i}" style="position: absolute; top: 2px; right: 2px; width: 20px; height: 20px; border-radius: 50%; background: rgba(0,0,0,0.6); color: white; border: none; cursor: pointer; font-size: 12px;">✕</button>
+                        </div>
+                    `).join('')}
+                </div>
+                <div style="display: flex; gap: var(--space-sm);">
+                    <input type="file" id="modal-project-file" accept="image/*" multiple style="display: none;">
+                    <button type="button" class="btn btn-secondary btn-sm" id="btn-project-add-image">📁 이미지 추가</button>
+                </div>
+                <input type="hidden" id="modal-project-images" value="${(existing?.images || []).join('|||')}">
             </div>
             <div class="form-group">
                 <label class="form-label">영상 URL</label>
@@ -1495,6 +1598,34 @@ class AdminPanel {
 
         this.openModal(existing ? '프로젝트 수정' : '프로젝트 추가', content);
 
+        // Image file upload for project
+        const projectFileInput = document.getElementById('modal-project-file');
+        const projectAddImageBtn = document.getElementById('btn-project-add-image');
+        const projectImagesInput = document.getElementById('modal-project-images');
+        const projectPreviewContainer = document.getElementById('modal-project-images-preview');
+
+        projectAddImageBtn?.addEventListener('click', () => projectFileInput?.click());
+
+        projectFileInput?.addEventListener('change', (e) => {
+            const files = e.target.files;
+            if (files.length > 0) {
+                Array.from(files).forEach(file => {
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        const base64 = event.target.result;
+                        const currentImages = projectImagesInput.value ? projectImagesInput.value.split('|||').filter(s => s) : [];
+                        currentImages.push(base64);
+                        projectImagesInput.value = currentImages.join('|||');
+                        this.updateProjectImagePreview(projectPreviewContainer, currentImages);
+                    };
+                    reader.readAsDataURL(file);
+                });
+            }
+            projectFileInput.value = '';
+        });
+
+        this.bindProjectImageRemove(projectPreviewContainer, projectImagesInput);
+
         document.getElementById('modal-save').addEventListener('click', () => {
             const title = document.getElementById('modal-project-title').value.trim();
             const team = document.getElementById('modal-project-team').value.trim();
@@ -1505,7 +1636,7 @@ class AdminPanel {
             const explanation = document.getElementById('modal-project-explanation').value.trim();
             const challenges = document.getElementById('modal-project-challenges').value.trim();
             const conclusion = document.getElementById('modal-project-conclusion').value.trim();
-            const images = document.getElementById('modal-project-images').value.split(',').map(s => s.trim()).filter(s => s);
+            const images = document.getElementById('modal-project-images').value.split('|||').map(s => s.trim()).filter(s => s);
             const videoUrl = document.getElementById('modal-project-video').value.trim();
 
             if (!title) {
