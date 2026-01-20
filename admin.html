@@ -656,99 +656,6 @@
                     <!-- Portfolio sections will be rendered dynamically -->
                 </div>
 
-                <!-- Emoji Icons Settings -->
-                <div class="settings-section">
-                    <h2 class="settings-section-title">아이콘 설정 (이모지/이미지)</h2>
-                    <div class="settings-section-content">
-                        <h3 style="margin-bottom: var(--space-md);">인트로 페이지 아이콘</h3>
-                        <div class="icon-settings-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-lg); margin-bottom: var(--space-xl);">
-                            <div class="icon-setting-item">
-                                <label class="form-label">혼자제작</label>
-                                <select class="form-select" id="icon-intro-solo-type" style="margin-bottom: var(--space-sm);">
-                                    <option value="emoji">이모지</option>
-                                    <option value="image">이미지</option>
-                                </select>
-                                <input type="text" class="form-input" id="emoji-intro-solo" placeholder="👤">
-                                <div id="icon-intro-solo-image-group" style="display: none; margin-top: var(--space-sm);">
-                                    <input type="file" id="icon-intro-solo-file" accept="image/*" style="display: none;">
-                                    <button type="button" class="btn btn-secondary btn-sm icon-file-btn" data-target="icon-intro-solo-file">📁 이미지 선택</button>
-                                </div>
-                                <div id="icon-intro-solo-preview" class="icon-preview" style="margin-top: var(--space-sm); width: 48px; height: 48px;"></div>
-                            </div>
-                            <div class="icon-setting-item">
-                                <label class="form-label">AI활용</label>
-                                <select class="form-select" id="icon-intro-ai-type" style="margin-bottom: var(--space-sm);">
-                                    <option value="emoji">이모지</option>
-                                    <option value="image">이미지</option>
-                                </select>
-                                <input type="text" class="form-input" id="emoji-intro-ai" placeholder="🤖">
-                                <div id="icon-intro-ai-image-group" style="display: none; margin-top: var(--space-sm);">
-                                    <input type="file" id="icon-intro-ai-file" accept="image/*" style="display: none;">
-                                    <button type="button" class="btn btn-secondary btn-sm icon-file-btn" data-target="icon-intro-ai-file">📁 이미지 선택</button>
-                                </div>
-                                <div id="icon-intro-ai-preview" class="icon-preview" style="margin-top: var(--space-sm); width: 48px; height: 48px;"></div>
-                            </div>
-                            <div class="icon-setting-item">
-                                <label class="form-label">팀플제작</label>
-                                <select class="form-select" id="icon-intro-team-type" style="margin-bottom: var(--space-sm);">
-                                    <option value="emoji">이모지</option>
-                                    <option value="image">이미지</option>
-                                </select>
-                                <input type="text" class="form-input" id="emoji-intro-team" placeholder="👥">
-                                <div id="icon-intro-team-image-group" style="display: none; margin-top: var(--space-sm);">
-                                    <input type="file" id="icon-intro-team-file" accept="image/*" style="display: none;">
-                                    <button type="button" class="btn btn-secondary btn-sm icon-file-btn" data-target="icon-intro-team-file">📁 이미지 선택</button>
-                                </div>
-                                <div id="icon-intro-team-preview" class="icon-preview" style="margin-top: var(--space-sm); width: 48px; height: 48px;"></div>
-                            </div>
-                        </div>
-
-                        <h3 style="margin-bottom: var(--space-md);">Contact 아이콘</h3>
-                        <div class="icon-settings-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-lg);">
-                            <div class="icon-setting-item">
-                                <label class="form-label">이름</label>
-                                <select class="form-select" id="icon-contact-name-type" style="margin-bottom: var(--space-sm);">
-                                    <option value="emoji">이모지</option>
-                                    <option value="image">이미지</option>
-                                </select>
-                                <input type="text" class="form-input" id="emoji-contact-name" placeholder="👤">
-                                <div id="icon-contact-name-image-group" style="display: none; margin-top: var(--space-sm);">
-                                    <input type="file" id="icon-contact-name-file" accept="image/*" style="display: none;">
-                                    <button type="button" class="btn btn-secondary btn-sm icon-file-btn" data-target="icon-contact-name-file">📁 이미지 선택</button>
-                                </div>
-                                <div id="icon-contact-name-preview" class="icon-preview" style="margin-top: var(--space-sm); width: 32px; height: 32px;"></div>
-                            </div>
-                            <div class="icon-setting-item">
-                                <label class="form-label">전화</label>
-                                <select class="form-select" id="icon-contact-phone-type" style="margin-bottom: var(--space-sm);">
-                                    <option value="emoji">이모지</option>
-                                    <option value="image">이미지</option>
-                                </select>
-                                <input type="text" class="form-input" id="emoji-contact-phone" placeholder="📞">
-                                <div id="icon-contact-phone-image-group" style="display: none; margin-top: var(--space-sm);">
-                                    <input type="file" id="icon-contact-phone-file" accept="image/*" style="display: none;">
-                                    <button type="button" class="btn btn-secondary btn-sm icon-file-btn" data-target="icon-contact-phone-file">📁 이미지 선택</button>
-                                </div>
-                                <div id="icon-contact-phone-preview" class="icon-preview" style="margin-top: var(--space-sm); width: 32px; height: 32px;"></div>
-                            </div>
-                            <div class="icon-setting-item">
-                                <label class="form-label">이메일</label>
-                                <select class="form-select" id="icon-contact-email-type" style="margin-bottom: var(--space-sm);">
-                                    <option value="emoji">이모지</option>
-                                    <option value="image">이미지</option>
-                                </select>
-                                <input type="text" class="form-input" id="emoji-contact-email" placeholder="✉️">
-                                <div id="icon-contact-email-image-group" style="display: none; margin-top: var(--space-sm);">
-                                    <input type="file" id="icon-contact-email-file" accept="image/*" style="display: none;">
-                                    <button type="button" class="btn btn-secondary btn-sm icon-file-btn" data-target="icon-contact-email-file">📁 이미지 선택</button>
-                                </div>
-                                <div id="icon-contact-email-preview" class="icon-preview" style="margin-top: var(--space-sm); width: 32px; height: 32px;"></div>
-                            </div>
-                        </div>
-                        <button class="btn btn-primary" id="btn-save-emoji" style="margin-top: var(--space-lg);">아이콘 설정 저장</button>
-                    </div>
-                </div>
-
                 <!-- Contact Settings -->
                 <div class="settings-section section-anchor" id="section-contact">
                     <h2 class="settings-section-title">Contact</h2>
@@ -997,6 +904,99 @@
                                 <input type="text" class="form-input" id="css-space-content" placeholder="1.5rem">
                             </div>
                         </div>
+                    </div>
+                </div>
+
+                <!-- Icon Settings -->
+                <div class="settings-section">
+                    <h2 class="settings-section-title">아이콘 설정 (이모지/이미지)</h2>
+                    <div class="settings-section-content">
+                        <h3 style="margin-bottom: var(--space-md);">인트로 페이지 아이콘</h3>
+                        <div class="icon-settings-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-lg); margin-bottom: var(--space-xl);">
+                            <div class="icon-setting-item">
+                                <label class="form-label">혼자제작</label>
+                                <select class="form-select" id="icon-intro-solo-type" style="margin-bottom: var(--space-sm);">
+                                    <option value="emoji">이모지</option>
+                                    <option value="image">이미지</option>
+                                </select>
+                                <input type="text" class="form-input" id="emoji-intro-solo" placeholder="👤">
+                                <div id="icon-intro-solo-image-group" style="display: none; margin-top: var(--space-sm);">
+                                    <input type="file" id="icon-intro-solo-file" accept="image/*" style="display: none;">
+                                    <button type="button" class="btn btn-secondary btn-sm icon-file-btn" data-target="icon-intro-solo-file">📁 이미지 선택</button>
+                                </div>
+                                <div id="icon-intro-solo-preview" class="icon-preview" style="margin-top: var(--space-sm); width: 48px; height: 48px;"></div>
+                            </div>
+                            <div class="icon-setting-item">
+                                <label class="form-label">AI활용</label>
+                                <select class="form-select" id="icon-intro-ai-type" style="margin-bottom: var(--space-sm);">
+                                    <option value="emoji">이모지</option>
+                                    <option value="image">이미지</option>
+                                </select>
+                                <input type="text" class="form-input" id="emoji-intro-ai" placeholder="🤖">
+                                <div id="icon-intro-ai-image-group" style="display: none; margin-top: var(--space-sm);">
+                                    <input type="file" id="icon-intro-ai-file" accept="image/*" style="display: none;">
+                                    <button type="button" class="btn btn-secondary btn-sm icon-file-btn" data-target="icon-intro-ai-file">📁 이미지 선택</button>
+                                </div>
+                                <div id="icon-intro-ai-preview" class="icon-preview" style="margin-top: var(--space-sm); width: 48px; height: 48px;"></div>
+                            </div>
+                            <div class="icon-setting-item">
+                                <label class="form-label">팀플제작</label>
+                                <select class="form-select" id="icon-intro-team-type" style="margin-bottom: var(--space-sm);">
+                                    <option value="emoji">이모지</option>
+                                    <option value="image">이미지</option>
+                                </select>
+                                <input type="text" class="form-input" id="emoji-intro-team" placeholder="👥">
+                                <div id="icon-intro-team-image-group" style="display: none; margin-top: var(--space-sm);">
+                                    <input type="file" id="icon-intro-team-file" accept="image/*" style="display: none;">
+                                    <button type="button" class="btn btn-secondary btn-sm icon-file-btn" data-target="icon-intro-team-file">📁 이미지 선택</button>
+                                </div>
+                                <div id="icon-intro-team-preview" class="icon-preview" style="margin-top: var(--space-sm); width: 48px; height: 48px;"></div>
+                            </div>
+                        </div>
+
+                        <h3 style="margin-bottom: var(--space-md);">Contact 아이콘</h3>
+                        <div class="icon-settings-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-lg);">
+                            <div class="icon-setting-item">
+                                <label class="form-label">이름</label>
+                                <select class="form-select" id="icon-contact-name-type" style="margin-bottom: var(--space-sm);">
+                                    <option value="emoji">이모지</option>
+                                    <option value="image">이미지</option>
+                                </select>
+                                <input type="text" class="form-input" id="emoji-contact-name" placeholder="👤">
+                                <div id="icon-contact-name-image-group" style="display: none; margin-top: var(--space-sm);">
+                                    <input type="file" id="icon-contact-name-file" accept="image/*" style="display: none;">
+                                    <button type="button" class="btn btn-secondary btn-sm icon-file-btn" data-target="icon-contact-name-file">📁 이미지 선택</button>
+                                </div>
+                                <div id="icon-contact-name-preview" class="icon-preview" style="margin-top: var(--space-sm); width: 32px; height: 32px;"></div>
+                            </div>
+                            <div class="icon-setting-item">
+                                <label class="form-label">전화</label>
+                                <select class="form-select" id="icon-contact-phone-type" style="margin-bottom: var(--space-sm);">
+                                    <option value="emoji">이모지</option>
+                                    <option value="image">이미지</option>
+                                </select>
+                                <input type="text" class="form-input" id="emoji-contact-phone" placeholder="📞">
+                                <div id="icon-contact-phone-image-group" style="display: none; margin-top: var(--space-sm);">
+                                    <input type="file" id="icon-contact-phone-file" accept="image/*" style="display: none;">
+                                    <button type="button" class="btn btn-secondary btn-sm icon-file-btn" data-target="icon-contact-phone-file">📁 이미지 선택</button>
+                                </div>
+                                <div id="icon-contact-phone-preview" class="icon-preview" style="margin-top: var(--space-sm); width: 32px; height: 32px;"></div>
+                            </div>
+                            <div class="icon-setting-item">
+                                <label class="form-label">이메일</label>
+                                <select class="form-select" id="icon-contact-email-type" style="margin-bottom: var(--space-sm);">
+                                    <option value="emoji">이모지</option>
+                                    <option value="image">이미지</option>
+                                </select>
+                                <input type="text" class="form-input" id="emoji-contact-email" placeholder="✉️">
+                                <div id="icon-contact-email-image-group" style="display: none; margin-top: var(--space-sm);">
+                                    <input type="file" id="icon-contact-email-file" accept="image/*" style="display: none;">
+                                    <button type="button" class="btn btn-secondary btn-sm icon-file-btn" data-target="icon-contact-email-file">📁 이미지 선택</button>
+                                </div>
+                                <div id="icon-contact-email-preview" class="icon-preview" style="margin-top: var(--space-sm); width: 32px; height: 32px;"></div>
+                            </div>
+                        </div>
+                        <button class="btn btn-primary" id="btn-save-emoji" style="margin-top: var(--space-lg);">아이콘 설정 저장</button>
                     </div>
                 </div>
             </div>
