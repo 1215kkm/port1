@@ -212,6 +212,8 @@ class AdminPanel {
         const logoImageUrl = document.getElementById('logo-image-url').value;
         const fontTitle = document.getElementById('font-title').value;
         const fontContent = document.getElementById('font-content').value;
+        const fontWeightTitle = document.getElementById('font-weight-title').value || '600';
+        const fontWeightContent = document.getElementById('font-weight-content').value || '400';
         const fontFaceTitle = document.getElementById('font-face-title').value;
         const fontFaceContent = document.getElementById('font-face-content').value;
         const fontColorTitle1 = document.getElementById('font-color-title1-text').value || '#212529';
@@ -223,6 +225,8 @@ class AdminPanel {
             font: {
                 title: fontTitle,
                 content: fontContent,
+                weightTitle: fontWeightTitle,
+                weightContent: fontWeightContent,
                 fontFaceTitle: fontFaceTitle,
                 fontFaceContent: fontFaceContent,
                 colors: {
@@ -534,6 +538,8 @@ class AdminPanel {
         // Font
         document.getElementById('font-title').value = settings.font?.title || 'Paperozi';
         document.getElementById('font-content').value = settings.font?.content || 'Paperozi';
+        document.getElementById('font-weight-title').value = settings.font?.weightTitle || '600';
+        document.getElementById('font-weight-content').value = settings.font?.weightContent || '400';
         document.getElementById('font-face-title').value = settings.font?.fontFaceTitle || '';
         document.getElementById('font-face-content').value = settings.font?.fontFaceContent || '';
 

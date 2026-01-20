@@ -12,6 +12,8 @@ const defaultData = {
         font: {
             title: 'Paperozi',
             content: 'Paperozi',
+            weightTitle: '600',
+            weightContent: '400',
             fontFaceTitle: `@font-face {
     font-family: 'Paperozi';
     src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2408-3@1.0/Paperlogy-1Thin.woff2') format('woff2');

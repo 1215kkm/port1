@@ -838,6 +838,14 @@ class PageInitializer {
             document.documentElement.style.setProperty('--font-content', `'${font.content}', sans-serif`);
         }
 
+        // Apply font weights
+        if (font.weightTitle) {
+            document.documentElement.style.setProperty('--font-weight-title', font.weightTitle);
+        }
+        if (font.weightContent) {
+            document.documentElement.style.setProperty('--font-weight-content', font.weightContent);
+        }
+
         // Apply font colors
         if (colors.title1) {
             document.documentElement.style.setProperty('--color-title1', colors.title1);
