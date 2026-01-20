@@ -114,6 +114,7 @@ class AdminPanel {
     }
 
     initImageUpload() {
+        // Profile image upload
         const uploadArea = document.getElementById('profile-image-upload');
         const fileInput = document.getElementById('profile-image-file');
         const urlInput = document.getElementById('profile-image');
@@ -135,13 +136,49 @@ class AdminPanel {
             });
         }
 
-        // URL input change
+        // URL input change for profile
         urlInput?.addEventListener('change', () => {
             if (urlInput.value) {
                 const preview = document.getElementById('profile-image-preview');
                 preview.innerHTML = `<img src="${urlInput.value}" alt="프로필">`;
             }
         });
+
+        // Logo image upload
+        const logoFileInput = document.getElementById('logo-image-file');
+        const logoUrlInput = document.getElementById('logo-image-url');
+        const logoUploadBtn = document.getElementById('btn-logo-upload');
+        const logoPreview = document.getElementById('logo-preview');
+
+        if (logoUploadBtn && logoFileInput) {
+            logoUploadBtn.addEventListener('click', () => logoFileInput.click());
+
+            logoFileInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        logoUrlInput.value = event.target.result;
+                        this.updateLogoPreview(event.target.result);
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+
+        // URL input change for logo
+        logoUrlInput?.addEventListener('change', () => {
+            this.updateLogoPreview(logoUrlInput.value);
+        });
+    }
+
+    updateLogoPreview(src) {
+        const logoPreview = document.getElementById('logo-preview');
+        if (logoPreview && src) {
+            logoPreview.innerHTML = `<img src="${src}" alt="로고" style="max-width: 100%; max-height: 100%; object-fit: contain;">`;
+        } else if (logoPreview) {
+            logoPreview.innerHTML = `<span style="color: var(--color-text-muted); font-size: var(--font-xs);">미리보기</span>`;
+        }
     }
 
     // =====================
@@ -447,6 +484,8 @@ class AdminPanel {
         if (settings.logo?.type === 'image') {
             textGroup.style.display = 'none';
             imageGroup.style.display = 'block';
+            // Show logo preview
+            this.updateLogoPreview(settings.logo?.imageUrl);
         }
 
         // Font

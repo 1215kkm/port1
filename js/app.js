@@ -758,6 +758,7 @@ class PageInitializer {
         this.initPortfolios();
 
         // Render dynamic content
+        this.renderLogo();
         this.renderProfile();
         this.renderAITools();
         this.renderExperience();
@@ -782,6 +783,7 @@ class PageInitializer {
     }
 
     renderAll() {
+        this.renderLogo();
         this.renderProfile();
         this.renderAITools();
         this.renderExperience();
@@ -801,15 +803,28 @@ class PageInitializer {
     }
 
     initPortfolios() {
-        // Initialize section portfolios
-        const sections = ['web-mobile', 'popup-banner', 'detail-page'];
-        sections.forEach(section => {
-            const container = document.querySelector(`#${section} .portfolio-container`);
+        // Initialize section portfolios based on menu items with isPortfolio flag
+        const portfolioMenus = this.data.menuItems.filter(m => m.isPortfolio);
+        portfolioMenus.forEach(menu => {
+            const container = document.querySelector(`#${menu.id} .portfolio-container`);
             if (container) {
-                const items = this.data.portfolioSolo.items.filter(i => i.section === section);
-                new PortfolioRenderer(container, items, this.data.portfolioSolo.displayMode).render();
+                const items = this.data.portfolioSolo.items.filter(i => i.section === menu.id);
+                const displayMode = this.data.sectionDisplayModes?.[menu.id] || 'grid';
+                new PortfolioRenderer(container, items, displayMode).render();
             }
         });
+    }
+
+    renderLogo() {
+        const logoEl = document.querySelector('.logo');
+        if (!logoEl) return;
+
+        const settings = this.data.siteSettings;
+        if (settings?.logo?.type === 'image' && settings.logo.imageUrl) {
+            logoEl.innerHTML = `<img src="${settings.logo.imageUrl}" alt="Logo" style="max-height: 50px; width: auto;">`;
+        } else {
+            logoEl.textContent = settings?.logo?.text || 'Portfolio';
+        }
     }
 
     renderProfile() {

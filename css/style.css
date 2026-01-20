@@ -226,10 +226,14 @@ ul, ol {
     transition: all var(--transition-fast);
 }
 
-.nav-link:hover,
-.nav-link.active {
+.nav-link:hover {
     color: var(--color-text);
     background: var(--color-bg-secondary);
+}
+
+.nav-link.active {
+    background: #222;
+    color: #fff;
 }
 
 .nav-buttons {

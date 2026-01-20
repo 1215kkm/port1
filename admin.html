@@ -523,8 +523,17 @@
                                 <input type="text" class="form-input" id="logo-text">
                             </div>
                             <div class="form-group" id="logo-image-group" style="display: none;">
-                                <label class="form-label">로고 이미지 URL</label>
-                                <input type="text" class="form-input" id="logo-image-url">
+                                <label class="form-label">로고 이미지</label>
+                                <div style="display: flex; gap: var(--space-md); align-items: flex-start;">
+                                    <div style="flex: 1;">
+                                        <input type="text" class="form-input" id="logo-image-url" placeholder="이미지 URL 또는 파일 업로드">
+                                        <input type="file" id="logo-image-file" accept="image/*" style="display: none;">
+                                        <button type="button" class="btn btn-secondary" id="btn-logo-upload" style="margin-top: var(--space-sm);">이미지 파일 선택</button>
+                                    </div>
+                                    <div id="logo-preview" style="width: 100px; height: 50px; border: 1px solid var(--color-border); border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; overflow: hidden;">
+                                        <span style="color: var(--color-text-muted); font-size: var(--font-xs);">미리보기</span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
