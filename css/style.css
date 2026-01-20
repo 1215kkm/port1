@@ -539,13 +539,12 @@ ul, ol {
 .about-skills-list {
     display: flex;
     flex-wrap: wrap;
-    gap: var(--space-sm);
+    gap: 24px;
 }
 
 .skill-tag {
-    padding: var(--space-xs) var(--space-sm);
-    background: var(--color-bg-tertiary);
-    border-radius: var(--radius-sm);
+    padding: 0;
+    background: transparent;
     font-size: var(--font-sm);
 }
 
