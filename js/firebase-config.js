@@ -4,6 +4,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { getFirestore, doc, getDoc, setDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
 // Firebase configuration
 const firebaseConfig = {
@@ -20,6 +21,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
+const storage = getStorage(app);
 const googleProvider = new GoogleAuthProvider();
 
 // Auth Manager
@@ -186,11 +188,96 @@ const FirestoreManager = {
     }
 };
 
+// Storage Manager for Image Uploads
+const StorageManager = {
+    // Upload image file and return download URL
+    async uploadImage(userId, file, path = 'images') {
+        try {
+            // Generate unique filename
+            const timestamp = Date.now();
+            const safeName = file.name.replace(/[^a-zA-Z0-9.]/g, '_');
+            const filePath = `users/${userId}/${path}/${timestamp}_${safeName}`;
+
+            const storageRef = ref(storage, filePath);
+
+            // Upload file
+            const snapshot = await uploadBytes(storageRef, file);
+
+            // Get download URL
+            const downloadURL = await getDownloadURL(snapshot.ref);
+
+            return {
+                success: true,
+                url: downloadURL,
+                path: filePath
+            };
+        } catch (error) {
+            console.error('Error uploading image:', error);
+            return { success: false, error: error.message };
+        }
+    },
+
+    // Upload base64 image and return download URL
+    async uploadBase64Image(userId, base64Data, fileName, path = 'images') {
+        try {
+            // Convert base64 to blob
+            const response = await fetch(base64Data);
+            const blob = await response.blob();
+
+            // Generate unique filename
+            const timestamp = Date.now();
+            const safeName = fileName.replace(/[^a-zA-Z0-9.]/g, '_');
+            const filePath = `users/${userId}/${path}/${timestamp}_${safeName}`;
+
+            const storageRef = ref(storage, filePath);
+
+            // Upload blob
+            const snapshot = await uploadBytes(storageRef, blob);
+
+            // Get download URL
+            const downloadURL = await getDownloadURL(snapshot.ref);
+
+            return {
+                success: true,
+                url: downloadURL,
+                path: filePath
+            };
+        } catch (error) {
+            console.error('Error uploading base64 image:', error);
+            return { success: false, error: error.message };
+        }
+    },
+
+    // Delete image by path
+    async deleteImage(filePath) {
+        try {
+            const storageRef = ref(storage, filePath);
+            await deleteObject(storageRef);
+            return { success: true };
+        } catch (error) {
+            console.error('Error deleting image:', error);
+            return { success: false, error: error.message };
+        }
+    },
+
+    // Upload multiple images
+    async uploadMultipleImages(userId, files, path = 'images') {
+        const results = [];
+        for (const file of files) {
+            const result = await this.uploadImage(userId, file, path);
+            results.push(result);
+        }
+        return results;
+    }
+};
+
 // Export
 window.AuthManager = AuthManager;
 window.FirestoreManager = FirestoreManager;
+window.StorageManager = StorageManager;
 window.firebaseApp = app;
 window.firebaseAuth = auth;
 window.firebaseDb = db;
+window.firebaseStorage = storage;
 
-export { AuthManager, FirestoreManager, app, auth, db };
+export { AuthManager, FirestoreManager, StorageManager, app, auth, db, storage };

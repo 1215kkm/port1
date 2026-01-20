@@ -1,5 +1,52 @@
 // Admin Panel JavaScript
 
+// Helper function to upload image to Firebase Storage
+async function uploadImageToStorage(file, path = 'images') {
+    const StorageManager = window.getStorageManager ? window.getStorageManager() : null;
+    const userId = dataManager.userId;
+
+    if (StorageManager && userId) {
+        // Upload to Firebase Storage
+        const result = await StorageManager.uploadImage(userId, file, path);
+        if (result.success) {
+            return result.url;
+        } else {
+            console.error('Upload failed:', result.error);
+            // Fallback to base64
+            return await fileToBase64(file);
+        }
+    } else {
+        // Fallback to base64 for local storage
+        return await fileToBase64(file);
+    }
+}
+
+// Convert file to base64 (fallback)
+function fileToBase64(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => resolve(e.target.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+    });
+}
+
+// Show loading indicator
+function showUploadLoading(element) {
+    if (element) {
+        element.style.opacity = '0.5';
+        element.style.pointerEvents = 'none';
+    }
+}
+
+// Hide loading indicator
+function hideUploadLoading(element) {
+    if (element) {
+        element.style.opacity = '1';
+        element.style.pointerEvents = 'auto';
+    }
+}
+
 class AdminPanel {
     constructor() {
         this.data = dataManager.getData();
@@ -129,16 +176,17 @@ class AdminPanel {
         if (uploadArea && fileInput) {
             uploadArea.addEventListener('click', () => fileInput.click());
 
-            fileInput.addEventListener('change', (e) => {
+            fileInput.addEventListener('change', async (e) => {
                 const file = e.target.files[0];
                 if (file) {
-                    const reader = new FileReader();
-                    reader.onload = (event) => {
-                        const preview = document.getElementById('profile-image-preview');
-                        preview.innerHTML = `<img src="${event.target.result}" alt="프로필">`;
-                        urlInput.value = event.target.result;
-                    };
-                    reader.readAsDataURL(file);
+                    const preview = document.getElementById('profile-image-preview');
+                    showUploadLoading(preview);
+                    preview.innerHTML = `<div style="padding: 20px; text-align: center;">업로드 중...</div>`;
+
+                    const imageUrl = await uploadImageToStorage(file, 'profile');
+                    preview.innerHTML = `<img src="${imageUrl}" alt="프로필">`;
+                    urlInput.value = imageUrl;
+                    hideUploadLoading(preview);
                 }
             });
         }
@@ -160,15 +208,16 @@ class AdminPanel {
         if (logoUploadBtn && logoFileInput) {
             logoUploadBtn.addEventListener('click', () => logoFileInput.click());
 
-            logoFileInput.addEventListener('change', (e) => {
+            logoFileInput.addEventListener('change', async (e) => {
                 const file = e.target.files[0];
                 if (file) {
-                    const reader = new FileReader();
-                    reader.onload = (event) => {
-                        logoUrlInput.value = event.target.result;
-                        this.updateLogoPreview(event.target.result);
-                    };
-                    reader.readAsDataURL(file);
+                    const logoPreview = document.getElementById('logo-preview');
+                    showUploadLoading(logoPreview);
+
+                    const imageUrl = await uploadImageToStorage(file, 'logo');
+                    logoUrlInput.value = imageUrl;
+                    this.updateLogoPreview(imageUrl);
+                    hideUploadLoading(logoPreview);
                 }
             });
         }
@@ -920,17 +969,18 @@ class AdminPanel {
 
             // Add file input change listener
             if (fileEl) {
-                fileEl.addEventListener('change', (e) => {
+                fileEl.addEventListener('change', async (e) => {
                     const file = e.target.files[0];
                     if (file) {
-                        const reader = new FileReader();
-                        reader.onload = (event) => {
-                            const base64 = event.target.result;
-                            this.iconData[prefix].type = 'image';
-                            this.iconData[prefix].imageUrl = base64;
-                            this.updateIconPreview(prefix);
-                        };
-                        reader.readAsDataURL(file);
+                        const previewEl = document.getElementById(`icon-${prefix}-preview`);
+                        showUploadLoading(previewEl);
+                        previewEl.textContent = '...';
+
+                        const imageUrl = await uploadImageToStorage(file, 'icons');
+                        this.iconData[prefix].type = 'image';
+                        this.iconData[prefix].imageUrl = imageUrl;
+                        this.updateIconPreview(prefix);
+                        hideUploadLoading(previewEl);
                     }
                 });
             }
@@ -1403,22 +1453,20 @@ class AdminPanel {
 
         addImageBtn?.addEventListener('click', () => fileInput?.click());
 
-        fileInput?.addEventListener('change', (e) => {
+        fileInput?.addEventListener('change', async (e) => {
             const files = e.target.files;
             if (files.length > 0) {
-                Array.from(files).forEach(file => {
-                    const reader = new FileReader();
-                    reader.onload = (event) => {
-                        const base64 = event.target.result;
-                        // Add to thumbnails
-                        const currentThumbnails = thumbnailsInput.value ? thumbnailsInput.value.split('|||').filter(s => s) : [];
-                        currentThumbnails.push(base64);
-                        thumbnailsInput.value = currentThumbnails.join('|||');
-                        // Update preview
-                        this.updateThumbnailPreview(previewContainer, currentThumbnails);
-                    };
-                    reader.readAsDataURL(file);
-                });
+                showUploadLoading(previewContainer);
+                for (const file of Array.from(files)) {
+                    const imageUrl = await uploadImageToStorage(file, 'portfolio');
+                    // Add to thumbnails
+                    const currentThumbnails = thumbnailsInput.value ? thumbnailsInput.value.split('|||').filter(s => s) : [];
+                    currentThumbnails.push(imageUrl);
+                    thumbnailsInput.value = currentThumbnails.join('|||');
+                    // Update preview
+                    this.updateThumbnailPreview(previewContainer, currentThumbnails);
+                }
+                hideUploadLoading(previewContainer);
             }
             fileInput.value = '';
         });
@@ -1606,20 +1654,18 @@ class AdminPanel {
 
         projectAddImageBtn?.addEventListener('click', () => projectFileInput?.click());
 
-        projectFileInput?.addEventListener('change', (e) => {
+        projectFileInput?.addEventListener('change', async (e) => {
             const files = e.target.files;
             if (files.length > 0) {
-                Array.from(files).forEach(file => {
-                    const reader = new FileReader();
-                    reader.onload = (event) => {
-                        const base64 = event.target.result;
-                        const currentImages = projectImagesInput.value ? projectImagesInput.value.split('|||').filter(s => s) : [];
-                        currentImages.push(base64);
-                        projectImagesInput.value = currentImages.join('|||');
-                        this.updateProjectImagePreview(projectPreviewContainer, currentImages);
-                    };
-                    reader.readAsDataURL(file);
-                });
+                showUploadLoading(projectPreviewContainer);
+                for (const file of Array.from(files)) {
+                    const imageUrl = await uploadImageToStorage(file, 'projects');
+                    const currentImages = projectImagesInput.value ? projectImagesInput.value.split('|||').filter(s => s) : [];
+                    currentImages.push(imageUrl);
+                    projectImagesInput.value = currentImages.join('|||');
+                    this.updateProjectImagePreview(projectPreviewContainer, currentImages);
+                }
+                hideUploadLoading(projectPreviewContainer);
             }
             projectFileInput.value = '';
         });

@@ -280,6 +280,12 @@
                 <h2 class="action-title">인트로 페이지</h2>
                 <p class="action-desc">포트폴리오 진입점이 되는<br>인트로 페이지를 확인합니다</p>
             </a>
+
+            <a href="#" class="action-card" id="export-card">
+                <div class="action-icon">💾</div>
+                <h2 class="action-title">HTML 내보내기</h2>
+                <p class="action-desc">포트폴리오를 HTML 파일로<br>다운로드하여 직접 호스팅하세요</p>
+            </a>
         </div>
 
         <section class="portfolio-url-section">
@@ -343,6 +349,226 @@
                 await AuthManager.signOut();
                 window.location.href = 'login.html';
             });
+
+            // Export HTML
+            document.getElementById('export-card').addEventListener('click', async (e) => {
+                e.preventDefault();
+                await exportPortfolioHTML(user.uid, displayName);
+            });
+        }
+
+        // Export Portfolio as HTML files
+        async function exportPortfolioHTML(userId, userName) {
+            const btn = document.querySelector('#export-card .action-icon');
+            const originalIcon = btn.textContent;
+            btn.textContent = '⏳';
+
+            try {
+                // Fetch all HTML files
+                const files = ['portfolio.html', 'intro.html', 'ai.html', 'team.html'];
+                const cssFiles = ['css/style.css'];
+                const jsFiles = ['js/app.js', 'js/data.js', 'js/pdf-font.js'];
+
+                // Get user data from Firestore
+                const userData = await FirestoreManager.getUserData(userId);
+
+                // Create a zip-like structure (we'll create individual files for simplicity)
+                const zip = {};
+
+                // Fetch and process HTML files
+                for (const file of files) {
+                    const response = await fetch(file);
+                    let html = await response.text();
+
+                    // Remove Firebase authentication scripts
+                    html = html.replace(/<script type="module">[\s\S]*?import.*firebase-config\.js[\s\S]*?<\/script>/g, '');
+
+                    // Replace dynamic data loading with static data
+                    if (file === 'portfolio.html' || file === 'intro.html' || file === 'ai.html' || file === 'team.html') {
+                        // Inject user data as static JSON
+                        const dataScript = `<script>
+// Static portfolio data (exported)
+const exportedData = ${JSON.stringify(userData, null, 2)};
+window.EXPORTED_DATA = exportedData;
+</script>`;
+                        html = html.replace('</head>', `${dataScript}\n</head>`);
+                    }
+
+                    zip[file] = html;
+                }
+
+                // Fetch CSS
+                for (const file of cssFiles) {
+                    const response = await fetch(file);
+                    zip[file] = await response.text();
+                }
+
+                // Create modified data.js that uses exported data
+                const dataJsResponse = await fetch('js/data.js');
+                let dataJs = await dataJsResponse.text();
+
+                // Add code to use exported data if available
+                const exportedDataCode = `
+// Check for exported static data
+if (window.EXPORTED_DATA) {
+    // Override loadFromLocalStorage to return exported data
+    DataManager.prototype.loadFromLocalStorage = function() {
+        return this.deepMerge(defaultData, window.EXPORTED_DATA);
+    };
+}
+`;
+                dataJs = dataJs.replace('window.getUrlUserId = getUrlUserId;',
+                    'window.getUrlUserId = getUrlUserId;\n' + exportedDataCode);
+
+                zip['js/data.js'] = dataJs;
+
+                // Fetch other JS files
+                const appJsResponse = await fetch('js/app.js');
+                zip['js/app.js'] = await appJsResponse.text();
+
+                const pdfJsResponse = await fetch('js/pdf-font.js');
+                zip['js/pdf-font.js'] = await pdfJsResponse.text();
+
+                // Create index.html that redirects to intro
+                zip['index.html'] = `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="refresh" content="0; url=intro.html">
+    <title>${userName}의 포트폴리오</title>
+</head>
+<body>
+    <p>포트폴리오로 이동 중... <a href="intro.html">여기를 클릭하세요</a></p>
+</body>
+</html>`;
+
+                // Download as multiple files (create a simple zip alternative)
+                // For simplicity, we'll create a single HTML file with embedded CSS
+                const standalonePage = createStandaloneHTML(zip, userData, userName);
+
+                // Download
+                const blob = new Blob([standalonePage], { type: 'text/html;charset=utf-8' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `${userName}_portfolio.html`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+
+                btn.textContent = '✅';
+                setTimeout(() => {
+                    btn.textContent = originalIcon;
+                }, 2000);
+
+            } catch (error) {
+                console.error('Export error:', error);
+                alert('내보내기 중 오류가 발생했습니다: ' + error.message);
+                btn.textContent = originalIcon;
+            }
+        }
+
+        // Create standalone single-page HTML
+        function createStandaloneHTML(files, userData, userName) {
+            const css = files['css/style.css'] || '';
+            const portfolioHtml = files['portfolio.html'] || '';
+
+            // Extract body content from portfolio.html
+            const bodyMatch = portfolioHtml.match(/<body[^>]*>([\s\S]*)<\/body>/i);
+            const bodyContent = bodyMatch ? bodyMatch[1] : '';
+
+            // Remove script tags that reference external files
+            const cleanBody = bodyContent
+                .replace(/<script src="[^"]*"><\/script>/g, '')
+                .replace(/<script type="module">[\s\S]*?<\/script>/g, '');
+
+            return `<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${userName}의 포트폴리오</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css">
+    <style>
+${css}
+    </style>
+</head>
+<body>
+${cleanBody}
+
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+    <script>
+// Embedded portfolio data
+const portfolioData = ${JSON.stringify(userData, null, 2)};
+
+// Simple data manager for standalone version
+const dataManager = {
+    data: portfolioData,
+    getData() { return this.data; },
+    get(key) { return key.split('.').reduce((obj, k) => obj?.[k], this.data); },
+    applyTheme() {
+        const theme = this.data?.theme?.modes?.find(m => m.id === this.data?.theme?.current);
+        if (theme?.colors) {
+            const root = document.documentElement;
+            Object.entries(theme.colors).forEach(([key, value]) => {
+                const cssVar = '--color-' + key.replace(/([A-Z])/g, '-$1').toLowerCase();
+                root.style.setProperty(cssVar, value);
+            });
+        }
+    },
+    applyCSSVariables() {
+        const vars = this.data?.cssVariables || {};
+        const root = document.documentElement;
+        if (vars.radiusSm) root.style.setProperty('--radius-sm', vars.radiusSm);
+        if (vars.radiusMd) root.style.setProperty('--radius-md', vars.radiusMd);
+        if (vars.radiusLg) root.style.setProperty('--radius-lg', vars.radiusLg);
+    },
+    applyFont() {
+        const font = this.data?.siteSettings?.font;
+        if (font?.fontFaceTitle) {
+            const style = document.createElement('style');
+            style.textContent = font.fontFaceTitle;
+            document.head.appendChild(style);
+        }
+        if (font?.title) {
+            document.documentElement.style.setProperty('--font-title', "'" + font.title + "', sans-serif");
+        }
+        if (font?.content) {
+            document.documentElement.style.setProperty('--font-content', "'" + font.content + "', sans-serif");
+            document.body.style.fontFamily = "'" + font.content + "', sans-serif";
+        }
+    }
+};
+
+// Initialize
+document.addEventListener('DOMContentLoaded', () => {
+    dataManager.applyTheme();
+    dataManager.applyCSSVariables();
+    dataManager.applyFont();
+
+    // Render content from data
+    renderPortfolio();
+});
+
+function renderPortfolio() {
+    const data = dataManager.getData();
+
+    // Update profile section
+    const profileName = document.querySelector('[data-content="name"]');
+    if (profileName) profileName.textContent = data.profile?.name || '';
+
+    const profileImage = document.querySelector('[data-content="profileImage"]');
+    if (profileImage && data.profile?.profileImage) {
+        profileImage.src = data.profile.profileImage;
+    }
+
+    // Update other sections based on data
+    // ... (simplified for standalone export)
+}
+    </script>
+</body>
+</html>`;
         }
 
         init();
