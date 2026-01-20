@@ -133,7 +133,7 @@
         </header>
 
         <div class="intro-grid">
-            <a href="index.html" class="intro-card intro-card-solo">
+            <a href="portfolio.html" class="intro-card intro-card-solo">
                 <div class="intro-card-icon" data-emoji="solo">👤</div>
                 <h2 class="intro-card-title">혼자제작</h2>
                 <p class="intro-card-desc">
@@ -182,51 +182,80 @@
     <script>
         // Theme toggle functionality
         document.addEventListener('DOMContentLoaded', () => {
-            const themeToggle = document.querySelector('.theme-toggle');
-            const toggleBtn = themeToggle.querySelector('.theme-toggle-btn');
+            // Wait for dataManager to be ready
+            const initPage = () => {
+                const themeToggle = document.querySelector('.theme-toggle');
+                const toggleBtn = themeToggle.querySelector('.theme-toggle-btn');
 
-            toggleBtn.addEventListener('click', () => {
-                themeToggle.classList.toggle('open');
-            });
-
-            document.addEventListener('click', (e) => {
-                if (!themeToggle.contains(e.target)) {
-                    themeToggle.classList.remove('open');
-                }
-            });
-
-            themeToggle.querySelectorAll('.theme-option').forEach(option => {
-                option.addEventListener('click', () => {
-                    const theme = option.dataset.theme;
-                    dataManager.setTheme(theme);
-                    themeToggle.querySelectorAll('.theme-option').forEach(o => o.classList.remove('active'));
-                    option.classList.add('active');
+                toggleBtn.addEventListener('click', () => {
+                    themeToggle.classList.toggle('open');
                 });
-            });
 
-            // Load emoji icons from settings
-            const data = dataManager.getData();
-            const emojiIcons = data.emojiIcons?.intro || {};
+                document.addEventListener('click', (e) => {
+                    if (!themeToggle.contains(e.target)) {
+                        themeToggle.classList.remove('open');
+                    }
+                });
 
-            // Helper function to render icon (emoji or image)
-            const renderIcon = (el, iconData, defaultEmoji) => {
-                if (!el) return;
-                if (typeof iconData === 'string') {
-                    el.textContent = iconData || defaultEmoji;
-                } else if (iconData?.type === 'image' && iconData?.imageUrl) {
-                    el.innerHTML = `<img src="${iconData.imageUrl}" style="width: 100%; height: 100%; object-fit: contain;">`;
-                } else {
-                    el.textContent = iconData?.emoji || defaultEmoji;
+                themeToggle.querySelectorAll('.theme-option').forEach(option => {
+                    option.addEventListener('click', () => {
+                        const theme = option.dataset.theme;
+                        dataManager.setTheme(theme);
+                        themeToggle.querySelectorAll('.theme-option').forEach(o => o.classList.remove('active'));
+                        option.classList.add('active');
+                    });
+                });
+
+                // Pass user ID to linked pages
+                const userId = window.getUrlUserId ? window.getUrlUserId() : null;
+                if (userId) {
+                    // Update all links to include user ID
+                    document.querySelectorAll('.intro-card').forEach(card => {
+                        const href = card.getAttribute('href');
+                        if (href && !href.includes('?')) {
+                            card.setAttribute('href', `${href}?u=${userId}`);
+                        } else if (href && href.includes('?')) {
+                            card.setAttribute('href', `${href}&u=${userId}`);
+                        }
+                    });
                 }
+
+                // Load emoji icons from settings
+                const data = dataManager.getData();
+                const emojiIcons = data.emojiIcons?.intro || {};
+
+                // Update page title with user name
+                if (data.profile?.name) {
+                    document.querySelector('.intro-title').textContent = `${data.profile.name}의 포트폴리오`;
+                }
+
+                // Helper function to render icon (emoji or image)
+                const renderIcon = (el, iconData, defaultEmoji) => {
+                    if (!el) return;
+                    if (typeof iconData === 'string') {
+                        el.textContent = iconData || defaultEmoji;
+                    } else if (iconData?.type === 'image' && iconData?.imageUrl) {
+                        el.innerHTML = `<img src="${iconData.imageUrl}" style="width: 100%; height: 100%; object-fit: contain;">`;
+                    } else {
+                        el.textContent = iconData?.emoji || defaultEmoji;
+                    }
+                };
+
+                const soloEl = document.querySelector('[data-emoji="solo"]');
+                const aiEl = document.querySelector('[data-emoji="ai"]');
+                const teamEl = document.querySelector('[data-emoji="team"]');
+
+                renderIcon(soloEl, emojiIcons.solo, '👤');
+                renderIcon(aiEl, emojiIcons.ai, '🤖');
+                renderIcon(teamEl, emojiIcons.team, '👥');
             };
 
-            const soloEl = document.querySelector('[data-emoji="solo"]');
-            const aiEl = document.querySelector('[data-emoji="ai"]');
-            const teamEl = document.querySelector('[data-emoji="team"]');
-
-            renderIcon(soloEl, emojiIcons.solo, '👤');
-            renderIcon(aiEl, emojiIcons.ai, '🤖');
-            renderIcon(teamEl, emojiIcons.team, '👥');
+            // Check if dataManager is ready
+            if (window.dataManager && window.dataManager.data) {
+                initPage();
+            } else {
+                window.addEventListener('dataManagerReady', initPage);
+            }
         });
     </script>
 </body>

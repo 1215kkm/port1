@@ -1002,7 +1002,41 @@
     </div>
 
     <!-- Scripts -->
-    <script src="js/data.js"></script>
-    <script src="js/admin.js"></script>
+    <script type="module">
+        // Check authentication before loading admin
+        import { AuthManager } from './js/firebase-config.js';
+
+        async function checkAuth() {
+            await AuthManager.init();
+
+            if (!AuthManager.isLoggedIn()) {
+                // Redirect to login
+                window.location.href = 'login.html';
+                return;
+            }
+
+            // User is logged in, load admin scripts
+            const dataScript = document.createElement('script');
+            dataScript.src = 'js/data.js';
+            dataScript.onload = () => {
+                // Wait for dataManager to be ready
+                window.addEventListener('dataManagerReady', () => {
+                    const adminScript = document.createElement('script');
+                    adminScript.src = 'js/admin.js';
+                    document.body.appendChild(adminScript);
+                });
+
+                // If dataManager is already ready (cached)
+                if (window.dataManager && window.dataManager.data) {
+                    const adminScript = document.createElement('script');
+                    adminScript.src = 'js/admin.js';
+                    document.body.appendChild(adminScript);
+                }
+            };
+            document.body.appendChild(dataScript);
+        }
+
+        checkAuth();
+    </script>
 </body>
 </html>

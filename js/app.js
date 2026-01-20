@@ -1146,9 +1146,18 @@ class PageInitializer {
 
 // Initialize on DOM ready
 document.addEventListener('DOMContentLoaded', () => {
-    // Check if we're on a user page (not admin)
-    if (!document.querySelector('.admin-layout')) {
-        new PageInitializer();
+    const initApp = () => {
+        // Check if we're on a user page (not admin)
+        if (!document.querySelector('.admin-layout')) {
+            new PageInitializer();
+        }
+    };
+
+    // Wait for dataManager to be ready
+    if (window.dataManager && window.dataManager.data) {
+        initApp();
+    } else {
+        window.addEventListener('dataManagerReady', initApp);
     }
 });
 

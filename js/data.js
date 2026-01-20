@@ -1,4 +1,22 @@
-// Portfolio Data Management with LocalStorage
+// Portfolio Data Management with Firestore and LocalStorage fallback
+
+// Import Firebase modules dynamically
+let FirestoreManager = null;
+let AuthManager = null;
+
+// Initialize Firebase connection
+async function initFirebase() {
+    try {
+        const module = await import('./firebase-config.js');
+        FirestoreManager = module.FirestoreManager;
+        AuthManager = module.AuthManager;
+        await AuthManager.init();
+        return true;
+    } catch (e) {
+        console.warn('Firebase not available, using localStorage only:', e);
+        return false;
+    }
+}
 
 // Default Data Structure
 const defaultData = {
@@ -483,28 +501,161 @@ Slack과 Notion을 통해 디자인 피드백을 체계적으로 관리했습니
 class DataManager {
     constructor() {
         this.storageKey = 'portfolio_data';
-        this.data = this.loadData();
+        this.data = null;
+        this.userId = null;
+        this.isFirebaseReady = false;
+        this.isViewMode = false; // True when viewing someone else's portfolio
+        this.initPromise = null;
     }
 
-    // Load data from localStorage or use defaults
-    loadData() {
+    // Initialize - must be called before using data
+    async init(viewUserId = null) {
+        if (this.initPromise) return this.initPromise;
+
+        this.initPromise = this._doInit(viewUserId);
+        return this.initPromise;
+    }
+
+    async _doInit(viewUserId = null) {
+        // Try to initialize Firebase
+        this.isFirebaseReady = await initFirebase();
+
+        // Check if this is view mode (viewing someone else's portfolio)
+        if (viewUserId) {
+            this.isViewMode = true;
+            await this.loadUserPortfolio(viewUserId);
+            return this.data;
+        }
+
+        // Check if user is logged in
+        if (this.isFirebaseReady && AuthManager && AuthManager.isLoggedIn()) {
+            this.userId = AuthManager.getUser().uid;
+            await this.loadFromFirestore();
+        } else {
+            // Fallback to localStorage
+            this.data = this.loadFromLocalStorage();
+        }
+
+        return this.data;
+    }
+
+    // Load portfolio data for viewing (public access)
+    async loadUserPortfolio(userIdOrPortfolioId) {
+        if (!this.isFirebaseReady) {
+            this.data = this.loadFromLocalStorage();
+            return;
+        }
+
+        try {
+            // First try to load directly by userId
+            let portfolioData = await FirestoreManager.getUserData(userIdOrPortfolioId);
+
+            if (!portfolioData) {
+                // Try to find user by portfolioId
+                const user = await FirestoreManager.findUserByPortfolioId(userIdOrPortfolioId);
+                if (user) {
+                    portfolioData = await FirestoreManager.getUserData(user.id);
+                }
+            }
+
+            if (portfolioData) {
+                this.data = this.deepMerge(defaultData, portfolioData);
+            } else {
+                // Use default data if not found
+                this.data = JSON.parse(JSON.stringify(defaultData));
+            }
+        } catch (e) {
+            console.error('Error loading user portfolio:', e);
+            this.data = JSON.parse(JSON.stringify(defaultData));
+        }
+    }
+
+    // Load data from Firestore
+    async loadFromFirestore() {
+        if (!this.isFirebaseReady || !this.userId) {
+            this.data = this.loadFromLocalStorage();
+            return;
+        }
+
+        try {
+            const firestoreData = await FirestoreManager.getUserData(this.userId);
+            if (firestoreData) {
+                this.data = this.deepMerge(defaultData, firestoreData);
+                // Sync to localStorage for offline access
+                this.saveToLocalStorage();
+            } else {
+                // No data in Firestore, load from localStorage or use defaults
+                this.data = this.loadFromLocalStorage();
+                // Save to Firestore for first time
+                await this.saveToFirestore();
+            }
+        } catch (e) {
+            console.error('Error loading from Firestore:', e);
+            this.data = this.loadFromLocalStorage();
+        }
+    }
+
+    // Save data to Firestore
+    async saveToFirestore() {
+        if (!this.isFirebaseReady || !this.userId || this.isViewMode) {
+            return false;
+        }
+
+        try {
+            await FirestoreManager.saveUserData(this.userId, this.data);
+            return true;
+        } catch (e) {
+            console.error('Error saving to Firestore:', e);
+            return false;
+        }
+    }
+
+    // Load data from localStorage
+    loadFromLocalStorage() {
         try {
             const stored = localStorage.getItem(this.storageKey);
             if (stored) {
                 const parsed = JSON.parse(stored);
-                // Merge with defaults to ensure all keys exist
                 return this.deepMerge(defaultData, parsed);
             }
         } catch (e) {
-            console.error('Error loading data:', e);
+            console.error('Error loading from localStorage:', e);
         }
         return JSON.parse(JSON.stringify(defaultData));
     }
 
     // Save data to localStorage
-    saveData() {
+    saveToLocalStorage() {
         try {
             localStorage.setItem(this.storageKey, JSON.stringify(this.data));
+            return true;
+        } catch (e) {
+            console.error('Error saving to localStorage:', e);
+            return false;
+        }
+    }
+
+    // Legacy loadData for backward compatibility
+    loadData() {
+        return this.loadFromLocalStorage();
+    }
+
+    // Save data (to both Firestore and localStorage)
+    async saveData() {
+        if (this.isViewMode) {
+            console.warn('Cannot save in view mode');
+            return false;
+        }
+
+        try {
+            // Always save to localStorage
+            this.saveToLocalStorage();
+
+            // Save to Firestore if available
+            if (this.isFirebaseReady && this.userId) {
+                await this.saveToFirestore();
+            }
+
             // Dispatch custom event for other pages to update
             window.dispatchEvent(new CustomEvent('dataUpdated', { detail: this.data }));
             return true;
@@ -533,6 +684,10 @@ class DataManager {
 
     // Get all data
     getData() {
+        // Return data or default if not yet initialized
+        if (!this.data) {
+            this.data = this.loadFromLocalStorage();
+        }
         return this.data;
     }
 
@@ -950,13 +1105,30 @@ class DataManager {
 // Create global instance
 const dataManager = new DataManager();
 
+// Helper function to get user ID from URL
+function getUrlUserId() {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('u') || params.get('user') || params.get('id');
+}
+
 // Initialize on page load
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+    // Check if viewing specific user's portfolio
+    const viewUserId = getUrlUserId();
+
+    // Initialize data manager (async)
+    await dataManager.init(viewUserId);
+
+    // Apply styles
     dataManager.applyTheme();
     dataManager.applyCSSVariables();
     dataManager.applyFont();
+
+    // Dispatch ready event
+    window.dispatchEvent(new CustomEvent('dataManagerReady', { detail: dataManager }));
 });
 
 // Export for use in other scripts
 window.dataManager = dataManager;
 window.DataManager = DataManager;
+window.getUrlUserId = getUrlUserId;

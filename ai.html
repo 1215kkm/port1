@@ -261,7 +261,25 @@
 
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
-            new AIPageRenderer();
+            const initPage = () => {
+                new AIPageRenderer();
+
+                // Update "프로젝트 추가하기" link to include user ID
+                const userId = window.getUrlUserId ? window.getUrlUserId() : null;
+                if (userId) {
+                    // In view mode, change admin link to hide or show differently
+                    document.querySelectorAll('a[href="admin.html"]').forEach(link => {
+                        link.style.display = 'none';
+                    });
+                }
+            };
+
+            // Check if dataManager is ready
+            if (window.dataManager && window.dataManager.data) {
+                initPage();
+            } else {
+                window.addEventListener('dataManagerReady', initPage);
+            }
         });
     </script>
 </body>

@@ -261,7 +261,24 @@
 
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
-            new TeamPageRenderer();
+            const initPage = () => {
+                new TeamPageRenderer();
+
+                // In view mode, hide admin links
+                const userId = window.getUrlUserId ? window.getUrlUserId() : null;
+                if (userId) {
+                    document.querySelectorAll('a[href="admin.html"]').forEach(link => {
+                        link.style.display = 'none';
+                    });
+                }
+            };
+
+            // Check if dataManager is ready
+            if (window.dataManager && window.dataManager.data) {
+                initPage();
+            } else {
+                window.addEventListener('dataManagerReady', initPage);
+            }
         });
     </script>
 </body>
