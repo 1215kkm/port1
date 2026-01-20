@@ -78,6 +78,10 @@ class AdminPanel {
         document.getElementById('btn-save-all')?.addEventListener('click', () => this.saveAll());
         document.getElementById('btn-preview')?.addEventListener('click', () => this.togglePreview());
         document.getElementById('btn-export')?.addEventListener('click', () => dataManager.exportData());
+        document.getElementById('btn-import')?.addEventListener('click', () => {
+            document.getElementById('import-file')?.click();
+        });
+        document.getElementById('import-file')?.addEventListener('change', (e) => this.importData(e));
         document.getElementById('btn-reset')?.addEventListener('click', () => {
             if (confirm('모든 데이터를 초기화하시겠습니까?')) {
                 dataManager.reset();
@@ -335,6 +339,33 @@ class AdminPanel {
         if (frame && frame.classList.contains('active')) {
             frame.contentWindow.location.reload();
         }
+    }
+
+    // =====================
+    // Import Data
+    // =====================
+    importData(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            try {
+                const success = dataManager.importData(event.target.result);
+                if (success) {
+                    alert('데이터를 성공적으로 불러왔습니다. 페이지를 새로고침합니다.');
+                    location.reload();
+                } else {
+                    alert('데이터 불러오기에 실패했습니다. 파일 형식을 확인해주세요.');
+                }
+            } catch (err) {
+                alert('데이터 불러오기에 실패했습니다: ' + err.message);
+            }
+        };
+        reader.readAsText(file);
+
+        // Reset file input
+        e.target.value = '';
     }
 
     // =====================
