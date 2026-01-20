@@ -315,6 +315,28 @@ class PDFExport {
     }
 
     async exportPDF() {
+        // Show loading
+        const btn = document.querySelector('[data-action="download-pdf"]');
+        const originalText = btn?.textContent;
+        if (btn) btn.textContent = 'PDF 생성 중...';
+
+        try {
+            // Use the PDFGenerator with Korean font support
+            if (window.PDFGenerator) {
+                await window.PDFGenerator.generateResume(dataManager.getData());
+            } else {
+                // Fallback to basic PDF generation
+                await this.exportPDFBasic();
+            }
+        } catch (error) {
+            console.error('PDF generation error:', error);
+            alert('PDF 생성 중 오류가 발생했습니다.');
+        } finally {
+            if (btn) btn.textContent = originalText;
+        }
+    }
+
+    async exportPDFBasic() {
         const { jsPDF } = window.jspdf;
         if (!jsPDF) {
             alert('PDF 라이브러리를 로드하는 중입니다. 잠시 후 다시 시도해주세요.');
@@ -324,15 +346,13 @@ class PDFExport {
         const data = dataManager.getData();
         const name = data.profile.name || '포트폴리오';
 
-        // Create PDF
         const pdf = new jsPDF('p', 'mm', 'a4');
         const pageWidth = pdf.internal.pageSize.getWidth();
         const pageHeight = pdf.internal.pageSize.getHeight();
         const margin = 20;
         let yPos = margin;
 
-        // Helper function
-        const addText = (text, size = 12, isBold = false) => {
+        const addText = (text, size = 12) => {
             pdf.setFontSize(size);
             if (yPos > pageHeight - margin) {
                 pdf.addPage();
@@ -356,70 +376,17 @@ class PDFExport {
             pdf.setTextColor(0, 0, 0);
         };
 
-        // Title
         pdf.setFontSize(24);
-        pdf.text(`${name} 포트폴리오`, margin, yPos);
+        pdf.text(`${name} Portfolio`, margin, yPos);
         yPos += 15;
 
-        // Profile
-        addSection('자기소개');
-        addText(`이름: ${data.profile.name} (카톡: ${data.profile.kakaoId})`);
-        addText(`가능직무: ${data.profile.jobRoles.join(', ')}`);
-        addText(`가능스킬: ${data.profile.skills.join(', ')}`);
-        addText(`교육이수: ${data.profile.education}`);
-        addText(`거주지: ${data.profile.residence}`);
-        addText(`재직여부: ${data.profile.employmentStatus} / ${data.profile.desiredSalary}`);
-        addText(`좌우명: "${data.profile.motto}"`);
+        addSection('Profile');
+        addText(`Name: ${data.profile.name} (Kakao: ${data.profile.kakaoId})`);
+        addText(`Skills: ${data.profile.skills.join(', ')}`);
+        addText(`Education: ${data.profile.education}`);
+        addText(`Location: ${data.profile.residence}`);
 
-        // AI Tools
-        addSection('사용해본 AI');
-        data.aiTools.forEach((tool, i) => {
-            addText(`${i + 1}. ${tool.name}: ${tool.description}`);
-        });
-
-        // Experience
-        addSection('관련경력');
-        addText(data.relatedExperience.totalPeriod);
-        data.relatedExperience.items.forEach(item => {
-            addText(`- ${item.company} (${item.period}) ${item.duration}`);
-        });
-
-        addSection('타업무경력');
-        addText(data.otherExperience.totalPeriod);
-        data.otherExperience.items.forEach(item => {
-            addText(`- ${item.company} (${item.period}) ${item.duration}`);
-        });
-
-        // Self Evaluation
-        addSection('자기평가');
-        addText(data.evaluation.text);
-
-        // Portfolio Items
-        if (data.portfolioSolo.items.length > 0) {
-            addSection('작품');
-            data.portfolioSolo.items.forEach(item => {
-                addText(`[${item.title}]`, 14);
-                addText(`주제: ${item.subject || '-'}`);
-                addText(`타겟: ${item.target || '-'}`);
-                addText(`기여도: ${item.contribution}%`);
-                addText(`후기: ${item.review || '-'}`);
-                if (item.links && item.links.length > 0) {
-                    item.links.forEach(link => {
-                        addText(`링크: ${link.url}`);
-                    });
-                }
-                yPos += 5;
-            });
-        }
-
-        // Contact
-        addSection('연락처');
-        addText(`이름: ${data.contact.name}`);
-        addText(`전화: ${data.contact.phone}`);
-        addText(`이메일: ${data.contact.email}`);
-
-        // Save
-        pdf.save(`${name}-포트폴리오.pdf`);
+        pdf.save(`${name}-portfolio.pdf`);
     }
 }
 
@@ -860,7 +827,14 @@ class PageInitializer {
 
         // Employment status
         const empEl = document.querySelector('[data-content="employment"]');
-        if (empEl) empEl.textContent = `${profile.employmentStatus} : ${profile.desiredSalary}`;
+        if (empEl) {
+            if (profile.showEmployment !== false) {
+                empEl.textContent = `${profile.employmentStatus} : ${profile.desiredSalary}`;
+                empEl.classList.remove('hidden');
+            } else {
+                empEl.classList.add('hidden');
+            }
+        }
 
         // Motto
         const mottoEl = document.querySelector('[data-content="motto"]');

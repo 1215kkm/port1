@@ -455,29 +455,35 @@ ul, ol {
 .about-info {
     display: flex;
     flex-direction: column;
-    gap: var(--space-lg);
+    gap: 0;
 }
 
 .about-header {
     display: flex;
     flex-wrap: wrap;
-    gap: var(--space-md);
-    margin-bottom: var(--space-lg);
+    gap: var(--space-sm);
+    padding: var(--space-sm) 0;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.about-header:first-child {
+    padding-top: 0;
 }
 
 .about-tag {
     display: inline-flex;
     align-items: center;
-    padding: var(--space-xs) var(--space-md);
-    background: var(--color-bg);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-md);
+    padding: 0;
+    background: transparent;
+    border: none;
+    border-radius: 0;
     font-size: var(--font-sm);
 }
 
 .about-tag-label {
     color: var(--color-text-secondary);
     margin-right: var(--space-sm);
+    min-width: 70px;
 }
 
 .about-name {
@@ -486,7 +492,7 @@ ul, ol {
     display: flex;
     align-items: center;
     gap: var(--space-md);
-    margin-bottom: var(--space-sm);
+    padding: var(--space-md) 0;
 }
 
 .about-badge {
@@ -495,6 +501,10 @@ ul, ol {
     color: white;
     font-size: var(--font-xs);
     border-radius: var(--radius-sm);
+}
+
+.about-badge.hidden {
+    display: none;
 }
 
 .about-motto {
@@ -1587,10 +1597,63 @@ ul, ol {
 
     .nav {
         display: none;
+        position: fixed;
+        top: 60px;
+        left: 0;
+        right: 0;
+        background: var(--color-bg);
+        padding: var(--space-lg);
+        flex-direction: column;
+        gap: var(--space-md);
+        border-bottom: 1px solid var(--color-border);
+        box-shadow: var(--shadow-lg);
+        z-index: var(--z-fixed);
+    }
+
+    .nav.open {
+        display: flex;
+    }
+
+    .nav-menu {
+        flex-direction: column;
+        align-items: stretch;
+        width: 100%;
+    }
+
+    .nav-menu li {
+        width: 100%;
+    }
+
+    .nav-link {
+        display: block;
+        padding: var(--space-md);
+        text-align: center;
+    }
+
+    .nav-buttons {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .nav-buttons .btn {
+        width: 100%;
+        justify-content: center;
     }
 
     .menu-toggle {
         display: flex;
+    }
+
+    .menu-toggle.active span:nth-child(1) {
+        transform: rotate(45deg) translate(5px, 5px);
+    }
+
+    .menu-toggle.active span:nth-child(2) {
+        opacity: 0;
+    }
+
+    .menu-toggle.active span:nth-child(3) {
+        transform: rotate(-45deg) translate(5px, -5px);
     }
 
     .section {

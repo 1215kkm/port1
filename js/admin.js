@@ -218,6 +218,7 @@ class AdminPanel {
             kakaoId: document.getElementById('profile-kakao').value,
             employmentStatus: document.getElementById('profile-employment').value,
             desiredSalary: document.getElementById('profile-salary').value,
+            showEmployment: document.getElementById('profile-show-employment').checked,
             jobRoles: document.getElementById('profile-roles').value.split(',').map(s => s.trim()).filter(s => s),
             skills: document.getElementById('profile-skills').value.split(',').map(s => s.trim()).filter(s => s),
             education: document.getElementById('profile-education').value,
@@ -500,6 +501,7 @@ class AdminPanel {
         document.getElementById('profile-kakao').value = profile.kakaoId || '';
         document.getElementById('profile-employment').value = profile.employmentStatus || '';
         document.getElementById('profile-salary').value = profile.desiredSalary || '';
+        document.getElementById('profile-show-employment').checked = profile.showEmployment !== false;
         document.getElementById('profile-roles').value = (profile.jobRoles || []).join(', ');
         document.getElementById('profile-skills').value = (profile.skills || []).join(', ');
         document.getElementById('profile-education').value = profile.education || '';

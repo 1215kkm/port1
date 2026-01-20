@@ -26,6 +26,7 @@ const defaultData = {
         residence: "경기 용인시 기흥구 청덕동",
         employmentStatus: "재직중",
         desiredSalary: "연봉3,800",
+        showEmployment: true,
         profileImage: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop",
         motto: "부지런히 하면 세상에 어려울 것 하나 없다"
     },
