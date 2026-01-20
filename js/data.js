@@ -220,7 +220,7 @@ GPT를 통해 UX 라이팅과 메뉴 구조를 최적화했고, 클로드로 복
                     { stage: "중간 요청", request: "폰트 크기와 간격이 좀 더 여유 있었으면 좋겠어요.", response: "전체 타이포 계층 재조정 및 간격 수정" },
                     { stage: "최종 요청", request: "전체 톤과 구조가 만족스럽습니다. 메인 배너가 특히 좋아요.", response: "최종 디자인 확정 후 전달 완료" }
                 ],
-                videoUrl: ""
+                videoUrl: "https://youtu.be/WVrbUPKqvr0?si=ns1j968F99WMm0HJ"
             },
             {
                 id: 2,
@@ -256,7 +256,7 @@ GPT를 통해 UX 라이팅과 메뉴 구조를 최적화했고, 클로드로 복
                     conclusion: `AI를 활용해 다양한 시안을 빠르게 테스트할 수 있었습니다.`
                 },
                 clientFeedback: [],
-                videoUrl: ""
+                videoUrl: "https://youtu.be/WVrbUPKqvr0?si=ns1j968F99WMm0HJ"
             }
         ]
     },
@@ -311,7 +311,7 @@ Slack과 Notion을 통해 디자인 피드백을 체계적으로 관리했습니
                     { stage: "중간 검토", request: "모바일 사용자 비중이 높으니 모바일 UX에 신경써주세요.", response: "모바일 퍼스트 접근으로 전체 설계 재검토" },
                     { stage: "최종 검수", request: "예상보다 훨씬 좋은 결과물입니다.", response: "런칭 후 모니터링 및 개선 계획 공유" }
                 ],
-                videoUrl: ""
+                videoUrl: "https://youtu.be/WVrbUPKqvr0?si=ns1j968F99WMm0HJ"
             },
             {
                 id: 2,
@@ -347,7 +347,7 @@ Slack과 Notion을 통해 디자인 피드백을 체계적으로 관리했습니
                     conclusion: `팀원들과의 긴밀한 협업으로 프로젝트를 성공적으로 완료했습니다.`
                 },
                 clientFeedback: [],
-                videoUrl: ""
+                videoUrl: "https://youtu.be/WVrbUPKqvr0?si=ns1j968F99WMm0HJ"
             }
         ]
     },
