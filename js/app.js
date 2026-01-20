@@ -930,15 +930,48 @@ class PageInitializer {
         `).join('');
     }
 
+    // 경력 기간 계산 함수
+    calculateTotalExperience(items) {
+        let totalMonths = 0;
+
+        items.forEach(item => {
+            const duration = item.duration || '';
+            // "1년", "6개월", "1년 6개월", "2년3개월" 등의 형식 파싱
+            const yearMatch = duration.match(/(\d+)\s*년/);
+            const monthMatch = duration.match(/(\d+)\s*개월/);
+
+            if (yearMatch) {
+                totalMonths += parseInt(yearMatch[1]) * 12;
+            }
+            if (monthMatch) {
+                totalMonths += parseInt(monthMatch[1]);
+            }
+        });
+
+        const years = Math.floor(totalMonths / 12);
+        const months = totalMonths % 12;
+
+        if (years > 0 && months > 0) {
+            return `총 ${years}년 ${months}개월`;
+        } else if (years > 0) {
+            return `총 ${years}년`;
+        } else if (months > 0) {
+            return `총 ${months}개월`;
+        } else {
+            return '';
+        }
+    }
+
     renderExperience() {
         // Related experience
         const relatedContainer = document.querySelector('[data-content="related-experience"]');
         if (relatedContainer) {
             const related = this.data.relatedExperience;
+            const calculatedTotal = this.calculateTotalExperience(related.items);
             relatedContainer.innerHTML = `
                 <h3 class="experience-title">
                     관련경력
-                    <span class="experience-badge">${related.totalPeriod}</span>
+                    <span class="experience-badge">${calculatedTotal}</span>
                 </h3>
                 <div class="experience-list">
                     ${related.items.map((item, i) => `
@@ -959,10 +992,11 @@ class PageInitializer {
         const otherContainer = document.querySelector('[data-content="other-experience"]');
         if (otherContainer) {
             const other = this.data.otherExperience;
+            const calculatedTotal = this.calculateTotalExperience(other.items);
             otherContainer.innerHTML = `
                 <h3 class="experience-title">
                     타업무경력
-                    <span class="experience-badge">${other.totalPeriod}</span>
+                    <span class="experience-badge">${calculatedTotal}</span>
                 </h3>
                 <div class="experience-list">
                     ${other.items.map((item, i) => `

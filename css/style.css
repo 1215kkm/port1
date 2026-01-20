@@ -285,6 +285,11 @@ ul, ol {
     background: var(--color-bg-tertiary);
 }
 
+.btn-sm {
+    padding: var(--space-xs) var(--space-md);
+    font-size: var(--font-xs);
+}
+
 .btn-accent {
     background: var(--color-accent);
     color: white;

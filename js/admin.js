@@ -288,7 +288,7 @@ class AdminPanel {
         const getIconData = (prefix) => {
             const type = document.getElementById(`icon-${prefix}-type`)?.value || 'emoji';
             const emoji = document.getElementById(`emoji-${prefix}`)?.value || '';
-            const imageUrl = document.getElementById(`icon-${prefix}-image`)?.value || '';
+            const imageUrl = this.iconImageData?.[prefix] || '';
             return { type, emoji, imageUrl };
         };
 
@@ -893,16 +893,21 @@ class AdminPanel {
             'contact-email': getIconValue(contact.email, '✉️')
         };
 
+        // Store current image data for later retrieval
+        this.iconImageData = this.iconImageData || {};
+
         // Set values and setup event listeners for each icon
         Object.entries(icons).forEach(([prefix, data]) => {
             const typeEl = document.getElementById(`icon-${prefix}-type`);
             const emojiEl = document.getElementById(`emoji-${prefix}`);
-            const imageEl = document.getElementById(`icon-${prefix}-image`);
+            const fileEl = document.getElementById(`icon-${prefix}-file`);
             const previewEl = document.getElementById(`icon-${prefix}-preview`);
 
             if (typeEl) typeEl.value = data.type;
             if (emojiEl) emojiEl.value = data.emoji;
-            if (imageEl) imageEl.value = data.imageUrl;
+
+            // Store existing image URL
+            this.iconImageData[prefix] = data.imageUrl;
 
             // Toggle visibility based on type
             this.toggleIconInputs(prefix, data.type);
@@ -919,29 +924,47 @@ class AdminPanel {
                 });
             }
 
-            // Add image URL change listener for preview
-            if (imageEl) {
-                imageEl.addEventListener('input', () => {
-                    if (previewEl && imageEl.value) {
-                        previewEl.innerHTML = `<img src="${imageEl.value}" style="max-width: 100%; max-height: 100%; object-fit: contain;">`;
+            // Add file input change listener
+            if (fileEl) {
+                fileEl.addEventListener('change', (e) => {
+                    const file = e.target.files[0];
+                    if (file) {
+                        const reader = new FileReader();
+                        reader.onload = (event) => {
+                            const base64 = event.target.result;
+                            this.iconImageData[prefix] = base64;
+                            if (previewEl) {
+                                previewEl.innerHTML = `<img src="${base64}" style="max-width: 100%; max-height: 100%; object-fit: contain;">`;
+                            }
+                        };
+                        reader.readAsDataURL(file);
                     }
                 });
             }
+        });
+
+        // Setup file button click handlers
+        document.querySelectorAll('.icon-file-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const targetId = btn.dataset.target;
+                const fileInput = document.getElementById(targetId);
+                if (fileInput) fileInput.click();
+            });
         });
     }
 
     toggleIconInputs(prefix, type) {
         const emojiEl = document.getElementById(`emoji-${prefix}`);
-        const imageEl = document.getElementById(`icon-${prefix}-image`);
+        const imageGroupEl = document.getElementById(`icon-${prefix}-image-group`);
         const previewEl = document.getElementById(`icon-${prefix}-preview`);
 
         if (type === 'image') {
             if (emojiEl) emojiEl.style.display = 'none';
-            if (imageEl) imageEl.style.display = 'block';
+            if (imageGroupEl) imageGroupEl.style.display = 'block';
             if (previewEl) previewEl.style.display = 'block';
         } else {
             if (emojiEl) emojiEl.style.display = 'block';
-            if (imageEl) imageEl.style.display = 'none';
+            if (imageGroupEl) imageGroupEl.style.display = 'none';
             if (previewEl) previewEl.style.display = 'none';
         }
     }
