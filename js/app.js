@@ -474,7 +474,8 @@ class Calendar {
         const today = new Date();
         for (let day = 1; day <= totalDays; day++) {
             const dateStr = `${this.currentYear}-${String(this.currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-            const hasEvent = this.events.some(e => e.date === dateStr);
+            const dayEvent = this.events.find(e => e.date === dateStr);
+            const hasEvent = !!dayEvent;
             const isToday = day === today.getDate() &&
                            this.currentMonth === today.getMonth() &&
                            this.currentYear === today.getFullYear();
@@ -483,7 +484,9 @@ class Calendar {
             if (isToday) classes.push('today');
             if (hasEvent) classes.push('has-event');
 
-            html += `<div class="${classes.join(' ')}" data-date="${dateStr}">${day}</div>`;
+            // Show "(회사명 면접)" on days with interview events
+            const eventLabel = hasEvent ? `<span class="calendar-day-event">(${dayEvent.company} 면접)</span>` : '';
+            html += `<div class="${classes.join(' ')}" data-date="${dateStr}"><span class="calendar-day-num">${day}</span>${eventLabel}</div>`;
         }
 
         // Next month days

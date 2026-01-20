@@ -46,10 +46,15 @@
             left: 0;
             bottom: 0;
             width: 280px;
-            background: var(--color-bg-secondary);
-            border-right: 1px solid var(--color-border);
+            background: #222;
+            border-right: 1px solid #333;
             overflow-y: auto;
             padding: var(--space-lg);
+            color: #fff;
+        }
+
+        .admin-sidebar a {
+            color: #fff;
         }
 
         .admin-main {
@@ -66,7 +71,7 @@
         .sidebar-title {
             font-size: var(--font-sm);
             font-weight: 600;
-            color: var(--color-text-secondary);
+            color: #aaa;
             margin-bottom: var(--space-md);
             text-transform: uppercase;
         }
@@ -79,17 +84,19 @@
 
         .page-tab {
             padding: var(--space-md) var(--space-lg);
-            background: var(--color-bg);
-            border: 1px solid var(--color-border);
+            background: #333;
+            border: 1px solid #444;
             border-radius: var(--radius-md);
             text-align: left;
             font-weight: 500;
             transition: all var(--transition-fast);
             cursor: pointer;
+            color: #fff;
         }
 
         .page-tab:hover {
             border-color: var(--color-primary);
+            background: #444;
         }
 
         .page-tab.active {
@@ -103,12 +110,13 @@
             align-items: center;
             gap: var(--space-md);
             padding: var(--space-md);
-            background: var(--color-bg);
-            border: 1px solid var(--color-border);
+            background: #333;
+            border: 1px solid #444;
             border-radius: var(--radius-md);
             margin-bottom: var(--space-sm);
             cursor: grab;
             transition: all var(--transition-fast);
+            color: #fff;
         }
 
         .sort-item:active {
@@ -117,7 +125,7 @@
 
         .sort-item.dragging {
             opacity: 0.5;
-            background: var(--color-bg-tertiary);
+            background: #555;
         }
 
         .sort-item:hover {
@@ -125,8 +133,17 @@
         }
 
         .sort-handle {
-            color: var(--color-text-muted);
+            color: #888;
             cursor: grab;
+        }
+
+        .section-link {
+            cursor: pointer;
+            flex: 1;
+        }
+
+        .section-link:hover {
+            color: var(--color-primary);
         }
 
         .admin-panel {
@@ -141,16 +158,21 @@
             background: var(--color-bg);
             border: 1px solid var(--color-border);
             border-radius: var(--radius-lg);
-            padding: var(--space-xl);
             margin-bottom: var(--space-xl);
+            overflow: hidden;
         }
 
         .settings-section-title {
             font-size: var(--font-lg);
             font-weight: 600;
-            margin-bottom: var(--space-lg);
-            padding-bottom: var(--space-md);
-            border-bottom: 1px solid var(--color-border);
+            padding: var(--space-lg);
+            background: #333;
+            color: #fff;
+            margin: 0;
+        }
+
+        .settings-section-content {
+            padding: var(--space-xl);
         }
 
         .settings-row {
@@ -161,6 +183,10 @@
 
         .settings-row-3 {
             grid-template-columns: repeat(3, 1fr);
+        }
+
+        .settings-row-4 {
+            grid-template-columns: repeat(4, 1fr);
         }
 
         .item-card {
@@ -208,6 +234,22 @@
             color: var(--color-primary);
         }
 
+        .sidebar-add-btn {
+            width: 100%;
+            padding: var(--space-md);
+            border: 2px dashed #555;
+            border-radius: var(--radius-md);
+            color: #888;
+            background: transparent;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+        }
+
+        .sidebar-add-btn:hover {
+            border-color: var(--color-primary);
+            color: var(--color-primary);
+        }
+
         .display-mode-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -245,7 +287,7 @@
         .color-input-group {
             display: flex;
             align-items: center;
-            gap: var(--space-md);
+            gap: var(--space-sm);
         }
 
         .color-preview {
@@ -253,6 +295,7 @@
             height: 40px;
             border-radius: var(--radius-md);
             border: 1px solid var(--color-border);
+            cursor: pointer;
         }
 
         .radar-inputs {
@@ -329,6 +372,58 @@
             margin-right: 400px;
         }
 
+        .theme-color-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: var(--space-md);
+        }
+
+        .theme-color-item {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-xs);
+        }
+
+        .theme-color-item label {
+            font-size: var(--font-sm);
+            color: var(--color-text-secondary);
+        }
+
+        .image-upload-area {
+            border: 2px dashed var(--color-border);
+            border-radius: var(--radius-lg);
+            padding: var(--space-xl);
+            text-align: center;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+        }
+
+        .image-upload-area:hover {
+            border-color: var(--color-primary);
+            background: var(--color-bg-secondary);
+        }
+
+        .image-upload-preview {
+            max-width: 200px;
+            margin: 0 auto;
+        }
+
+        .image-upload-preview img {
+            width: 100%;
+            border-radius: var(--radius-md);
+        }
+
+        .portfolio-section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--space-lg);
+        }
+
+        .section-anchor {
+            scroll-margin-top: 80px;
+        }
+
         @media (max-width: 1200px) {
             .preview-frame {
                 display: none !important;
@@ -344,7 +439,7 @@
                 position: relative;
                 width: 100%;
                 border-right: none;
-                border-bottom: 1px solid var(--color-border);
+                border-bottom: 1px solid #333;
             }
 
             .admin-main {
@@ -353,7 +448,9 @@
 
             .settings-row,
             .settings-row-3,
-            .display-mode-grid {
+            .settings-row-4,
+            .display-mode-grid,
+            .theme-color-grid {
                 grid-template-columns: 1fr;
             }
         }
@@ -364,8 +461,9 @@
     <header class="admin-header">
         <h1 class="admin-header-title">포트폴리오 설정</h1>
         <div class="admin-header-actions">
+            <button class="btn btn-primary" id="btn-save-all">모두저장</button>
             <a href="index.html" class="btn btn-secondary" target="_blank">사이트 보기</a>
-            <button class="btn btn-primary" id="btn-preview">미리보기</button>
+            <button class="btn btn-secondary" id="btn-preview">미리보기</button>
             <button class="btn btn-secondary" id="btn-export">데이터 내보내기</button>
             <button class="btn btn-accent" id="btn-reset">초기화</button>
         </div>
@@ -381,6 +479,7 @@
                     <button class="page-tab active" data-page="solo">혼자제작</button>
                     <button class="page-tab" data-page="ai">AI활용</button>
                     <button class="page-tab" data-page="team">팀플</button>
+                    <button class="page-tab" data-page="skin">스킨수정</button>
                 </div>
             </div>
 
@@ -389,7 +488,7 @@
                 <div id="menu-list">
                     <!-- Menu items will be rendered here -->
                 </div>
-                <button class="add-btn" id="btn-add-menu">+ 메뉴 추가</button>
+                <button class="sidebar-add-btn" id="btn-add-menu">+ 메뉴 추가</button>
             </div>
 
             <div class="sidebar-section">
@@ -404,332 +503,325 @@
         <main class="admin-main">
             <!-- Solo Page Settings -->
             <div class="admin-panel active" id="panel-solo">
+                <!-- Site Settings -->
+                <div class="settings-section" id="section-site">
+                    <h2 class="settings-section-title">사이트 설정</h2>
+                    <div class="settings-section-content">
+                        <h3 style="margin-bottom: var(--space-md);">로고 설정</h3>
+                        <div class="settings-row" style="margin-bottom: var(--space-lg);">
+                            <div class="form-group">
+                                <label class="form-label">로고 타입</label>
+                                <select class="form-select" id="logo-type">
+                                    <option value="text">텍스트</option>
+                                    <option value="image">이미지</option>
+                                </select>
+                            </div>
+                            <div class="form-group" id="logo-text-group">
+                                <label class="form-label">로고 텍스트</label>
+                                <input type="text" class="form-input" id="logo-text">
+                            </div>
+                            <div class="form-group" id="logo-image-group" style="display: none;">
+                                <label class="form-label">로고 이미지 URL</label>
+                                <input type="text" class="form-input" id="logo-image-url">
+                            </div>
+                        </div>
+
+                        <h3 style="margin-bottom: var(--space-md);">폰트 설정</h3>
+                        <div class="settings-row">
+                            <div class="form-group">
+                                <label class="form-label">메인 폰트</label>
+                                <input type="text" class="form-input" id="font-primary" placeholder="예: Paperlogse">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">보조 폰트</label>
+                                <input type="text" class="form-input" id="font-secondary" placeholder="예: Pretendard">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Google Font URL (선택)</label>
+                            <input type="text" class="form-input" id="font-google-url" placeholder="https://fonts.googleapis.com/...">
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Profile Settings -->
-                <div class="settings-section">
+                <div class="settings-section section-anchor" id="section-about">
                     <h2 class="settings-section-title">자기소개</h2>
-
-                    <div class="settings-row">
-                        <div class="form-group">
-                            <label class="form-label">이름</label>
-                            <input type="text" class="form-input" id="profile-name">
+                    <div class="settings-section-content">
+                        <div class="settings-row">
+                            <div class="form-group">
+                                <label class="form-label">이름</label>
+                                <input type="text" class="form-input" id="profile-name">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">카카오톡 아이디</label>
+                                <input type="text" class="form-input" id="profile-kakao">
+                            </div>
                         </div>
+
+                        <div class="settings-row">
+                            <div class="form-group">
+                                <label class="form-label">재직여부</label>
+                                <input type="text" class="form-input" id="profile-employment">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">희망연봉</label>
+                                <input type="text" class="form-input" id="profile-salary">
+                            </div>
+                        </div>
+
                         <div class="form-group">
-                            <label class="form-label">카카오톡 아이디</label>
-                            <input type="text" class="form-input" id="profile-kakao">
+                            <label class="form-label">가능직무 (쉼표로 구분)</label>
+                            <input type="text" class="form-input" id="profile-roles">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">가능스킬 (쉼표로 구분)</label>
+                            <input type="text" class="form-input" id="profile-skills">
+                        </div>
+
+                        <div class="settings-row">
+                            <div class="form-group">
+                                <label class="form-label">교육이수</label>
+                                <input type="text" class="form-input" id="profile-education">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">거주지</label>
+                                <input type="text" class="form-input" id="profile-residence">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">좌우명</label>
+                            <input type="text" class="form-input" id="profile-motto">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">프로필 사진</label>
+                            <div class="image-upload-area" id="profile-image-upload">
+                                <div class="image-upload-preview" id="profile-image-preview">
+                                    <p>클릭하여 이미지 선택<br>또는 URL 직접 입력</p>
+                                </div>
+                                <input type="file" id="profile-image-file" accept="image/*" style="display: none;">
+                            </div>
+                            <input type="text" class="form-input" id="profile-image" placeholder="이미지 URL 직접 입력" style="margin-top: var(--space-sm);">
                         </div>
                     </div>
-
-                    <div class="settings-row">
-                        <div class="form-group">
-                            <label class="form-label">재직여부</label>
-                            <input type="text" class="form-input" id="profile-employment">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">희망연봉</label>
-                            <input type="text" class="form-input" id="profile-salary">
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">가능직무 (쉼표로 구분)</label>
-                        <input type="text" class="form-input" id="profile-roles">
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">가능스킬 (쉼표로 구분)</label>
-                        <input type="text" class="form-input" id="profile-skills">
-                    </div>
-
-                    <div class="settings-row">
-                        <div class="form-group">
-                            <label class="form-label">교육이수</label>
-                            <input type="text" class="form-input" id="profile-education">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">거주지</label>
-                            <input type="text" class="form-input" id="profile-residence">
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">좌우명</label>
-                        <input type="text" class="form-input" id="profile-motto">
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">프로필 사진 URL</label>
-                        <input type="text" class="form-input" id="profile-image">
-                    </div>
-
-                    <button class="btn btn-primary" id="btn-save-profile">저장</button>
                 </div>
 
                 <!-- AI Tools Settings -->
                 <div class="settings-section">
                     <h2 class="settings-section-title">사용해본 AI</h2>
-                    <div id="ai-tools-list">
-                        <!-- AI tools will be rendered here -->
+                    <div class="settings-section-content">
+                        <div id="ai-tools-list">
+                            <!-- AI tools will be rendered here -->
+                        </div>
+                        <button class="add-btn" id="btn-add-ai-tool">+ AI 도구 추가</button>
                     </div>
-                    <button class="add-btn" id="btn-add-ai-tool">+ AI 도구 추가</button>
                 </div>
 
                 <!-- Related Experience -->
                 <div class="settings-section">
                     <h2 class="settings-section-title">관련경력</h2>
-                    <div class="form-group">
-                        <label class="form-label">총 경력 기간</label>
-                        <input type="text" class="form-input" id="related-total">
+                    <div class="settings-section-content">
+                        <div class="form-group">
+                            <label class="form-label">총 경력 기간</label>
+                            <input type="text" class="form-input" id="related-total">
+                        </div>
+                        <div id="related-experience-list">
+                            <!-- Experience items will be rendered here -->
+                        </div>
+                        <button class="add-btn" id="btn-add-related">+ 경력 추가</button>
                     </div>
-                    <div id="related-experience-list">
-                        <!-- Experience items will be rendered here -->
-                    </div>
-                    <button class="add-btn" id="btn-add-related">+ 경력 추가</button>
                 </div>
 
                 <!-- Other Experience -->
                 <div class="settings-section">
                     <h2 class="settings-section-title">타업무경력</h2>
-                    <div class="form-group">
-                        <label class="form-label">총 경력 기간</label>
-                        <input type="text" class="form-input" id="other-total">
+                    <div class="settings-section-content">
+                        <div class="form-group">
+                            <label class="form-label">총 경력 기간</label>
+                            <input type="text" class="form-input" id="other-total">
+                        </div>
+                        <div id="other-experience-list">
+                            <!-- Experience items will be rendered here -->
+                        </div>
+                        <button class="add-btn" id="btn-add-other">+ 경력 추가</button>
                     </div>
-                    <div id="other-experience-list">
-                        <!-- Experience items will be rendered here -->
-                    </div>
-                    <button class="add-btn" id="btn-add-other">+ 경력 추가</button>
                 </div>
 
                 <!-- Self Evaluation -->
                 <div class="settings-section">
                     <h2 class="settings-section-title">내가 생각하는 내평가</h2>
-                    <div class="form-group">
-                        <label class="form-label">평가 내용</label>
-                        <textarea class="form-textarea" id="evaluation-text" rows="6"></textarea>
-                    </div>
+                    <div class="settings-section-content">
+                        <div class="form-group">
+                            <label class="form-label">평가 내용</label>
+                            <textarea class="form-textarea" id="evaluation-text" rows="6"></textarea>
+                        </div>
 
-                    <h3 style="margin: var(--space-lg) 0 var(--space-md);">방사형 그래프 (제목과 값 0-100)</h3>
-                    <div class="radar-inputs" id="radar-inputs">
-                        <!-- Radar inputs will be rendered here -->
+                        <h3 style="margin: var(--space-lg) 0 var(--space-md);">방사형 그래프 (제목과 값 0-100)</h3>
+                        <div class="radar-inputs" id="radar-inputs">
+                            <!-- Radar inputs will be rendered here -->
+                        </div>
                     </div>
-                    <button class="btn btn-primary" id="btn-save-evaluation" style="margin-top: var(--space-lg);">평가 저장</button>
                 </div>
 
                 <!-- Video Section -->
                 <div class="settings-section">
                     <h2 class="settings-section-title">영상</h2>
-                    <div class="settings-row">
-                        <div class="form-group">
-                            <label class="form-label">영상 타입</label>
-                            <select class="form-select" id="video-type">
-                                <option value="youtube">YouTube</option>
-                                <option value="video">비디오 파일</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">영상 URL</label>
-                            <input type="text" class="form-input" id="video-url">
-                        </div>
-                    </div>
-                    <button class="btn btn-primary" id="btn-save-video">영상 저장</button>
-                </div>
-
-                <!-- Portfolio Display Mode -->
-                <div class="settings-section">
-                    <h2 class="settings-section-title">작품 표시 방식</h2>
-                    <div class="display-mode-grid" data-portfolio="solo">
-                        <div class="display-mode-item" data-mode="single">
-                            <div class="display-mode-icon">📄</div>
-                            <div class="display-mode-label">한줄 한작품</div>
-                        </div>
-                        <div class="display-mode-item" data-mode="grid">
-                            <div class="display-mode-icon">🔲</div>
-                            <div class="display-mode-label">3칸 그리드</div>
-                        </div>
-                        <div class="display-mode-item" data-mode="masonry">
-                            <div class="display-mode-icon">🧱</div>
-                            <div class="display-mode-label">지그재그 벽돌</div>
-                        </div>
-                        <div class="display-mode-item" data-mode="slider">
-                            <div class="display-mode-icon">↔️</div>
-                            <div class="display-mode-label">가로 슬라이드</div>
+                    <div class="settings-section-content">
+                        <div class="settings-row">
+                            <div class="form-group">
+                                <label class="form-label">영상 타입</label>
+                                <select class="form-select" id="video-type">
+                                    <option value="youtube">YouTube</option>
+                                    <option value="video">비디오 파일</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">영상 URL</label>
+                                <input type="text" class="form-input" id="video-url">
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Portfolio Items -->
-                <div class="settings-section">
-                    <h2 class="settings-section-title">작품 관리</h2>
-                    <div id="portfolio-solo-list">
-                        <!-- Portfolio items will be rendered here -->
-                    </div>
-                    <button class="add-btn" id="btn-add-portfolio-solo">+ 작품 추가</button>
+                <!-- Portfolio Sections (Dynamic) -->
+                <div id="portfolio-sections-container">
+                    <!-- Portfolio sections will be rendered dynamically -->
                 </div>
 
                 <!-- Contact Settings -->
-                <div class="settings-section">
+                <div class="settings-section section-anchor" id="section-contact">
                     <h2 class="settings-section-title">Contact</h2>
-                    <div class="settings-row-3">
-                        <div class="form-group">
-                            <label class="form-label">이름</label>
-                            <input type="text" class="form-input" id="contact-name">
+                    <div class="settings-section-content">
+                        <div class="settings-row-3">
+                            <div class="form-group">
+                                <label class="form-label">이름</label>
+                                <input type="text" class="form-input" id="contact-name">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">전화번호</label>
+                                <input type="text" class="form-input" id="contact-phone">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">이메일</label>
+                                <input type="text" class="form-input" id="contact-email">
+                            </div>
                         </div>
                         <div class="form-group">
-                            <label class="form-label">전화번호</label>
-                            <input type="text" class="form-input" id="contact-phone">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">이메일</label>
-                            <input type="text" class="form-input" id="contact-email">
+                            <label class="form-label">감사 메시지</label>
+                            <input type="text" class="form-input" id="contact-message">
                         </div>
                     </div>
-                    <div class="form-group">
-                        <label class="form-label">감사 메시지</label>
-                        <input type="text" class="form-input" id="contact-message">
-                    </div>
-                    <button class="btn btn-primary" id="btn-save-contact">연락처 저장</button>
                 </div>
 
                 <!-- Interview Schedule -->
                 <div class="settings-section">
                     <h2 class="settings-section-title">면접 일정</h2>
-                    <div id="interview-list">
-                        <!-- Interview items will be rendered here -->
+                    <div class="settings-section-content">
+                        <div id="interview-list">
+                            <!-- Interview items will be rendered here -->
+                        </div>
+                        <button class="add-btn" id="btn-add-interview">+ 면접 일정 추가</button>
                     </div>
-                    <button class="add-btn" id="btn-add-interview">+ 면접 일정 추가</button>
                 </div>
             </div>
 
             <!-- AI Page Settings -->
             <div class="admin-panel" id="panel-ai">
                 <div class="settings-section">
-                    <h2 class="settings-section-title">AI 활용 작품 표시 방식</h2>
-                    <div class="display-mode-grid" data-portfolio="ai">
-                        <div class="display-mode-item" data-mode="single">
-                            <div class="display-mode-icon">📄</div>
-                            <div class="display-mode-label">한줄 한작품</div>
-                        </div>
-                        <div class="display-mode-item" data-mode="grid">
-                            <div class="display-mode-icon">🔲</div>
-                            <div class="display-mode-label">3칸 그리드</div>
-                        </div>
-                        <div class="display-mode-item" data-mode="masonry">
-                            <div class="display-mode-icon">🧱</div>
-                            <div class="display-mode-label">지그재그 벽돌</div>
-                        </div>
-                        <div class="display-mode-item" data-mode="slider">
-                            <div class="display-mode-icon">↔️</div>
-                            <div class="display-mode-label">가로 슬라이드</div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="settings-section">
                     <h2 class="settings-section-title">AI 활용 프로젝트 관리</h2>
-                    <div id="portfolio-ai-list">
-                        <!-- AI portfolio items will be rendered here -->
+                    <div class="settings-section-content">
+                        <div id="portfolio-ai-list">
+                            <!-- AI portfolio items will be rendered here -->
+                        </div>
+                        <button class="add-btn" id="btn-add-portfolio-ai">+ AI 프로젝트 추가</button>
                     </div>
-                    <button class="add-btn" id="btn-add-portfolio-ai">+ AI 프로젝트 추가</button>
                 </div>
             </div>
 
             <!-- Team Page Settings -->
             <div class="admin-panel" id="panel-team">
                 <div class="settings-section">
-                    <h2 class="settings-section-title">팀플 작품 표시 방식</h2>
-                    <div class="display-mode-grid" data-portfolio="team">
-                        <div class="display-mode-item" data-mode="single">
-                            <div class="display-mode-icon">📄</div>
-                            <div class="display-mode-label">한줄 한작품</div>
-                        </div>
-                        <div class="display-mode-item" data-mode="grid">
-                            <div class="display-mode-icon">🔲</div>
-                            <div class="display-mode-label">3칸 그리드</div>
-                        </div>
-                        <div class="display-mode-item" data-mode="masonry">
-                            <div class="display-mode-icon">🧱</div>
-                            <div class="display-mode-label">지그재그 벽돌</div>
-                        </div>
-                        <div class="display-mode-item" data-mode="slider">
-                            <div class="display-mode-icon">↔️</div>
-                            <div class="display-mode-label">가로 슬라이드</div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="settings-section">
                     <h2 class="settings-section-title">팀플 프로젝트 관리</h2>
-                    <div id="portfolio-team-list">
-                        <!-- Team portfolio items will be rendered here -->
+                    <div class="settings-section-content">
+                        <div id="portfolio-team-list">
+                            <!-- Team portfolio items will be rendered here -->
+                        </div>
+                        <button class="add-btn" id="btn-add-portfolio-team">+ 팀플 프로젝트 추가</button>
                     </div>
-                    <button class="add-btn" id="btn-add-portfolio-team">+ 팀플 프로젝트 추가</button>
                 </div>
             </div>
 
-            <!-- Theme & CSS Settings (Always visible) -->
-            <div class="settings-section">
-                <h2 class="settings-section-title">테마 & CSS 변수 설정</h2>
-
-                <h3 style="margin-bottom: var(--space-md);">테마 모드</h3>
-                <div id="theme-modes-list" style="margin-bottom: var(--space-lg);">
-                    <!-- Theme modes will be rendered here -->
+            <!-- Skin Settings -->
+            <div class="admin-panel" id="panel-skin">
+                <!-- Theme Modes -->
+                <div class="settings-section">
+                    <h2 class="settings-section-title">테마 모드 관리</h2>
+                    <div class="settings-section-content">
+                        <div id="theme-modes-container">
+                            <!-- Theme modes will be rendered here -->
+                        </div>
+                        <button class="add-btn" id="btn-add-theme" style="margin-top: var(--space-lg);">+ 새 테마 추가</button>
+                    </div>
                 </div>
-                <button class="add-btn" id="btn-add-theme" style="margin-bottom: var(--space-xl);">+ 테마 추가</button>
 
-                <h3 style="margin-bottom: var(--space-md);">CSS 변수</h3>
-                <div class="settings-row-3">
-                    <div class="form-group">
-                        <label class="form-label">Primary 색상</label>
-                        <div class="color-input-group">
-                            <input type="color" id="css-color-primary" class="color-preview">
-                            <input type="text" class="form-input" id="css-color-primary-text">
+                <!-- CSS Variables -->
+                <div class="settings-section">
+                    <h2 class="settings-section-title">레이아웃 설정</h2>
+                    <div class="settings-section-content">
+                        <h3 style="margin-bottom: var(--space-md);">Border Radius</h3>
+                        <div class="settings-row-3" style="margin-bottom: var(--space-xl);">
+                            <div class="form-group">
+                                <label class="form-label">작은 (sm)</label>
+                                <input type="text" class="form-input" id="css-radius-sm" placeholder="4px">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">중간 (md)</label>
+                                <input type="text" class="form-input" id="css-radius-md" placeholder="8px">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">큰 (lg)</label>
+                                <input type="text" class="form-input" id="css-radius-lg" placeholder="12px">
+                            </div>
+                        </div>
+
+                        <h3 style="margin-bottom: var(--space-md);">글자 크기</h3>
+                        <div class="settings-row-3" style="margin-bottom: var(--space-xl);">
+                            <div class="form-group">
+                                <label class="form-label">제목1 크기</label>
+                                <input type="text" class="form-input" id="css-font-title1" placeholder="2.25rem">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">제목2 크기</label>
+                                <input type="text" class="form-input" id="css-font-title2" placeholder="1.5rem">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">내용 크기</label>
+                                <input type="text" class="form-input" id="css-font-base" placeholder="1rem">
+                            </div>
+                        </div>
+
+                        <h3 style="margin-bottom: var(--space-md);">여백 설정</h3>
+                        <div class="settings-row" style="margin-bottom: var(--space-xl);">
+                            <div class="form-group">
+                                <label class="form-label">섹션 여백</label>
+                                <input type="text" class="form-input" id="css-space-section" placeholder="6rem">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">컨텐츠 여백</label>
+                                <input type="text" class="form-input" id="css-space-content" placeholder="1.5rem">
+                            </div>
                         </div>
                     </div>
-                    <div class="form-group">
-                        <label class="form-label">Secondary 색상</label>
-                        <div class="color-input-group">
-                            <input type="color" id="css-color-secondary" class="color-preview">
-                            <input type="text" class="form-input" id="css-color-secondary-text">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Accent 색상</label>
-                        <div class="color-input-group">
-                            <input type="color" id="css-color-accent" class="color-preview">
-                            <input type="text" class="form-input" id="css-color-accent-text">
-                        </div>
-                    </div>
                 </div>
-
-                <div class="settings-row">
-                    <div class="form-group">
-                        <label class="form-label">Border Radius (sm)</label>
-                        <input type="text" class="form-input" id="css-radius-sm">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Border Radius (md)</label>
-                        <input type="text" class="form-input" id="css-radius-md">
-                    </div>
-                </div>
-
-                <div class="settings-row">
-                    <div class="form-group">
-                        <label class="form-label">Border Radius (lg)</label>
-                        <input type="text" class="form-input" id="css-radius-lg">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">기본 폰트 크기</label>
-                        <input type="text" class="form-input" id="css-font-base">
-                    </div>
-                </div>
-
-                <button class="btn btn-primary" id="btn-save-css">CSS 변수 저장</button>
             </div>
         </main>
 
         <!-- Floating Theme Panel -->
-        <div class="floating-theme-panel">
-            <button class="floating-theme-btn active" data-theme="light" style="background: #ffffff; border: 1px solid #dee2e6;" title="라이트 모드"></button>
-            <button class="floating-theme-btn" data-theme="dark" style="background: #1a1a2e;" title="다크 모드"></button>
+        <div class="floating-theme-panel" id="floating-theme-panel">
+            <!-- Theme buttons will be rendered dynamically -->
         </div>
 
         <!-- Preview Frame -->

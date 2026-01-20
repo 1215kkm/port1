@@ -13,6 +13,7 @@ class AdminPanel {
         // Apply theme
         dataManager.applyTheme();
         dataManager.applyCSSVariables();
+        dataManager.applyFont();
 
         // Initialize page tabs
         this.initPageTabs();
@@ -20,25 +21,27 @@ class AdminPanel {
         // Initialize all renderers
         this.renderMenuList();
         this.renderSectionOrder();
+        this.renderSiteSettings();
         this.renderProfile();
         this.renderAITools();
         this.renderExperience('related');
         this.renderExperience('other');
         this.renderEvaluation();
         this.renderVideo();
-        this.renderPortfolioSolo();
+        this.renderPortfolioSections();
         this.renderPortfolioAI();
         this.renderPortfolioTeam();
         this.renderContact();
         this.renderInterviews();
         this.renderThemeModes();
         this.renderCSSVariables();
-        this.renderDisplayModes();
+        this.renderFloatingThemePanel();
 
         // Initialize event listeners
         this.initEventListeners();
         this.initDragAndDrop();
         this.initModal();
+        this.initImageUpload();
 
         // Listen for data updates
         window.addEventListener('dataUpdated', () => {
@@ -72,6 +75,7 @@ class AdminPanel {
     // =====================
     initEventListeners() {
         // Header buttons
+        document.getElementById('btn-save-all')?.addEventListener('click', () => this.saveAll());
         document.getElementById('btn-preview')?.addEventListener('click', () => this.togglePreview());
         document.getElementById('btn-export')?.addEventListener('click', () => dataManager.exportData());
         document.getElementById('btn-reset')?.addEventListener('click', () => {
@@ -81,68 +85,163 @@ class AdminPanel {
             }
         });
 
-        // Profile save
-        document.getElementById('btn-save-profile')?.addEventListener('click', () => this.saveProfile());
-
         // Add buttons
         document.getElementById('btn-add-menu')?.addEventListener('click', () => this.showMenuModal());
         document.getElementById('btn-add-ai-tool')?.addEventListener('click', () => this.showAIToolModal());
         document.getElementById('btn-add-related')?.addEventListener('click', () => this.showExperienceModal('related'));
         document.getElementById('btn-add-other')?.addEventListener('click', () => this.showExperienceModal('other'));
-        document.getElementById('btn-save-evaluation')?.addEventListener('click', () => this.saveEvaluation());
-        document.getElementById('btn-save-video')?.addEventListener('click', () => this.saveVideo());
-        document.getElementById('btn-add-portfolio-solo')?.addEventListener('click', () => this.showPortfolioModal('solo'));
         document.getElementById('btn-add-portfolio-ai')?.addEventListener('click', () => this.showProjectModal('ai'));
         document.getElementById('btn-add-portfolio-team')?.addEventListener('click', () => this.showProjectModal('team'));
-        document.getElementById('btn-save-contact')?.addEventListener('click', () => this.saveContact());
         document.getElementById('btn-add-interview')?.addEventListener('click', () => this.showInterviewModal());
         document.getElementById('btn-add-theme')?.addEventListener('click', () => this.showThemeModal());
-        document.getElementById('btn-save-css')?.addEventListener('click', () => this.saveCSSVariables());
 
-        // Theme toggle buttons
-        document.querySelectorAll('.floating-theme-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const theme = btn.dataset.theme;
-                dataManager.setTheme(theme);
-                document.querySelectorAll('.floating-theme-btn').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-            });
+        // Logo type change
+        document.getElementById('logo-type')?.addEventListener('change', (e) => {
+            const textGroup = document.getElementById('logo-text-group');
+            const imageGroup = document.getElementById('logo-image-group');
+            if (e.target.value === 'text') {
+                textGroup.style.display = 'block';
+                imageGroup.style.display = 'none';
+            } else {
+                textGroup.style.display = 'none';
+                imageGroup.style.display = 'block';
+            }
         });
-
-        // Display mode selection
-        document.querySelectorAll('.display-mode-item').forEach(item => {
-            item.addEventListener('click', () => {
-                const grid = item.closest('.display-mode-grid');
-                const portfolio = grid.dataset.portfolio;
-                const mode = item.dataset.mode;
-
-                grid.querySelectorAll('.display-mode-item').forEach(i => i.classList.remove('active'));
-                item.classList.add('active');
-
-                dataManager.setDisplayMode(portfolio, mode);
-            });
-        });
-
-        // Color inputs sync
-        this.initColorInputs('css-color-primary');
-        this.initColorInputs('css-color-secondary');
-        this.initColorInputs('css-color-accent');
     }
 
-    initColorInputs(baseId) {
-        const colorInput = document.getElementById(baseId);
-        const textInput = document.getElementById(`${baseId}-text`);
+    initImageUpload() {
+        const uploadArea = document.getElementById('profile-image-upload');
+        const fileInput = document.getElementById('profile-image-file');
+        const urlInput = document.getElementById('profile-image');
 
-        if (colorInput && textInput) {
-            colorInput.addEventListener('input', () => {
-                textInput.value = colorInput.value;
-            });
-            textInput.addEventListener('input', () => {
-                if (/^#[0-9A-Fa-f]{6}$/.test(textInput.value)) {
-                    colorInput.value = textInput.value;
+        if (uploadArea && fileInput) {
+            uploadArea.addEventListener('click', () => fileInput.click());
+
+            fileInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        const preview = document.getElementById('profile-image-preview');
+                        preview.innerHTML = `<img src="${event.target.result}" alt="프로필">`;
+                        urlInput.value = event.target.result;
+                    };
+                    reader.readAsDataURL(file);
                 }
             });
         }
+
+        // URL input change
+        urlInput?.addEventListener('change', () => {
+            if (urlInput.value) {
+                const preview = document.getElementById('profile-image-preview');
+                preview.innerHTML = `<img src="${urlInput.value}" alt="프로필">`;
+            }
+        });
+    }
+
+    // =====================
+    // Save All
+    // =====================
+    saveAll() {
+        // Collect all form data and save
+        this.saveSiteSettings();
+        this.saveProfile();
+        this.saveEvaluation();
+        this.saveVideo();
+        this.saveContact();
+        this.saveCSSVariables();
+        this.saveAllThemes();
+
+        dataManager.saveAll();
+        alert('모든 설정이 저장되었습니다.');
+    }
+
+    saveSiteSettings() {
+        const logoType = document.getElementById('logo-type').value;
+        const logoText = document.getElementById('logo-text').value;
+        const logoImageUrl = document.getElementById('logo-image-url').value;
+        const fontPrimary = document.getElementById('font-primary').value;
+        const fontSecondary = document.getElementById('font-secondary').value;
+        const fontGoogleUrl = document.getElementById('font-google-url').value;
+
+        dataManager.updateSiteSettings({
+            logo: { type: logoType, text: logoText, imageUrl: logoImageUrl },
+            font: { primary: fontPrimary, secondary: fontSecondary, googleFontUrl: fontGoogleUrl }
+        });
+    }
+
+    saveProfile() {
+        const updates = {
+            name: document.getElementById('profile-name').value,
+            kakaoId: document.getElementById('profile-kakao').value,
+            employmentStatus: document.getElementById('profile-employment').value,
+            desiredSalary: document.getElementById('profile-salary').value,
+            jobRoles: document.getElementById('profile-roles').value.split(',').map(s => s.trim()).filter(s => s),
+            skills: document.getElementById('profile-skills').value.split(',').map(s => s.trim()).filter(s => s),
+            education: document.getElementById('profile-education').value,
+            residence: document.getElementById('profile-residence').value,
+            motto: document.getElementById('profile-motto').value,
+            profileImage: document.getElementById('profile-image').value
+        };
+        dataManager.updateProfile(updates);
+    }
+
+    saveEvaluation() {
+        const text = document.getElementById('evaluation-text').value;
+        const radarInputs = document.querySelectorAll('#radar-inputs .radar-input-item');
+
+        const radarChart = Array.from(radarInputs).map(item => ({
+            label: item.querySelector('[data-field="label"]').value,
+            value: parseInt(item.querySelector('[data-field="value"]').value) || 0
+        }));
+
+        dataManager.updateEvaluation({ text });
+        dataManager.updateRadarChart(radarChart);
+    }
+
+    saveVideo() {
+        const type = document.getElementById('video-type').value;
+        const url = document.getElementById('video-url').value;
+        dataManager.setVideo(type, url);
+    }
+
+    saveContact() {
+        const updates = {
+            name: document.getElementById('contact-name').value,
+            phone: document.getElementById('contact-phone').value,
+            email: document.getElementById('contact-email').value,
+            message: document.getElementById('contact-message').value
+        };
+        dataManager.updateContact(updates);
+    }
+
+    saveCSSVariables() {
+        const vars = {
+            radiusSm: document.getElementById('css-radius-sm')?.value || '4px',
+            radiusMd: document.getElementById('css-radius-md')?.value || '8px',
+            radiusLg: document.getElementById('css-radius-lg')?.value || '12px',
+            fontBase: document.getElementById('css-font-base')?.value || '1rem',
+            fontTitle1: document.getElementById('css-font-title1')?.value || '2.25rem',
+            fontTitle2: document.getElementById('css-font-title2')?.value || '1.5rem',
+            spaceSection: document.getElementById('css-space-section')?.value || '6rem',
+            spaceContent: document.getElementById('css-space-content')?.value || '1.5rem'
+        };
+        dataManager.updateCSSVariables(vars);
+    }
+
+    saveAllThemes() {
+        // Save all theme color inputs
+        this.data.theme.modes.forEach(mode => {
+            const container = document.getElementById(`theme-colors-${mode.id}`);
+            if (container) {
+                const colors = {};
+                container.querySelectorAll('[data-color-key]').forEach(input => {
+                    colors[input.dataset.colorKey] = input.value;
+                });
+                dataManager.updateThemeMode(mode.id, { colors });
+            }
+        });
     }
 
     // =====================
@@ -246,14 +345,16 @@ class AdminPanel {
         if (!container) return;
 
         container.innerHTML = this.data.menuItems.map(item => `
-            <div class="item-card">
+            <div class="item-card" style="background: #333; border-color: #444; color: #fff;">
                 <div class="item-card-content">
                     <div class="item-card-title">${item.label}</div>
-                    <div class="item-card-desc">#${item.id}</div>
+                    <div class="item-card-desc" style="color: #888;">#${item.id} ${item.isPortfolio ? '(작품섹션)' : ''}</div>
                 </div>
                 <div class="item-card-actions">
-                    <button class="btn-icon btn-icon-edit" data-action="edit-menu" data-id="${item.id}">✏️</button>
-                    <button class="btn-icon btn-icon-delete" data-action="delete-menu" data-id="${item.id}">🗑️</button>
+                    <button class="btn-icon btn-icon-edit" data-action="edit-menu" data-id="${item.id}" style="background: #444; border-color: #555;">✏️</button>
+                    ${item.id !== 'about' && item.id !== 'contact' ? `
+                        <button class="btn-icon btn-icon-delete" data-action="delete-menu" data-id="${item.id}" style="background: #444; border-color: #555;">🗑️</button>
+                    ` : ''}
                 </div>
             </div>
         `).join('');
@@ -266,8 +367,10 @@ class AdminPanel {
             btn.addEventListener('click', () => {
                 if (confirm('이 메뉴를 삭제하시겠습니까?')) {
                     dataManager.deleteMenuItem(btn.dataset.id);
+                    this.data = dataManager.getData();
                     this.renderMenuList();
                     this.renderSectionOrder();
+                    this.renderPortfolioSections();
                 }
             });
         });
@@ -283,9 +386,42 @@ class AdminPanel {
         container.innerHTML = this.data.sectionOrder.map(sectionId => `
             <div class="sort-item" draggable="true" data-section="${sectionId}">
                 <span class="sort-handle">☰</span>
-                <span>${menuMap[sectionId] || sectionId}</span>
+                <span class="section-link" data-target="${sectionId}">${menuMap[sectionId] || sectionId}</span>
             </div>
         `).join('');
+
+        // Section link click - scroll to section
+        container.querySelectorAll('.section-link').forEach(link => {
+            link.addEventListener('click', () => {
+                const target = link.dataset.target;
+                const section = document.getElementById(`section-${target}`);
+                if (section) {
+                    section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
+    }
+
+    renderSiteSettings() {
+        const settings = this.data.siteSettings;
+
+        // Logo
+        document.getElementById('logo-type').value = settings.logo?.type || 'text';
+        document.getElementById('logo-text').value = settings.logo?.text || '';
+        document.getElementById('logo-image-url').value = settings.logo?.imageUrl || '';
+
+        // Show/hide based on type
+        const textGroup = document.getElementById('logo-text-group');
+        const imageGroup = document.getElementById('logo-image-group');
+        if (settings.logo?.type === 'image') {
+            textGroup.style.display = 'none';
+            imageGroup.style.display = 'block';
+        }
+
+        // Font
+        document.getElementById('font-primary').value = settings.font?.primary || 'Paperlogse';
+        document.getElementById('font-secondary').value = settings.font?.secondary || 'Pretendard';
+        document.getElementById('font-google-url').value = settings.font?.googleFontUrl || '';
     }
 
     renderProfile() {
@@ -300,23 +436,12 @@ class AdminPanel {
         document.getElementById('profile-residence').value = profile.residence || '';
         document.getElementById('profile-motto').value = profile.motto || '';
         document.getElementById('profile-image').value = profile.profileImage || '';
-    }
 
-    saveProfile() {
-        const updates = {
-            name: document.getElementById('profile-name').value,
-            kakaoId: document.getElementById('profile-kakao').value,
-            employmentStatus: document.getElementById('profile-employment').value,
-            desiredSalary: document.getElementById('profile-salary').value,
-            jobRoles: document.getElementById('profile-roles').value.split(',').map(s => s.trim()).filter(s => s),
-            skills: document.getElementById('profile-skills').value.split(',').map(s => s.trim()).filter(s => s),
-            education: document.getElementById('profile-education').value,
-            residence: document.getElementById('profile-residence').value,
-            motto: document.getElementById('profile-motto').value,
-            profileImage: document.getElementById('profile-image').value
-        };
-        dataManager.updateProfile(updates);
-        alert('프로필이 저장되었습니다.');
+        // Profile image preview
+        if (profile.profileImage) {
+            const preview = document.getElementById('profile-image-preview');
+            preview.innerHTML = `<img src="${profile.profileImage}" alt="프로필">`;
+        }
     }
 
     renderAITools() {
@@ -344,6 +469,7 @@ class AdminPanel {
             btn.addEventListener('click', () => {
                 if (confirm('이 AI 도구를 삭제하시겠습니까?')) {
                     dataManager.deleteAITool(parseInt(btn.dataset.id));
+                    this.data = dataManager.getData();
                     this.renderAITools();
                 }
             });
@@ -380,6 +506,7 @@ class AdminPanel {
             btn.addEventListener('click', () => {
                 if (confirm('이 경력을 삭제하시겠습니까?')) {
                     dataManager.deleteExperience(type, parseInt(btn.dataset.id));
+                    this.data = dataManager.getData();
                     this.renderExperience(type);
                 }
             });
@@ -408,61 +535,101 @@ class AdminPanel {
         `).join('');
     }
 
-    saveEvaluation() {
-        const text = document.getElementById('evaluation-text').value;
-        const radarInputs = document.querySelectorAll('#radar-inputs .radar-input-item');
-
-        const radarChart = Array.from(radarInputs).map(item => ({
-            label: item.querySelector('[data-field="label"]').value,
-            value: parseInt(item.querySelector('[data-field="value"]').value) || 0
-        }));
-
-        dataManager.updateEvaluation({ text });
-        dataManager.updateRadarChart(radarChart);
-        alert('평가가 저장되었습니다.');
-    }
-
     renderVideo() {
         const video = this.data.video;
         document.getElementById('video-type').value = video.type || 'youtube';
         document.getElementById('video-url').value = video.url || '';
     }
 
-    saveVideo() {
-        const type = document.getElementById('video-type').value;
-        const url = document.getElementById('video-url').value;
-        dataManager.setVideo(type, url);
-        alert('영상이 저장되었습니다.');
-    }
-
-    renderPortfolioSolo() {
-        const container = document.getElementById('portfolio-solo-list');
+    renderPortfolioSections() {
+        const container = document.getElementById('portfolio-sections-container');
         if (!container) return;
 
-        container.innerHTML = this.data.portfolioSolo.items.map(item => `
-            <div class="item-card">
-                <div class="item-card-content">
-                    <div class="item-card-title">${item.title}</div>
-                    <div class="item-card-desc">섹션: ${item.section} | 기여도: ${item.contribution}%</div>
-                </div>
-                <div class="item-card-actions">
-                    <button class="btn-icon btn-icon-edit" data-action="edit-portfolio-solo" data-id="${item.id}">✏️</button>
-                    <button class="btn-icon btn-icon-delete" data-action="delete-portfolio-solo" data-id="${item.id}">🗑️</button>
-                </div>
-            </div>
-        `).join('');
+        // Get portfolio sections (isPortfolio: true)
+        const portfolioMenus = this.data.menuItems.filter(m => m.isPortfolio);
 
-        container.querySelectorAll('[data-action="edit-portfolio-solo"]').forEach(btn => {
-            btn.addEventListener('click', () => this.showPortfolioModal('solo', parseInt(btn.dataset.id)));
+        container.innerHTML = portfolioMenus.map(menu => {
+            const items = dataManager.getPortfolioItemsBySection(menu.id);
+            const displayMode = dataManager.getSectionDisplayMode(menu.id);
+
+            return `
+                <div class="settings-section section-anchor" id="section-${menu.id}">
+                    <h2 class="settings-section-title">${menu.label}</h2>
+                    <div class="settings-section-content">
+                        <div class="portfolio-section-header">
+                            <h3>작품 표시 방식</h3>
+                        </div>
+                        <div class="display-mode-grid" data-section="${menu.id}" style="margin-bottom: var(--space-xl);">
+                            <div class="display-mode-item ${displayMode === 'single' ? 'active' : ''}" data-mode="single">
+                                <div class="display-mode-icon">📄</div>
+                                <div class="display-mode-label">한줄 한작품</div>
+                            </div>
+                            <div class="display-mode-item ${displayMode === 'grid' ? 'active' : ''}" data-mode="grid">
+                                <div class="display-mode-icon">🔲</div>
+                                <div class="display-mode-label">3칸 그리드</div>
+                            </div>
+                            <div class="display-mode-item ${displayMode === 'masonry' ? 'active' : ''}" data-mode="masonry">
+                                <div class="display-mode-icon">🧱</div>
+                                <div class="display-mode-label">지그재그 벽돌</div>
+                            </div>
+                            <div class="display-mode-item ${displayMode === 'slider' ? 'active' : ''}" data-mode="slider">
+                                <div class="display-mode-icon">↔️</div>
+                                <div class="display-mode-label">가로 슬라이드</div>
+                            </div>
+                        </div>
+
+                        <h3 style="margin-bottom: var(--space-md);">작품 목록</h3>
+                        <div class="portfolio-items-list" data-section="${menu.id}">
+                            ${items.map(item => `
+                                <div class="item-card">
+                                    <div class="item-card-content">
+                                        <div class="item-card-title">${item.title}</div>
+                                        <div class="item-card-desc">기여도: ${item.contribution}%</div>
+                                    </div>
+                                    <div class="item-card-actions">
+                                        <button class="btn-icon btn-icon-edit" data-action="edit-portfolio" data-id="${item.id}">✏️</button>
+                                        <button class="btn-icon btn-icon-delete" data-action="delete-portfolio" data-id="${item.id}">🗑️</button>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                        <button class="add-btn" data-action="add-portfolio" data-section="${menu.id}">+ 작품 추가</button>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        // Bind display mode clicks
+        container.querySelectorAll('.display-mode-item').forEach(item => {
+            item.addEventListener('click', () => {
+                const grid = item.closest('.display-mode-grid');
+                const sectionId = grid.dataset.section;
+                const mode = item.dataset.mode;
+
+                grid.querySelectorAll('.display-mode-item').forEach(i => i.classList.remove('active'));
+                item.classList.add('active');
+
+                dataManager.setSectionDisplayMode(sectionId, mode);
+            });
         });
 
-        container.querySelectorAll('[data-action="delete-portfolio-solo"]').forEach(btn => {
+        // Bind portfolio actions
+        container.querySelectorAll('[data-action="edit-portfolio"]').forEach(btn => {
+            btn.addEventListener('click', () => this.showPortfolioModal(null, parseInt(btn.dataset.id)));
+        });
+
+        container.querySelectorAll('[data-action="delete-portfolio"]').forEach(btn => {
             btn.addEventListener('click', () => {
                 if (confirm('이 작품을 삭제하시겠습니까?')) {
                     dataManager.deletePortfolioItem(parseInt(btn.dataset.id));
-                    this.renderPortfolioSolo();
+                    this.data = dataManager.getData();
+                    this.renderPortfolioSections();
                 }
             });
+        });
+
+        container.querySelectorAll('[data-action="add-portfolio"]').forEach(btn => {
+            btn.addEventListener('click', () => this.showPortfolioModal(btn.dataset.section));
         });
     }
 
@@ -493,6 +660,7 @@ class AdminPanel {
             btn.addEventListener('click', () => {
                 if (confirm('이 프로젝트를 삭제하시겠습니까?')) {
                     dataManager.deleteAIProject(parseInt(btn.dataset.id));
+                    this.data = dataManager.getData();
                     this.renderPortfolioAI();
                 }
             });
@@ -526,6 +694,7 @@ class AdminPanel {
             btn.addEventListener('click', () => {
                 if (confirm('이 프로젝트를 삭제하시겠습니까?')) {
                     dataManager.deleteTeamProject(parseInt(btn.dataset.id));
+                    this.data = dataManager.getData();
                     this.renderPortfolioTeam();
                 }
             });
@@ -540,17 +709,6 @@ class AdminPanel {
         document.getElementById('contact-message').value = contact.message || '';
     }
 
-    saveContact() {
-        const updates = {
-            name: document.getElementById('contact-name').value,
-            phone: document.getElementById('contact-phone').value,
-            email: document.getElementById('contact-email').value,
-            message: document.getElementById('contact-message').value
-        };
-        dataManager.updateContact(updates);
-        alert('연락처가 저장되었습니다.');
-    }
-
     renderInterviews() {
         const container = document.getElementById('interview-list');
         if (!container) return;
@@ -558,7 +716,7 @@ class AdminPanel {
         container.innerHTML = this.data.interviews.map(item => `
             <div class="item-card">
                 <div class="item-card-content">
-                    <div class="item-card-title">${item.company}</div>
+                    <div class="item-card-title">${item.company} 면접</div>
                     <div class="item-card-desc">${item.date} ${item.time}</div>
                 </div>
                 <div class="item-card-actions">
@@ -576,6 +734,7 @@ class AdminPanel {
             btn.addEventListener('click', () => {
                 if (confirm('이 면접 일정을 삭제하시겠습니까?')) {
                     dataManager.deleteInterview(parseInt(btn.dataset.id));
+                    this.data = dataManager.getData();
                     this.renderInterviews();
                 }
             });
@@ -583,33 +742,122 @@ class AdminPanel {
     }
 
     renderThemeModes() {
-        const container = document.getElementById('theme-modes-list');
+        const container = document.getElementById('theme-modes-container');
         if (!container) return;
 
         container.innerHTML = this.data.theme.modes.map(mode => `
-            <div class="item-card">
-                <div class="item-card-content">
-                    <div class="item-card-title">${mode.name}</div>
-                    <div class="item-card-desc">#${mode.id}</div>
-                </div>
-                <div class="item-card-actions">
+            <div class="settings-section" style="margin-bottom: var(--space-lg);">
+                <h3 class="settings-section-title" style="display: flex; justify-content: space-between; align-items: center;">
+                    <span>${mode.name}</span>
                     ${mode.id !== 'light' && mode.id !== 'dark' ? `
-                        <button class="btn-icon btn-icon-edit" data-action="edit-theme" data-id="${mode.id}">✏️</button>
-                        <button class="btn-icon btn-icon-delete" data-action="delete-theme" data-id="${mode.id}">🗑️</button>
+                        <button class="btn btn-accent btn-sm" data-action="delete-theme" data-id="${mode.id}" style="padding: 4px 12px; font-size: 12px;">삭제</button>
                     ` : ''}
+                </h3>
+                <div class="settings-section-content" id="theme-colors-${mode.id}">
+                    <div class="form-group" style="margin-bottom: var(--space-lg);">
+                        <label class="form-label">테마 이름</label>
+                        <input type="text" class="form-input" value="${mode.name}" data-theme-id="${mode.id}" data-field="name">
+                    </div>
+                    <div class="theme-color-grid">
+                        <div class="theme-color-item">
+                            <label>메인 컬러</label>
+                            <div class="color-input-group">
+                                <input type="color" class="color-preview" value="${mode.colors?.primary || '#3498db'}" data-color-key="primary">
+                                <input type="text" class="form-input" value="${mode.colors?.primary || '#3498db'}" data-color-key="primary">
+                            </div>
+                        </div>
+                        <div class="theme-color-item">
+                            <label>서브 컬러</label>
+                            <div class="color-input-group">
+                                <input type="color" class="color-preview" value="${mode.colors?.secondary || '#2ecc71'}" data-color-key="secondary">
+                                <input type="text" class="form-input" value="${mode.colors?.secondary || '#2ecc71'}" data-color-key="secondary">
+                            </div>
+                        </div>
+                        <div class="theme-color-item">
+                            <label>강조 컬러</label>
+                            <div class="color-input-group">
+                                <input type="color" class="color-preview" value="${mode.colors?.accent || '#e74c3c'}" data-color-key="accent">
+                                <input type="text" class="form-input" value="${mode.colors?.accent || '#e74c3c'}" data-color-key="accent">
+                            </div>
+                        </div>
+                        <div class="theme-color-item">
+                            <label>배경색</label>
+                            <div class="color-input-group">
+                                <input type="color" class="color-preview" value="${mode.colors?.background || '#ffffff'}" data-color-key="background">
+                                <input type="text" class="form-input" value="${mode.colors?.background || '#ffffff'}" data-color-key="background">
+                            </div>
+                        </div>
+                        <div class="theme-color-item">
+                            <label>배경색 (보조)</label>
+                            <div class="color-input-group">
+                                <input type="color" class="color-preview" value="${mode.colors?.backgroundSecondary || '#f8f9fa'}" data-color-key="backgroundSecondary">
+                                <input type="text" class="form-input" value="${mode.colors?.backgroundSecondary || '#f8f9fa'}" data-color-key="backgroundSecondary">
+                            </div>
+                        </div>
+                        <div class="theme-color-item">
+                            <label>글자색</label>
+                            <div class="color-input-group">
+                                <input type="color" class="color-preview" value="${mode.colors?.text || '#212529'}" data-color-key="text">
+                                <input type="text" class="form-input" value="${mode.colors?.text || '#212529'}" data-color-key="text">
+                            </div>
+                        </div>
+                        <div class="theme-color-item">
+                            <label>글자색 (보조)</label>
+                            <div class="color-input-group">
+                                <input type="color" class="color-preview" value="${mode.colors?.textSecondary || '#6c757d'}" data-color-key="textSecondary">
+                                <input type="text" class="form-input" value="${mode.colors?.textSecondary || '#6c757d'}" data-color-key="textSecondary">
+                            </div>
+                        </div>
+                        <div class="theme-color-item">
+                            <label>테두리색</label>
+                            <div class="color-input-group">
+                                <input type="color" class="color-preview" value="${mode.colors?.border || '#dee2e6'}" data-color-key="border">
+                                <input type="text" class="form-input" value="${mode.colors?.border || '#dee2e6'}" data-color-key="border">
+                            </div>
+                        </div>
+                        <div class="theme-color-item">
+                            <label>버튼 배경</label>
+                            <div class="color-input-group">
+                                <input type="color" class="color-preview" value="${mode.colors?.buttonBg || '#3498db'}" data-color-key="buttonBg">
+                                <input type="text" class="form-input" value="${mode.colors?.buttonBg || '#3498db'}" data-color-key="buttonBg">
+                            </div>
+                        </div>
+                        <div class="theme-color-item">
+                            <label>버튼 글자색</label>
+                            <div class="color-input-group">
+                                <input type="color" class="color-preview" value="${mode.colors?.buttonText || '#ffffff'}" data-color-key="buttonText">
+                                <input type="text" class="form-input" value="${mode.colors?.buttonText || '#ffffff'}" data-color-key="buttonText">
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         `).join('');
 
-        container.querySelectorAll('[data-action="edit-theme"]').forEach(btn => {
-            btn.addEventListener('click', () => this.showThemeModal(btn.dataset.id));
+        // Sync color inputs
+        container.querySelectorAll('.color-input-group').forEach(group => {
+            const colorInput = group.querySelector('input[type="color"]');
+            const textInput = group.querySelector('input[type="text"]');
+
+            colorInput?.addEventListener('input', () => {
+                textInput.value = colorInput.value;
+            });
+
+            textInput?.addEventListener('input', () => {
+                if (/^#[0-9A-Fa-f]{6}$/.test(textInput.value)) {
+                    colorInput.value = textInput.value;
+                }
+            });
         });
 
+        // Delete theme
         container.querySelectorAll('[data-action="delete-theme"]').forEach(btn => {
             btn.addEventListener('click', () => {
                 if (confirm('이 테마를 삭제하시겠습니까?')) {
                     dataManager.deleteThemeMode(btn.dataset.id);
+                    this.data = dataManager.getData();
                     this.renderThemeModes();
+                    this.renderFloatingThemePanel();
                 }
             });
         });
@@ -618,54 +866,38 @@ class AdminPanel {
     renderCSSVariables() {
         const vars = this.data.cssVariables;
 
-        const setPair = (id, value) => {
-            const colorInput = document.getElementById(id);
-            const textInput = document.getElementById(`${id}-text`);
-            if (colorInput) colorInput.value = value || '#000000';
-            if (textInput) textInput.value = value || '#000000';
-        };
-
-        setPair('css-color-primary', vars.colorPrimary);
-        setPair('css-color-secondary', vars.colorSecondary);
-        setPair('css-color-accent', vars.colorAccent);
-
         document.getElementById('css-radius-sm').value = vars.radiusSm || '4px';
         document.getElementById('css-radius-md').value = vars.radiusMd || '8px';
         document.getElementById('css-radius-lg').value = vars.radiusLg || '12px';
         document.getElementById('css-font-base').value = vars.fontBase || '1rem';
+        document.getElementById('css-font-title1').value = vars.fontTitle1 || '2.25rem';
+        document.getElementById('css-font-title2').value = vars.fontTitle2 || '1.5rem';
+        document.getElementById('css-space-section').value = vars.spaceSection || '6rem';
+        document.getElementById('css-space-content').value = vars.spaceContent || '1.5rem';
     }
 
-    saveCSSVariables() {
-        const vars = {
-            colorPrimary: document.getElementById('css-color-primary').value,
-            colorSecondary: document.getElementById('css-color-secondary').value,
-            colorAccent: document.getElementById('css-color-accent').value,
-            radiusSm: document.getElementById('css-radius-sm').value,
-            radiusMd: document.getElementById('css-radius-md').value,
-            radiusLg: document.getElementById('css-radius-lg').value,
-            fontBase: document.getElementById('css-font-base').value
-        };
-        dataManager.updateCSSVariables(vars);
-        alert('CSS 변수가 저장되었습니다.');
-    }
+    renderFloatingThemePanel() {
+        const container = document.getElementById('floating-theme-panel');
+        if (!container) return;
 
-    renderDisplayModes() {
-        // Solo display mode
-        const soloMode = this.data.portfolioSolo.displayMode;
-        document.querySelectorAll('[data-portfolio="solo"] .display-mode-item').forEach(item => {
-            item.classList.toggle('active', item.dataset.mode === soloMode);
-        });
+        const currentTheme = this.data.theme.current;
 
-        // AI display mode
-        const aiMode = this.data.portfolioAI.displayMode;
-        document.querySelectorAll('[data-portfolio="ai"] .display-mode-item').forEach(item => {
-            item.classList.toggle('active', item.dataset.mode === aiMode);
-        });
+        container.innerHTML = this.data.theme.modes.map(mode => `
+            <button class="floating-theme-btn ${mode.id === currentTheme ? 'active' : ''}"
+                    data-theme="${mode.id}"
+                    style="background: ${mode.colors?.background || '#ffffff'}; border: 1px solid ${mode.colors?.border || '#dee2e6'};"
+                    title="${mode.name}">
+            </button>
+        `).join('');
 
-        // Team display mode
-        const teamMode = this.data.portfolioTeam.displayMode;
-        document.querySelectorAll('[data-portfolio="team"] .display-mode-item').forEach(item => {
-            item.classList.toggle('active', item.dataset.mode === teamMode);
+        // Theme toggle clicks
+        container.querySelectorAll('.floating-theme-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const themeId = btn.dataset.theme;
+                dataManager.setTheme(themeId);
+                container.querySelectorAll('.floating-theme-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+            });
         });
     }
 
@@ -684,6 +916,12 @@ class AdminPanel {
                 <label class="form-label">메뉴 이름</label>
                 <input type="text" class="form-input" id="modal-menu-label" value="${existing?.label || ''}">
             </div>
+            <div class="form-group">
+                <label class="form-label">
+                    <input type="checkbox" id="modal-menu-portfolio" ${existing?.isPortfolio !== false ? 'checked' : ''}>
+                    작품 섹션으로 사용 (체크하면 작품 표시 섹션이 생성됩니다)
+                </label>
+            </div>
             <div class="form-actions">
                 <button class="btn btn-primary" id="modal-save">${existing ? '수정' : '추가'}</button>
                 <button class="btn btn-secondary" id="modal-cancel">취소</button>
@@ -695,6 +933,7 @@ class AdminPanel {
         document.getElementById('modal-save').addEventListener('click', () => {
             const id = document.getElementById('modal-menu-id').value.trim();
             const label = document.getElementById('modal-menu-label').value.trim();
+            const isPortfolio = document.getElementById('modal-menu-portfolio').checked;
 
             if (!label) {
                 alert('메뉴 이름을 입력해주세요.');
@@ -702,17 +941,19 @@ class AdminPanel {
             }
 
             if (existing) {
-                dataManager.updateMenuItem(editId, { label });
+                dataManager.updateMenuItem(editId, { label, isPortfolio });
             } else {
                 if (!id) {
                     alert('메뉴 ID를 입력해주세요.');
                     return;
                 }
-                dataManager.addMenuItem({ id, label });
+                dataManager.addMenuItem({ id, label, isPortfolio });
             }
 
+            this.data = dataManager.getData();
             this.renderMenuList();
             this.renderSectionOrder();
+            this.renderPortfolioSections();
             this.closeModal();
         });
 
@@ -754,6 +995,7 @@ class AdminPanel {
                 dataManager.addAITool({ name, description });
             }
 
+            this.data = dataManager.getData();
             this.renderAITools();
             this.closeModal();
         });
@@ -802,6 +1044,7 @@ class AdminPanel {
                 dataManager.addExperience(type, { company, period, duration });
             }
 
+            this.data = dataManager.getData();
             this.renderExperience(type);
             this.closeModal();
         });
@@ -809,12 +1052,12 @@ class AdminPanel {
         document.getElementById('modal-cancel').addEventListener('click', () => this.closeModal());
     }
 
-    showPortfolioModal(portfolioType, editId = null) {
+    showPortfolioModal(section, editId = null) {
         const existing = editId ? this.data.portfolioSolo.items.find(i => i.id === editId) : null;
 
         const sectionOptions = this.data.menuItems
-            .filter(m => m.id !== 'about' && m.id !== 'contact')
-            .map(m => `<option value="${m.id}" ${existing?.section === m.id ? 'selected' : ''}>${m.label}</option>`)
+            .filter(m => m.isPortfolio)
+            .map(m => `<option value="${m.id}" ${(existing?.section || section) === m.id ? 'selected' : ''}>${m.label}</option>`)
             .join('');
 
         const content = `
@@ -861,7 +1104,7 @@ class AdminPanel {
         this.openModal(existing ? '작품 수정' : '작품 추가', content);
 
         document.getElementById('modal-save').addEventListener('click', () => {
-            const section = document.getElementById('modal-portfolio-section').value;
+            const selectedSection = document.getElementById('modal-portfolio-section').value;
             const title = document.getElementById('modal-portfolio-title').value.trim();
             const subject = document.getElementById('modal-portfolio-subject').value.trim();
             const target = document.getElementById('modal-portfolio-target').value.trim();
@@ -879,12 +1122,13 @@ class AdminPanel {
             const item = { title, subject, target, contribution, review, thumbnails, links };
 
             if (existing) {
-                dataManager.updatePortfolioItem(editId, { ...item, section });
+                dataManager.updatePortfolioItem(editId, { ...item, section: selectedSection });
             } else {
-                dataManager.addPortfolioItem(section, item);
+                dataManager.addPortfolioItem(selectedSection, item);
             }
 
-            this.renderPortfolioSolo();
+            this.data = dataManager.getData();
+            this.renderPortfolioSections();
             this.closeModal();
         });
 
@@ -917,7 +1161,7 @@ class AdminPanel {
                 <textarea class="form-textarea" id="modal-project-role-detail">${(existing?.myRoleDetail || []).join('\n')}</textarea>
             </div>
             <div class="form-group">
-                <label class="form-label">AI 활용 / 팀협업 설명</label>
+                <label class="form-label">${projectType === 'ai' ? 'AI 활용' : '팀 협업'} 설명</label>
                 <textarea class="form-textarea" id="modal-project-ai">${existing?.descriptions?.aiUsage || ''}</textarea>
             </div>
             <div class="form-group">
@@ -976,12 +1220,12 @@ class AdminPanel {
                 images,
                 videoUrl,
                 links: [],
-                contributionBars: [
+                contributionBars: existing?.contributionBars || [
                     { label: '기획', value: 50 },
                     { label: '디자인', value: 50 },
                     { label: '퍼블', value: 50 }
                 ],
-                clientFeedback: []
+                clientFeedback: existing?.clientFeedback || []
             };
 
             if (projectType === 'ai') {
@@ -990,6 +1234,7 @@ class AdminPanel {
                 } else {
                     dataManager.addAIProject(project);
                 }
+                this.data = dataManager.getData();
                 this.renderPortfolioAI();
             } else {
                 if (existing) {
@@ -997,6 +1242,7 @@ class AdminPanel {
                 } else {
                     dataManager.addTeamProject(project);
                 }
+                this.data = dataManager.getData();
                 this.renderPortfolioTeam();
             }
 
@@ -1046,6 +1292,7 @@ class AdminPanel {
                 dataManager.addInterview({ company, date, time });
             }
 
+            this.data = dataManager.getData();
             this.renderInterviews();
             this.closeModal();
         });
@@ -1053,21 +1300,19 @@ class AdminPanel {
         document.getElementById('modal-cancel').addEventListener('click', () => this.closeModal());
     }
 
-    showThemeModal(editId = null) {
-        const existing = editId ? this.data.theme.modes.find(m => m.id === editId) : null;
-
+    showThemeModal() {
         const content = `
             <div class="form-group">
                 <label class="form-label">테마 이름</label>
-                <input type="text" class="form-input" id="modal-theme-name" value="${existing?.name || ''}">
+                <input type="text" class="form-input" id="modal-theme-name" placeholder="예: 블루 테마">
             </div>
             <div class="form-actions">
-                <button class="btn btn-primary" id="modal-save">${existing ? '수정' : '추가'}</button>
+                <button class="btn btn-primary" id="modal-save">추가</button>
                 <button class="btn btn-secondary" id="modal-cancel">취소</button>
             </div>
         `;
 
-        this.openModal(existing ? '테마 수정' : '테마 추가', content);
+        this.openModal('새 테마 추가', content);
 
         document.getElementById('modal-save').addEventListener('click', () => {
             const name = document.getElementById('modal-theme-name').value.trim();
@@ -1077,13 +1322,10 @@ class AdminPanel {
                 return;
             }
 
-            if (existing) {
-                dataManager.updateThemeMode(editId, { name });
-            } else {
-                dataManager.addThemeMode({ name, colors: {} });
-            }
-
+            dataManager.addThemeMode({ name });
+            this.data = dataManager.getData();
             this.renderThemeModes();
+            this.renderFloatingThemePanel();
             this.closeModal();
         });
 

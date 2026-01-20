@@ -2,6 +2,20 @@
 
 // Default Data Structure
 const defaultData = {
+    // Site Settings
+    siteSettings: {
+        logo: {
+            type: 'text', // 'text' or 'image'
+            text: 'Portfolio',
+            imageUrl: ''
+        },
+        font: {
+            primary: 'Paperlogse',
+            secondary: 'Pretendard',
+            googleFontUrl: ''
+        }
+    },
+
     // Personal Info
     profile: {
         name: "강경모",
@@ -12,7 +26,7 @@ const defaultData = {
         residence: "경기 용인시 기흥구 청덕동",
         employmentStatus: "재직중",
         desiredSalary: "연봉3,800",
-        profileImage: "",
+        profileImage: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop",
         motto: "부지런히 하면 세상에 어려울 것 하나 없다"
     },
 
@@ -21,7 +35,16 @@ const defaultData = {
         { id: 1, name: "미드저니", description: "비쥬얼 이미지를 제작하여 포토샵으로 보정후 활용가능" },
         { id: 2, name: "gpt", description: "레이아웃 구성과 각 섹션 문구를 추천받음" },
         { id: 3, name: "클로드", description: "막히는 스크립트 도움을 받음" },
-        { id: 4, name: "이디오그램", description: "시안 뽑을때 레퍼런스로 사용해봄" }
+        { id: 4, name: "이디오그램", description: "시안 뽑을때 레퍼런스로 사용해봄" },
+        { id: 5, name: "달리", description: "이미지 생성 및 편집에 활용" },
+        { id: 6, name: "스테이블 디퓨전", description: "고품질 이미지 생성" },
+        { id: 7, name: "캔바 AI", description: "빠른 디자인 작업에 활용" },
+        { id: 8, name: "어도비 파이어플라이", description: "이미지 편집 및 생성" },
+        { id: 9, name: "노션 AI", description: "문서 작성 및 정리" },
+        { id: 10, name: "깃허브 코파일럿", description: "코드 작성 보조" },
+        { id: 11, name: "피그마 AI", description: "디자인 자동화" },
+        { id: 12, name: "런웨이", description: "영상 편집 및 생성" },
+        { id: 13, name: "일레븐랩스", description: "음성 생성" }
     ],
 
     // Related Experience
@@ -69,52 +92,213 @@ const defaultData = {
 
     // Video
     video: {
-        type: "youtube", // youtube or video
-        url: ""
+        type: "youtube",
+        url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
     },
 
     // Menu Items
     menuItems: [
-        { id: "about", label: "자기소개", visible: true },
-        { id: "web-mobile", label: "web&mobile", visible: true },
-        { id: "popup-banner", label: "팝업&배너", visible: true },
-        { id: "detail-page", label: "상세페이지", visible: true },
-        { id: "contact", label: "contact", visible: true }
+        { id: "about", label: "자기소개", visible: true, isPortfolio: false },
+        { id: "web-mobile", label: "웹&모바일", visible: true, isPortfolio: true },
+        { id: "popup-banner", label: "팝업&배너", visible: true, isPortfolio: true },
+        { id: "detail-page", label: "상세페이지", visible: true, isPortfolio: true },
+        { id: "contact", label: "contact", visible: true, isPortfolio: false }
     ],
 
     // Section Order
     sectionOrder: ["about", "web-mobile", "popup-banner", "detail-page", "contact"],
 
-    // Portfolio Items (Solo)
+    // Section Display Modes (per section)
+    sectionDisplayModes: {
+        "web-mobile": "grid",
+        "popup-banner": "masonry",
+        "detail-page": "single"
+    },
+
+    // Portfolio Items (Solo) - organized by section
     portfolioSolo: {
-        displayMode: "single", // single, grid, masonry, slider
         items: [
+            // 웹&모바일 섹션 샘플
             {
                 id: 1,
                 section: "web-mobile",
-                title: "웹사이트 리뉴얼 프로젝트",
-                subject: "기업 홈페이지 리뉴얼",
-                target: "일반 사용자",
+                title: "기업 홈페이지 리뉴얼",
+                subject: "B2B 기업 웹사이트",
+                target: "기업 담당자",
+                contribution: 85,
+                review: "UX/UI 전반을 담당하며 사용성을 크게 개선했습니다. 모바일 퍼스트로 접근하여 반응형 디자인을 완성했습니다.",
+                thumbnails: [
+                    "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=600&h=400&fit=crop",
+                    "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=600&h=400&fit=crop",
+                    "https://images.unsplash.com/photo-1517292987719-0369a794ec0f?w=600&h=400&fit=crop"
+                ],
+                links: [{ label: "상세보기", url: "https://example.com/project1" }]
+            },
+            {
+                id: 2,
+                section: "web-mobile",
+                title: "쇼핑몰 모바일 앱 UI",
+                subject: "패션 쇼핑몰 앱",
+                target: "20-30대 여성",
+                contribution: 90,
+                review: "사용자 여정 맵을 기반으로 직관적인 쇼핑 경험을 설계했습니다.",
+                thumbnails: [
+                    "https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=600&h=400&fit=crop",
+                    "https://images.unsplash.com/photo-1523206489230-c012c64b2b48?w=600&h=400&fit=crop"
+                ],
+                links: [{ label: "상세보기", url: "https://example.com/project2" }]
+            },
+            {
+                id: 3,
+                section: "web-mobile",
+                title: "교육 플랫폼 웹사이트",
+                subject: "온라인 교육 서비스",
+                target: "학생 및 직장인",
+                contribution: 75,
+                review: "학습 효율을 높이는 UI 컴포넌트를 설계하고 구현했습니다.",
+                thumbnails: [
+                    "https://images.unsplash.com/photo-1501504905252-473c47e087f8?w=600&h=400&fit=crop"
+                ],
+                links: [{ label: "상세보기", url: "https://example.com/project3" }]
+            },
+            {
+                id: 4,
+                section: "web-mobile",
+                title: "헬스케어 앱 리디자인",
+                subject: "건강 관리 앱",
+                target: "30-50대 건강 관심층",
                 contribution: 80,
-                review: "UX/UI 전반을 담당하며 사용성을 크게 개선했습니다.",
-                thumbnails: [],
-                links: [
-                    { label: "상세보기", url: "#" }
-                ]
+                review: "데이터 시각화에 중점을 두어 사용자가 건강 상태를 쉽게 파악할 수 있도록 했습니다.",
+                thumbnails: [
+                    "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=600&h=400&fit=crop",
+                    "https://images.unsplash.com/photo-1559028012-481c04fa702d?w=600&h=400&fit=crop"
+                ],
+                links: [{ label: "상세보기", url: "https://example.com/project4" }]
+            },
+
+            // 팝업&배너 섹션 샘플
+            {
+                id: 5,
+                section: "popup-banner",
+                title: "시즌 세일 팝업 디자인",
+                subject: "프로모션 팝업",
+                target: "쇼핑몰 방문자",
+                contribution: 100,
+                review: "시선을 사로잡는 비주얼과 명확한 CTA로 전환율 15% 향상을 달성했습니다.",
+                thumbnails: [
+                    "https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=600&h=400&fit=crop"
+                ],
+                links: [{ label: "상세보기", url: "https://example.com/popup1" }]
+            },
+            {
+                id: 6,
+                section: "popup-banner",
+                title: "신규 회원 가입 배너",
+                subject: "회원가입 유도 배너",
+                target: "비회원 방문자",
+                contribution: 100,
+                review: "혜택을 명확히 전달하는 카피와 디자인으로 가입률을 높였습니다.",
+                thumbnails: [
+                    "https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=600&h=400&fit=crop",
+                    "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=600&h=400&fit=crop"
+                ],
+                links: [{ label: "상세보기", url: "https://example.com/popup2" }]
+            },
+            {
+                id: 7,
+                section: "popup-banner",
+                title: "이벤트 공지 팝업",
+                subject: "이벤트 안내",
+                target: "전체 사용자",
+                contribution: 95,
+                review: "브랜드 톤앤매너를 유지하면서 정보 전달력을 높였습니다.",
+                thumbnails: [
+                    "https://images.unsplash.com/photo-1533750349088-cd871a92f312?w=600&h=400&fit=crop"
+                ],
+                links: [{ label: "상세보기", url: "https://example.com/popup3" }]
+            },
+            {
+                id: 8,
+                section: "popup-banner",
+                title: "앱 다운로드 유도 배너",
+                subject: "앱 설치 배너",
+                target: "모바일 웹 방문자",
+                contribution: 100,
+                review: "모바일 환경에 최적화된 배너로 앱 설치 전환율을 개선했습니다.",
+                thumbnails: [
+                    "https://images.unsplash.com/photo-1551650975-87deedd944c3?w=600&h=400&fit=crop"
+                ],
+                links: [{ label: "상세보기", url: "https://example.com/popup4" }]
+            },
+
+            // 상세페이지 섹션 샘플
+            {
+                id: 9,
+                section: "detail-page",
+                title: "화장품 상세페이지",
+                subject: "스킨케어 제품",
+                target: "20-40대 여성",
+                contribution: 100,
+                review: "제품의 특장점을 시각적으로 효과적게 전달하여 구매 전환율을 높였습니다.",
+                thumbnails: [
+                    "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=600&h=400&fit=crop",
+                    "https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=600&h=400&fit=crop",
+                    "https://images.unsplash.com/photo-1571781926291-c477ebfd024b?w=600&h=400&fit=crop"
+                ],
+                links: [{ label: "상세보기", url: "https://example.com/detail1" }]
+            },
+            {
+                id: 10,
+                section: "detail-page",
+                title: "가전제품 상세페이지",
+                subject: "공기청정기",
+                target: "가정주부",
+                contribution: 90,
+                review: "기술 스펙을 쉽게 이해할 수 있도록 인포그래픽을 활용했습니다.",
+                thumbnails: [
+                    "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&h=400&fit=crop"
+                ],
+                links: [{ label: "상세보기", url: "https://example.com/detail2" }]
+            },
+            {
+                id: 11,
+                section: "detail-page",
+                title: "식품 상세페이지",
+                subject: "건강식품",
+                target: "건강 관심층",
+                contribution: 85,
+                review: "신뢰감을 주는 디자인과 성분 정보 시각화로 구매 결정을 도왔습니다.",
+                thumbnails: [
+                    "https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=600&h=400&fit=crop",
+                    "https://images.unsplash.com/photo-1498837167922-ddd27525d352?w=600&h=400&fit=crop"
+                ],
+                links: [{ label: "상세보기", url: "https://example.com/detail3" }]
+            },
+            {
+                id: 12,
+                section: "detail-page",
+                title: "패션 상세페이지",
+                subject: "의류 상품",
+                target: "20-30대",
+                contribution: 95,
+                review: "다양한 착용샷과 사이즈 가이드로 온라인 쇼핑의 불안감을 해소했습니다.",
+                thumbnails: [
+                    "https://images.unsplash.com/photo-1445205170230-053b83016050?w=600&h=400&fit=crop"
+                ],
+                links: [{ label: "상세보기", url: "https://example.com/detail4" }]
             }
         ]
     },
 
     // Portfolio Items (AI)
     portfolioAI: {
-        displayMode: "single",
         projects: [
             {
                 id: 1,
                 title: "숲나들이 APP 제작",
                 links: [
-                    { label: "제목제목제목", url: "http://merong.co.kr" },
-                    { label: "제목제목제목", url: "http://merong.co.kr" }
+                    { label: "프로토타입", url: "https://figma.com/prototype" },
+                    { label: "GitHub", url: "https://github.com/example" }
                 ],
                 team: "6명 (기획1, 디자이너2, 퍼블리셔1, 프론트엔드1, 백엔드1)",
                 myRole: "기획, 디자이너, 퍼블리셔",
@@ -124,7 +308,12 @@ const defaultData = {
                     design: "디자인~1개월",
                     publishing: "퍼블~1개월"
                 },
-                images: [],
+                images: [
+                    "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=400&h=300&fit=crop",
+                    "https://images.unsplash.com/photo-1448375240586-882707db888b?w=400&h=300&fit=crop",
+                    "https://images.unsplash.com/photo-1502082553048-f009c37129b9?w=400&h=300&fit=crop",
+                    "https://images.unsplash.com/photo-1476231682828-37e571bc172f?w=400&h=300&fit=crop"
+                ],
                 myRoleDetail: [
                     "전체 디자인 가이드 제작",
                     "화면 흐름 총괄 / 와이어프레임 작성",
@@ -136,33 +325,78 @@ const defaultData = {
                     { label: "퍼블", value: 60 }
                 ],
                 descriptions: {
-                    aiUsage: `사용자의 흐름을 이해하고, 그에 맞는 정보 구조를 설계하는 데 강점을 가지고 있습니다.
-기획 단계에서부터 사용자의 목적과 경험 동선을 고려해 UX를 구상하고, 이를 바탕으로 명확한 인터페이스로 연결하는 데 집중합니다.
-디폴리오에서 받은 실무형 테스트와 멘토 피드백을 통해 부족했던 시각적 완성도와 레이아웃 균형 감각을 개선할 수 있었고,`,
+                    aiUsage: `미드저니를 활용하여 숲 관련 비주얼 이미지를 생성하고 포토샵으로 보정했습니다.
+GPT를 통해 UX 라이팅과 메뉴 구조를 최적화했고, 클로드로 복잡한 인터랙션 로직을 구현했습니다.`,
                     explanation: `사용자의 흐름을 이해하고, 그에 맞는 정보 구조를 설계하는 데 강점을 가지고 있습니다.
-기획 단계에서부터 사용자의 목적과 경험 동선을 고려해 UX를 구상하고, 이를 바탕으로 명확한 인터페이스로 연결하는 데 집중합니다.
-디폴리오에서 받은 실무형 테스트와 멘토 피드백을 통해 부족했던 시각적 완성도와 레이아웃 균형 감각을 개선할 수 있었고,`,
-                    challenges: `사용자의 흐름을 이해하고, 그에 맞는 정보 구조를 설계하는 데 강점을 가지고 있습니다.
-기획 단계에서부터 사용자의 목적과 경험 동선을 고려해 UX를 구상하고, 이를 바탕으로 명확한 인터페이스로 연결하는 데 집중합니다.
-디폴리오에서 받은 실무형 테스트와 멘토 피드백을 통해 부족했던 시각적 완성도와 레이아웃 균형 감각을 개선할 수 있었고,`,
-                    conclusion: `사용자의 흐름을 이해하고, 그에 맞는 정보 구조를 설계하는 데 강점을 가지고 있습니다.
-기획 단계에서부터 사용자의 목적과 경험 동선을 고려해 UX를 구상하고, 이를 바탕으로 명확한 인터페이스로 연결하는 데 집중합니다.
-디폴리오에서 받은 실무형 테스트와 멘토 피드백을 통해 부족했던 시각적 완성도와 레이아웃 균형 감각을 개선할 수 있었고,`
+기획 단계에서부터 사용자의 목적과 경험 동선을 고려해 UX를 구상하고, 이를 바탕으로 명확한 인터페이스로 연결하는 데 집중합니다.`,
+                    challenges: `디자인 시스템 구축 과정에서 컴포넌트 재사용성과 일관성 유지가 가장 어려웠습니다.
+특히 다크모드 지원을 위한 컬러 시스템 설계에 많은 시간을 투자했습니다.`,
+                    conclusion: `AI 도구를 적극 활용하여 작업 효율을 크게 높일 수 있었고,
+결과물의 품질도 향상시킬 수 있었습니다. 앞으로도 AI를 효과적으로 활용한 작업을 계속할 예정입니다.`
                 },
                 clientFeedback: [
                     { stage: "초기 요청", request: "깔끔하고 브랜드 컬러를 잘 살려주세요.", response: "브랜드 가이드 분석 후 3가지 시안 제안" },
                     { stage: "중간 요청", request: "폰트 크기와 간격이 좀 더 여유 있었으면 좋겠어요.", response: "전체 타이포 계층 재조정 및 간격 수정" },
                     { stage: "최종 요청", request: "전체 톤과 구조가 만족스럽습니다. 메인 배너가 특히 좋아요.", response: "최종 디자인 확정 후 전달 완료" }
                 ],
-                videoUrl: ""
+                videoUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
             }
         ]
     },
 
     // Portfolio Items (Team)
     portfolioTeam: {
-        displayMode: "single",
-        projects: []
+        projects: [
+            {
+                id: 1,
+                title: "커머스 플랫폼 구축",
+                links: [
+                    { label: "라이브 사이트", url: "https://example.com" },
+                    { label: "발표자료", url: "https://slides.com/example" }
+                ],
+                team: "8명 (PM1, 디자이너2, 프론트엔드3, 백엔드2)",
+                myRole: "리드 디자이너",
+                duration: {
+                    total: "6개월",
+                    planning: "기획~2개월",
+                    design: "디자인~2개월",
+                    publishing: "개발~2개월"
+                },
+                images: [
+                    "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400&h=300&fit=crop",
+                    "https://images.unsplash.com/photo-1556742111-a301076d9d18?w=400&h=300&fit=crop",
+                    "https://images.unsplash.com/photo-1472851294608-062f824d29cc?w=400&h=300&fit=crop",
+                    "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&h=300&fit=crop"
+                ],
+                myRoleDetail: [
+                    "디자인 시스템 구축 및 관리",
+                    "주요 페이지 UI/UX 설계",
+                    "디자인 QA 및 개발팀 협업",
+                    "사용자 테스트 진행 및 분석"
+                ],
+                contributionBars: [
+                    { label: "기획", value: 50 },
+                    { label: "디자인", value: 95 },
+                    { label: "퍼블", value: 30 }
+                ],
+                descriptions: {
+                    aiUsage: `팀 협업에서 Figma의 실시간 협업 기능을 적극 활용했고,
+Slack과 Notion을 통해 디자인 피드백을 체계적으로 관리했습니다.`,
+                    explanation: `대규모 이커머스 플랫폼의 전체 디자인을 담당했습니다.
+사용자 리서치부터 최종 디자인 QA까지 전 과정에 참여했습니다.`,
+                    challenges: `다양한 이해관계자들의 요구사항을 조율하는 것이 가장 어려웠습니다.
+정기적인 디자인 리뷰 미팅을 통해 의견을 수렴하고 합의점을 찾았습니다.`,
+                    conclusion: `팀 프로젝트를 통해 협업 능력과 커뮤니케이션 스킬이 크게 향상되었습니다.
+특히 개발팀과의 협업 경험이 큰 자산이 되었습니다.`
+                },
+                clientFeedback: [
+                    { stage: "킥오프", request: "기존 레거시 시스템과의 연계가 중요합니다.", response: "기존 시스템 분석 후 점진적 마이그레이션 계획 수립" },
+                    { stage: "중간 검토", request: "모바일 사용자 비중이 높으니 모바일 UX에 신경써주세요.", response: "모바일 퍼스트 접근으로 전체 설계 재검토" },
+                    { stage: "최종 검수", request: "예상보다 훨씬 좋은 결과물입니다.", response: "런칭 후 모니터링 및 개선 계획 공유" }
+                ],
+                videoUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+            }
+        ]
     },
 
     // Contact Info
@@ -176,21 +410,52 @@ const defaultData = {
     // Interview Schedule
     interviews: [
         { id: 1, date: "2025-02-10", company: "주노소프트", time: "14:00" },
-        { id: 2, date: "2025-02-15", company: "웹네스트", time: "10:30" }
+        { id: 2, date: "2025-02-15", company: "웹네스트", time: "10:30" },
+        { id: 3, date: "2025-02-20", company: "디자인허브", time: "15:00" },
+        { id: 4, date: "2025-02-25", company: "크리에이티브랩", time: "11:00" }
     ],
 
     // Theme Settings
     theme: {
         current: "light",
         modes: [
-            { id: "light", name: "라이트 모드", colors: {} },
-            { id: "dark", name: "다크 모드", colors: {} }
-        ],
-        customColors: {
-            primary: "#3498db",
-            secondary: "#2ecc71",
-            accent: "#e74c3c"
-        }
+            {
+                id: "light",
+                name: "라이트 모드",
+                colors: {
+                    primary: "#3498db",
+                    secondary: "#2ecc71",
+                    accent: "#e74c3c",
+                    background: "#ffffff",
+                    backgroundSecondary: "#f8f9fa",
+                    backgroundTertiary: "#e9ecef",
+                    text: "#212529",
+                    textSecondary: "#6c757d",
+                    textMuted: "#adb5bd",
+                    border: "#dee2e6",
+                    buttonBg: "#3498db",
+                    buttonText: "#ffffff"
+                }
+            },
+            {
+                id: "dark",
+                name: "다크 모드",
+                colors: {
+                    primary: "#5dade2",
+                    secondary: "#58d68d",
+                    accent: "#ec7063",
+                    background: "#1a1a2e",
+                    backgroundSecondary: "#16213e",
+                    backgroundTertiary: "#0f3460",
+                    text: "#eaeaea",
+                    textSecondary: "#b8b8b8",
+                    textMuted: "#6c6c6c",
+                    border: "#3a3a5c",
+                    buttonBg: "#5dade2",
+                    buttonText: "#ffffff"
+                }
+            }
+        ]
     },
 
     // CSS Variable Overrides
@@ -279,6 +544,12 @@ class DataManager {
         this.saveData();
     }
 
+    // Update site settings
+    updateSiteSettings(updates) {
+        this.data.siteSettings = this.deepMerge(this.data.siteSettings, updates);
+        this.saveData();
+    }
+
     // Update profile
     updateProfile(updates) {
         this.data.profile = { ...this.data.profile, ...updates };
@@ -346,9 +617,13 @@ class DataManager {
 
     // Add Menu Item
     addMenuItem(item) {
-        const newId = `menu-${Date.now()}`;
-        this.data.menuItems.push({ id: newId, ...item, visible: true });
+        const newId = item.id || `menu-${Date.now()}`;
+        this.data.menuItems.push({ id: newId, ...item, visible: true, isPortfolio: item.isPortfolio !== false });
         this.data.sectionOrder.push(newId);
+        // Initialize display mode for new portfolio section
+        if (item.isPortfolio !== false) {
+            this.data.sectionDisplayModes[newId] = 'grid';
+        }
         this.saveData();
     }
 
@@ -365,6 +640,10 @@ class DataManager {
     deleteMenuItem(id) {
         this.data.menuItems = this.data.menuItems.filter(m => m.id !== id);
         this.data.sectionOrder = this.data.sectionOrder.filter(s => s !== id);
+        // Remove display mode
+        delete this.data.sectionDisplayModes[id];
+        // Remove portfolio items for this section
+        this.data.portfolioSolo.items = this.data.portfolioSolo.items.filter(i => i.section !== id);
         this.saveData();
     }
 
@@ -372,6 +651,17 @@ class DataManager {
     reorderSections(newOrder) {
         this.data.sectionOrder = newOrder;
         this.saveData();
+    }
+
+    // Set Section Display Mode
+    setSectionDisplayMode(sectionId, mode) {
+        this.data.sectionDisplayModes[sectionId] = mode;
+        this.saveData();
+    }
+
+    // Get Section Display Mode
+    getSectionDisplayMode(sectionId) {
+        return this.data.sectionDisplayModes[sectionId] || 'grid';
     }
 
     // Add Portfolio Item (Solo)
@@ -396,16 +686,9 @@ class DataManager {
         this.saveData();
     }
 
-    // Set Portfolio Display Mode
-    setDisplayMode(portfolio, mode) {
-        if (portfolio === 'solo') {
-            this.data.portfolioSolo.displayMode = mode;
-        } else if (portfolio === 'ai') {
-            this.data.portfolioAI.displayMode = mode;
-        } else if (portfolio === 'team') {
-            this.data.portfolioTeam.displayMode = mode;
-        }
-        this.saveData();
+    // Get Portfolio Items by Section
+    getPortfolioItemsBySection(sectionId) {
+        return this.data.portfolioSolo.items.filter(i => i.section === sectionId);
     }
 
     // Add AI Project
@@ -490,13 +773,48 @@ class DataManager {
 
     // Apply Theme
     applyTheme() {
-        document.documentElement.setAttribute('data-theme', this.data.theme.current);
+        const currentTheme = this.data.theme.modes.find(m => m.id === this.data.theme.current);
+        if (currentTheme && currentTheme.colors) {
+            const root = document.documentElement;
+            root.setAttribute('data-theme', this.data.theme.current);
+
+            // Apply theme colors
+            if (currentTheme.colors.primary) root.style.setProperty('--color-primary', currentTheme.colors.primary);
+            if (currentTheme.colors.secondary) root.style.setProperty('--color-secondary', currentTheme.colors.secondary);
+            if (currentTheme.colors.accent) root.style.setProperty('--color-accent', currentTheme.colors.accent);
+            if (currentTheme.colors.background) root.style.setProperty('--color-bg', currentTheme.colors.background);
+            if (currentTheme.colors.backgroundSecondary) root.style.setProperty('--color-bg-secondary', currentTheme.colors.backgroundSecondary);
+            if (currentTheme.colors.backgroundTertiary) root.style.setProperty('--color-bg-tertiary', currentTheme.colors.backgroundTertiary);
+            if (currentTheme.colors.text) root.style.setProperty('--color-text', currentTheme.colors.text);
+            if (currentTheme.colors.textSecondary) root.style.setProperty('--color-text-secondary', currentTheme.colors.textSecondary);
+            if (currentTheme.colors.textMuted) root.style.setProperty('--color-text-muted', currentTheme.colors.textMuted);
+            if (currentTheme.colors.border) root.style.setProperty('--color-border', currentTheme.colors.border);
+        } else {
+            document.documentElement.setAttribute('data-theme', this.data.theme.current);
+        }
     }
 
     // Add Theme Mode
     addThemeMode(mode) {
-        const newId = `theme-${Date.now()}`;
-        this.data.theme.modes.push({ id: newId, ...mode });
+        const newId = mode.id || `theme-${Date.now()}`;
+        this.data.theme.modes.push({
+            id: newId,
+            name: mode.name,
+            colors: mode.colors || {
+                primary: "#3498db",
+                secondary: "#2ecc71",
+                accent: "#e74c3c",
+                background: "#ffffff",
+                backgroundSecondary: "#f8f9fa",
+                backgroundTertiary: "#e9ecef",
+                text: "#212529",
+                textSecondary: "#6c757d",
+                textMuted: "#adb5bd",
+                border: "#dee2e6",
+                buttonBg: "#3498db",
+                buttonText: "#ffffff"
+            }
+        });
         this.saveData();
     }
 
@@ -506,17 +824,22 @@ class DataManager {
         if (index !== -1) {
             this.data.theme.modes[index] = { ...this.data.theme.modes[index], ...updates };
             this.saveData();
+            // Re-apply if current theme
+            if (this.data.theme.current === id) {
+                this.applyTheme();
+            }
         }
     }
 
     // Delete Theme Mode
     deleteThemeMode(id) {
-        if (id === 'light' || id === 'dark') return; // Prevent deleting default themes
+        if (id === 'light' || id === 'dark') return false; // Prevent deleting default themes
         this.data.theme.modes = this.data.theme.modes.filter(m => m.id !== id);
         if (this.data.theme.current === id) {
             this.setTheme('light');
         }
         this.saveData();
+        return true;
     }
 
     // Update CSS Variables
@@ -531,13 +854,31 @@ class DataManager {
         const root = document.documentElement;
         const vars = this.data.cssVariables;
 
-        if (vars.colorPrimary) root.style.setProperty('--color-primary', vars.colorPrimary);
-        if (vars.colorSecondary) root.style.setProperty('--color-secondary', vars.colorSecondary);
-        if (vars.colorAccent) root.style.setProperty('--color-accent', vars.colorAccent);
         if (vars.radiusSm) root.style.setProperty('--radius-sm', vars.radiusSm);
         if (vars.radiusMd) root.style.setProperty('--radius-md', vars.radiusMd);
         if (vars.radiusLg) root.style.setProperty('--radius-lg', vars.radiusLg);
         if (vars.fontBase) root.style.setProperty('--font-base', vars.fontBase);
+    }
+
+    // Apply Font
+    applyFont() {
+        const font = this.data.siteSettings.font;
+        if (font.googleFontUrl) {
+            // Add Google Font link if not exists
+            let linkEl = document.getElementById('custom-font-link');
+            if (!linkEl) {
+                linkEl = document.createElement('link');
+                linkEl.id = 'custom-font-link';
+                linkEl.rel = 'stylesheet';
+                document.head.appendChild(linkEl);
+            }
+            linkEl.href = font.googleFontUrl;
+        }
+
+        if (font.primary) {
+            document.documentElement.style.setProperty('--font-primary', font.primary);
+            document.body.style.fontFamily = `'${font.primary}', '${font.secondary || 'Pretendard'}', sans-serif`;
+        }
     }
 
     // Set Video
@@ -552,6 +893,7 @@ class DataManager {
         this.saveData();
         this.applyTheme();
         this.applyCSSVariables();
+        this.applyFont();
     }
 
     // Export data as JSON
@@ -573,11 +915,20 @@ class DataManager {
             this.saveData();
             this.applyTheme();
             this.applyCSSVariables();
+            this.applyFont();
             return true;
         } catch (e) {
             console.error('Error importing data:', e);
             return false;
         }
+    }
+
+    // Save all data at once
+    saveAll() {
+        this.saveData();
+        this.applyTheme();
+        this.applyCSSVariables();
+        this.applyFont();
     }
 }
 
@@ -588,6 +939,7 @@ const dataManager = new DataManager();
 document.addEventListener('DOMContentLoaded', () => {
     dataManager.applyTheme();
     dataManager.applyCSSVariables();
+    dataManager.applyFont();
 });
 
 // Export for use in other scripts
