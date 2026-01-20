@@ -126,13 +126,9 @@ const defaultData = {
                 subject: "B2B 기업 웹사이트",
                 target: "기업 담당자",
                 contribution: 85,
-                review: "UX/UI 전반을 담당하며 사용성을 크게 개선했습니다. 모바일 퍼스트로 접근하여 반응형 디자인을 완성했습니다.",
-                thumbnails: [
-                    "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=600&h=400&fit=crop",
-                    "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=600&h=400&fit=crop",
-                    "https://images.unsplash.com/photo-1517292987719-0369a794ec0f?w=600&h=400&fit=crop"
-                ],
-                links: [{ label: "상세보기", url: "https://example.com/project1" }]
+                review: "UX/UI 전반을 담당하며 사용성을 크게 개선했습니다.",
+                thumbnails: ["images/web-mobile-01.svg"],
+                links: [{ label: "상세보기", url: "#" }]
             },
             {
                 id: 2,
@@ -142,11 +138,8 @@ const defaultData = {
                 target: "20-30대 여성",
                 contribution: 90,
                 review: "사용자 여정 맵을 기반으로 직관적인 쇼핑 경험을 설계했습니다.",
-                thumbnails: [
-                    "https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=600&h=400&fit=crop",
-                    "https://images.unsplash.com/photo-1523206489230-c012c64b2b48?w=600&h=400&fit=crop"
-                ],
-                links: [{ label: "상세보기", url: "https://example.com/project2" }]
+                thumbnails: ["images/web-mobile-02.svg"],
+                links: [{ label: "상세보기", url: "#" }]
             },
             {
                 id: 3,
@@ -156,10 +149,8 @@ const defaultData = {
                 target: "학생 및 직장인",
                 contribution: 75,
                 review: "학습 효율을 높이는 UI 컴포넌트를 설계하고 구현했습니다.",
-                thumbnails: [
-                    "https://images.unsplash.com/photo-1501504905252-473c47e087f8?w=600&h=400&fit=crop"
-                ],
-                links: [{ label: "상세보기", url: "https://example.com/project3" }]
+                thumbnails: ["images/web-mobile-03.svg"],
+                links: [{ label: "상세보기", url: "#" }]
             },
             {
                 id: 4,
@@ -169,11 +160,8 @@ const defaultData = {
                 target: "30-50대 건강 관심층",
                 contribution: 80,
                 review: "데이터 시각화에 중점을 두어 사용자가 건강 상태를 쉽게 파악할 수 있도록 했습니다.",
-                thumbnails: [
-                    "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=600&h=400&fit=crop",
-                    "https://images.unsplash.com/photo-1559028012-481c04fa702d?w=600&h=400&fit=crop"
-                ],
-                links: [{ label: "상세보기", url: "https://example.com/project4" }]
+                thumbnails: ["images/web-mobile-04.svg"],
+                links: [{ label: "상세보기", url: "#" }]
             },
 
             // 팝업&배너 섹션 샘플
@@ -185,10 +173,8 @@ const defaultData = {
                 target: "쇼핑몰 방문자",
                 contribution: 100,
                 review: "시선을 사로잡는 비주얼과 명확한 CTA로 전환율 15% 향상을 달성했습니다.",
-                thumbnails: [
-                    "https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=600&h=400&fit=crop"
-                ],
-                links: [{ label: "상세보기", url: "https://example.com/popup1" }]
+                thumbnails: ["images/popup-banner-01.svg"],
+                links: [{ label: "상세보기", url: "#" }]
             },
             {
                 id: 6,
@@ -198,11 +184,8 @@ const defaultData = {
                 target: "비회원 방문자",
                 contribution: 100,
                 review: "혜택을 명확히 전달하는 카피와 디자인으로 가입률을 높였습니다.",
-                thumbnails: [
-                    "https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=600&h=400&fit=crop",
-                    "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=600&h=400&fit=crop"
-                ],
-                links: [{ label: "상세보기", url: "https://example.com/popup2" }]
+                thumbnails: ["images/popup-banner-02.svg"],
+                links: [{ label: "상세보기", url: "#" }]
             },
             {
                 id: 7,
@@ -212,10 +195,8 @@ const defaultData = {
                 target: "전체 사용자",
                 contribution: 95,
                 review: "브랜드 톤앤매너를 유지하면서 정보 전달력을 높였습니다.",
-                thumbnails: [
-                    "https://images.unsplash.com/photo-1533750349088-cd871a92f312?w=600&h=400&fit=crop"
-                ],
-                links: [{ label: "상세보기", url: "https://example.com/popup3" }]
+                thumbnails: ["images/popup-banner-03.svg"],
+                links: [{ label: "상세보기", url: "#" }]
             },
             {
                 id: 8,
@@ -225,10 +206,8 @@ const defaultData = {
                 target: "모바일 웹 방문자",
                 contribution: 100,
                 review: "모바일 환경에 최적화된 배너로 앱 설치 전환율을 개선했습니다.",
-                thumbnails: [
-                    "https://images.unsplash.com/photo-1551650975-87deedd944c3?w=600&h=400&fit=crop"
-                ],
-                links: [{ label: "상세보기", url: "https://example.com/popup4" }]
+                thumbnails: ["images/popup-banner-04.svg"],
+                links: [{ label: "상세보기", url: "#" }]
             },
 
             // 상세페이지 섹션 샘플
@@ -239,13 +218,9 @@ const defaultData = {
                 subject: "스킨케어 제품",
                 target: "20-40대 여성",
                 contribution: 100,
-                review: "제품의 특장점을 시각적으로 효과적게 전달하여 구매 전환율을 높였습니다.",
-                thumbnails: [
-                    "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=600&h=400&fit=crop",
-                    "https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=600&h=400&fit=crop",
-                    "https://images.unsplash.com/photo-1571781926291-c477ebfd024b?w=600&h=400&fit=crop"
-                ],
-                links: [{ label: "상세보기", url: "https://example.com/detail1" }]
+                review: "제품의 특장점을 시각적으로 효과적으로 전달하여 구매 전환율을 높였습니다.",
+                thumbnails: ["images/detail-page-01.svg"],
+                links: [{ label: "상세보기", url: "#" }]
             },
             {
                 id: 10,
@@ -255,10 +230,8 @@ const defaultData = {
                 target: "가정주부",
                 contribution: 90,
                 review: "기술 스펙을 쉽게 이해할 수 있도록 인포그래픽을 활용했습니다.",
-                thumbnails: [
-                    "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&h=400&fit=crop"
-                ],
-                links: [{ label: "상세보기", url: "https://example.com/detail2" }]
+                thumbnails: ["images/detail-page-02.svg"],
+                links: [{ label: "상세보기", url: "#" }]
             },
             {
                 id: 11,
@@ -268,11 +241,8 @@ const defaultData = {
                 target: "건강 관심층",
                 contribution: 85,
                 review: "신뢰감을 주는 디자인과 성분 정보 시각화로 구매 결정을 도왔습니다.",
-                thumbnails: [
-                    "https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=600&h=400&fit=crop",
-                    "https://images.unsplash.com/photo-1498837167922-ddd27525d352?w=600&h=400&fit=crop"
-                ],
-                links: [{ label: "상세보기", url: "https://example.com/detail3" }]
+                thumbnails: ["images/detail-page-03.svg"],
+                links: [{ label: "상세보기", url: "#" }]
             },
             {
                 id: 12,
@@ -282,10 +252,8 @@ const defaultData = {
                 target: "20-30대",
                 contribution: 95,
                 review: "다양한 착용샷과 사이즈 가이드로 온라인 쇼핑의 불안감을 해소했습니다.",
-                thumbnails: [
-                    "https://images.unsplash.com/photo-1445205170230-053b83016050?w=600&h=400&fit=crop"
-                ],
-                links: [{ label: "상세보기", url: "https://example.com/detail4" }]
+                thumbnails: ["images/detail-page-04.svg"],
+                links: [{ label: "상세보기", url: "#" }]
             }
         ]
     },
