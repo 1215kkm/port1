@@ -1,8 +1,32 @@
 // Admin Panel JavaScript
 
+// =====================
+// 이미지 업로드 설정 (수정 가능)
+// =====================
+const IMAGE_UPLOAD_CONFIG = {
+    maxFileSize: 5 * 1024 * 1024,      // 5MB - 단일 파일 최대 크기
+    warnFileSize: 2 * 1024 * 1024,     // 2MB - 이 이상이면 경고 표시
+    compressMaxWidth: 1200,            // 압축 시 최대 너비 (픽셀)
+    compressQuality: 0.8               // 압축 품질 (0.0 ~ 1.0)
+};
+
 // Helper function to upload image to Firebase Storage
 async function uploadImageToStorage(file, path = 'images') {
     try {
+        // Check file size limit
+        if (file.size > IMAGE_UPLOAD_CONFIG.maxFileSize) {
+            const maxMB = (IMAGE_UPLOAD_CONFIG.maxFileSize / 1024 / 1024).toFixed(0);
+            const fileMB = (file.size / 1024 / 1024).toFixed(1);
+            alert(`파일이 너무 큽니다!\n\n최대: ${maxMB}MB\n현재: ${fileMB}MB\n\n더 작은 이미지를 사용하거나 이미지 편집 프로그램에서 크기를 줄여주세요.`);
+            return null;
+        }
+
+        // Warn for large files
+        if (file.size > IMAGE_UPLOAD_CONFIG.warnFileSize) {
+            const fileMB = (file.size / 1024 / 1024).toFixed(1);
+            console.warn(`[Upload] ⚠️ 큰 파일 (${fileMB}MB) - 업로드가 느릴 수 있습니다`);
+        }
+
         const StorageManager = window.getStorageManager ? window.getStorageManager() : null;
         const userId = window.dataManager?.userId;
 
@@ -38,7 +62,9 @@ function fileToBase64(file) {
     return new Promise((resolve, reject) => {
         // For images, compress them first
         if (file.type.startsWith('image/')) {
-            compressImage(file, 800, 0.7).then(resolve).catch(() => {
+            const maxWidth = IMAGE_UPLOAD_CONFIG.compressMaxWidth;
+            const quality = IMAGE_UPLOAD_CONFIG.compressQuality;
+            compressImage(file, maxWidth, quality).then(resolve).catch(() => {
                 // Fallback to regular base64 if compression fails
                 const reader = new FileReader();
                 reader.onload = (e) => resolve(e.target.result);
