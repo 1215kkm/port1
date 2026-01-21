@@ -1098,9 +1098,18 @@ class PageInitializer {
 
     renderAITools() {
         const container = document.querySelector('[data-content="ai-tools"]');
+        const titleEl = document.querySelector('[data-content="ai-tools-title"]');
+
         if (!container) return;
 
-        container.innerHTML = this.data.aiTools.map((tool, i) => `
+        const aiTools = this.data.aiTools || [];
+
+        // Update title with count
+        if (titleEl) {
+            titleEl.textContent = `사용해본 AI (${aiTools.length}가지)`;
+        }
+
+        container.innerHTML = aiTools.map((tool, i) => `
             <div class="ai-item">
                 <span class="ai-item-number">${i + 1}</span>
                 <div>
