@@ -1,6 +1,21 @@
 // Main Application JavaScript
 
 // =====================
+// Cache Busting Helper
+// =====================
+function addCacheBuster(url) {
+    if (!url) return url;
+    // Add cache buster for Firebase Storage URLs or any http URLs
+    if (url.includes('firebasestorage.googleapis.com') || url.includes('firebasestorage.app')) {
+        const separator = url.includes('?') ? '&' : '?';
+        // Use a version based on the current hour to limit re-fetches
+        const version = Math.floor(Date.now() / 3600000); // Changes every hour
+        return `${url}${separator}v=${version}`;
+    }
+    return url;
+}
+
+// =====================
 // Smooth Scroll Navigation
 // =====================
 class SmoothScroll {
@@ -604,7 +619,7 @@ class PortfolioRenderer {
     createItemHTML(item) {
         const thumbnails = item.thumbnails || [];
         const thumbnailHTML = thumbnails.length > 0
-            ? thumbnails.map(t => `<img src="${t}" alt="${item.title}">`).join('')
+            ? thumbnails.map(t => `<img src="${addCacheBuster(t)}" alt="${item.title}">`).join('')
             : '<div class="profile-image-placeholder">No Image</div>';
 
         const linksHTML = (item.links || []).map(link =>
@@ -842,7 +857,8 @@ class PageInitializer {
 
         const settings = this.data.siteSettings;
         if (settings?.logo?.type === 'image' && settings.logo.imageUrl) {
-            logoEl.innerHTML = `<img src="${settings.logo.imageUrl}" alt="Logo" style="max-height: 50px; width: auto;">`;
+            const logoUrl = addCacheBuster(settings.logo.imageUrl);
+            logoEl.innerHTML = `<img src="${logoUrl}" alt="Logo" style="max-height: 50px; width: auto;">`;
         } else {
             logoEl.textContent = settings?.logo?.text || 'Portfolio';
         }
@@ -853,12 +869,15 @@ class PageInitializer {
         const font = settings?.font || {};
         const colors = font.colors || {};
 
-        // Combine both @font-face codes
+        // Apply @font-face codes (prioritize fontFaceAll, fallback to separate codes)
         const fontFaceCodes = [];
-        if (font.fontFaceTitle) fontFaceCodes.push(font.fontFaceTitle);
-        if (font.fontFaceContent) fontFaceCodes.push(font.fontFaceContent);
-        // Support legacy fontFaceCode
-        if (font.fontFaceCode) fontFaceCodes.push(font.fontFaceCode);
+        if (font.fontFaceAll) {
+            fontFaceCodes.push(font.fontFaceAll);
+        } else {
+            if (font.fontFaceTitle) fontFaceCodes.push(font.fontFaceTitle);
+            if (font.fontFaceContent) fontFaceCodes.push(font.fontFaceContent);
+            if (font.fontFaceCode) fontFaceCodes.push(font.fontFaceCode);
+        }
 
         if (fontFaceCodes.length > 0) {
             let styleEl = document.getElementById('custom-font-face');
@@ -885,6 +904,15 @@ class PageInitializer {
         if (font.weightContent) {
             document.documentElement.style.setProperty('--font-weight-content', font.weightContent);
         }
+
+        // Apply font sizes
+        const fontSizes = font.fontSizes || {};
+        if (fontSizes['5xl']) document.documentElement.style.setProperty('--font-5xl', fontSizes['5xl']);
+        if (fontSizes['4xl']) document.documentElement.style.setProperty('--font-4xl', fontSizes['4xl']);
+        if (fontSizes['3xl']) document.documentElement.style.setProperty('--font-3xl', fontSizes['3xl']);
+        if (fontSizes['2xl']) document.documentElement.style.setProperty('--font-2xl', fontSizes['2xl']);
+        if (fontSizes['base']) document.documentElement.style.setProperty('--font-base', fontSizes['base']);
+        if (fontSizes['sm']) document.documentElement.style.setProperty('--font-sm', fontSizes['sm']);
 
         // Apply font colors
         if (colors.title1) {
@@ -948,7 +976,8 @@ class PageInitializer {
         const imgEl = document.querySelector('[data-content="profile-image"]');
         if (imgEl) {
             if (profile.profileImage) {
-                imgEl.innerHTML = `<img src="${profile.profileImage}" alt="${profile.name}" class="profile-image">`;
+                const imgUrl = addCacheBuster(profile.profileImage);
+                imgEl.innerHTML = `<img src="${imgUrl}" alt="${profile.name}" class="profile-image">`;
             } else {
                 imgEl.innerHTML = '<div class="profile-image-placeholder">사진</div>';
             }

@@ -277,38 +277,49 @@ class AdminPanel {
     // Page Tabs
     // =====================
     initPageTabs() {
+        const updateMenuVisibility = (page) => {
+            const menuSection = document.getElementById('menu-management-section');
+            if (menuSection) {
+                menuSection.style.display = (page === 'solo' || page === 'skin') ? 'block' : 'none';
+            }
+        };
+
+        const switchToPage = (page) => {
+            this.currentPage = page;
+
+            document.querySelectorAll('.admin-panel').forEach(panel => {
+                panel.classList.remove('active');
+            });
+            document.getElementById(`panel-${page}`)?.classList.add('active');
+
+            // Sync minimap with page tab
+            if (page === 'solo') {
+                this.switchMinimapPage('portfolio');
+            } else if (page === 'ai') {
+                this.switchMinimapPage('ai');
+            } else if (page === 'team') {
+                this.switchMinimapPage('team');
+            }
+
+            // Show/hide menu management section (only for solo/skin pages)
+            updateMenuVisibility(page);
+        };
+
         document.querySelectorAll('.page-tab').forEach(tab => {
             tab.addEventListener('click', () => {
                 document.querySelectorAll('.page-tab').forEach(t => t.classList.remove('active'));
                 tab.classList.add('active');
 
                 const page = tab.dataset.page;
-                this.currentPage = page;
-
-                document.querySelectorAll('.admin-panel').forEach(panel => {
-                    panel.classList.remove('active');
-                });
-                document.getElementById(`panel-${page}`)?.classList.add('active');
-
-                // Sync minimap with page tab
-                if (page === 'solo') {
-                    this.switchMinimapPage('portfolio');
-                    this.updateMinimapNavActive('portfolio');
-                } else if (page === 'ai') {
-                    this.switchMinimapPage('ai');
-                    this.updateMinimapNavActive('ai');
-                } else if (page === 'team') {
-                    this.switchMinimapPage('team');
-                    this.updateMinimapNavActive('team');
-                }
-
-                // Show/hide menu management section (only for solo/skin pages)
-                const menuSection = document.getElementById('menu-management-section');
-                if (menuSection) {
-                    menuSection.style.display = (page === 'solo' || page === 'skin') ? 'block' : 'none';
-                }
+                switchToPage(page);
             });
         });
+
+        // Initialize menu visibility based on current active tab
+        const activeTab = document.querySelector('.page-tab.active');
+        if (activeTab) {
+            updateMenuVisibility(activeTab.dataset.page);
+        }
     }
 
     updateMinimapNavActive(page) {
@@ -539,23 +550,28 @@ class AdminPanel {
         const logoImageUrl = document.getElementById('logo-image-url').value;
         const fontTitle = document.getElementById('font-title').value;
         const fontContent = document.getElementById('font-content').value;
-        const fontWeightTitle = document.getElementById('font-weight-title').value || '600';
-        const fontWeightContent = document.getElementById('font-weight-content').value || '400';
-        const fontFaceTitle = document.getElementById('font-face-title').value;
-        const fontFaceContent = document.getElementById('font-face-content').value;
+        const fontFaceAll = document.getElementById('font-face-all')?.value || '';
         const fontColorTitle1 = document.getElementById('font-color-title1-text').value || '#212529';
         const fontColorTitle2 = document.getElementById('font-color-title2-text').value || '#212529';
         const fontColorContent = document.getElementById('font-color-content-text').value || '#212529';
+
+        // Font sizes
+        const fontSizes = {
+            '5xl': document.getElementById('font-size-5xl')?.value || '3rem',
+            '4xl': document.getElementById('font-size-4xl')?.value || '2.25rem',
+            '3xl': document.getElementById('font-size-3xl')?.value || '1.875rem',
+            '2xl': document.getElementById('font-size-2xl')?.value || '1.5rem',
+            'base': document.getElementById('font-size-base')?.value || '1rem',
+            'sm': document.getElementById('font-size-sm')?.value || '0.875rem'
+        };
 
         dataManager.updateSiteSettings({
             logo: { type: logoType, text: logoText, imageUrl: logoImageUrl },
             font: {
                 title: fontTitle,
                 content: fontContent,
-                weightTitle: fontWeightTitle,
-                weightContent: fontWeightContent,
-                fontFaceTitle: fontFaceTitle,
-                fontFaceContent: fontFaceContent,
+                fontFaceAll: fontFaceAll,
+                fontSizes: fontSizes,
                 colors: {
                     title1: fontColorTitle1,
                     title2: fontColorTitle2,
@@ -864,10 +880,33 @@ class AdminPanel {
         // Font
         document.getElementById('font-title').value = settings.font?.title || 'Paperozi';
         document.getElementById('font-content').value = settings.font?.content || 'Paperozi';
-        document.getElementById('font-weight-title').value = settings.font?.weightTitle || '600';
-        document.getElementById('font-weight-content').value = settings.font?.weightContent || '400';
-        document.getElementById('font-face-title').value = settings.font?.fontFaceTitle || '';
-        document.getElementById('font-face-content').value = settings.font?.fontFaceContent || '';
+
+        // Font-face all (combined) - also check old separate values for backward compatibility
+        const fontFaceAllEl = document.getElementById('font-face-all');
+        if (fontFaceAllEl) {
+            let fontFaceAll = settings.font?.fontFaceAll || '';
+            // If no combined value, try to combine old separate values
+            if (!fontFaceAll && (settings.font?.fontFaceTitle || settings.font?.fontFaceContent)) {
+                fontFaceAll = [settings.font?.fontFaceTitle, settings.font?.fontFaceContent].filter(Boolean).join('\n\n');
+            }
+            fontFaceAllEl.value = fontFaceAll;
+        }
+
+        // Font sizes
+        const fontSizes = settings.font?.fontSizes || {};
+        const fontSizeEl5xl = document.getElementById('font-size-5xl');
+        const fontSizeEl4xl = document.getElementById('font-size-4xl');
+        const fontSizeEl3xl = document.getElementById('font-size-3xl');
+        const fontSizeEl2xl = document.getElementById('font-size-2xl');
+        const fontSizeElBase = document.getElementById('font-size-base');
+        const fontSizeElSm = document.getElementById('font-size-sm');
+
+        if (fontSizeEl5xl) fontSizeEl5xl.value = fontSizes['5xl'] || '3rem';
+        if (fontSizeEl4xl) fontSizeEl4xl.value = fontSizes['4xl'] || '2.25rem';
+        if (fontSizeEl3xl) fontSizeEl3xl.value = fontSizes['3xl'] || '1.875rem';
+        if (fontSizeEl2xl) fontSizeEl2xl.value = fontSizes['2xl'] || '1.5rem';
+        if (fontSizeElBase) fontSizeElBase.value = fontSizes['base'] || '1rem';
+        if (fontSizeElSm) fontSizeElSm.value = fontSizes['sm'] || '0.875rem';
 
         // Font Colors
         const fontColors = settings.font?.colors || {};

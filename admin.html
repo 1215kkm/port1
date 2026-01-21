@@ -391,27 +391,29 @@
             right: 320px;
             top: 70px;
             bottom: 10px;
-            width: 8px;
-            background: transparent;
+            width: 12px;
+            background: rgba(100, 100, 100, 0.3);
             cursor: col-resize;
-            z-index: 1000;
+            z-index: 1001;
             transition: background 0.2s;
+            border-radius: 4px;
         }
 
         .resize-handle:hover,
         .resize-handle.active {
             background: var(--color-primary);
-            opacity: 0.5;
+            opacity: 0.7;
         }
 
         .resize-handle::before {
-            content: '⋮';
+            content: '⋮⋮';
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            color: #666;
-            font-size: 14px;
+            color: #999;
+            font-size: 12px;
+            letter-spacing: -2px;
         }
 
         /* Site Preview Minimap */
@@ -486,14 +488,6 @@
             transition: all 0.3s ease;
         }
 
-        .minimap-nav-top {
-            padding: 8px;
-            background: #222;
-            border-bottom: 1px solid #333;
-            display: flex;
-            gap: 4px;
-        }
-
         .minimap-refresh-hint {
             position: absolute;
             top: 50%;
@@ -511,29 +505,6 @@
 
         .minimap-overlay:hover .minimap-refresh-hint {
             opacity: 1;
-        }
-
-        .minimap-nav-btn {
-            flex: 1;
-            padding: 6px 8px;
-            background: #333;
-            border: 1px solid #444;
-            border-radius: 4px;
-            color: #aaa;
-            font-size: 10px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .minimap-nav-btn:hover {
-            background: #444;
-            color: #fff;
-        }
-
-        .minimap-nav-btn.active {
-            background: var(--color-primary);
-            color: white;
-            border-color: var(--color-primary);
         }
 
         /* Page Toggle Styles */
@@ -1074,66 +1045,70 @@
 
                         <h3 style="margin-bottom: var(--space-md);">폰트 설정</h3>
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-xl); margin-bottom: var(--space-lg);">
-                            <!-- 제목 폰트 (왼쪽) -->
+                            <!-- 왼쪽: Font-face 코드 -->
                             <div class="font-setting-column">
-                                <h4 style="margin-bottom: var(--space-md); color: var(--color-primary);">제목 폰트</h4>
+                                <h4 style="margin-bottom: var(--space-md); color: var(--color-primary);">@font-face 코드</h4>
+                                <p style="font-size: 12px; color: #888; margin-bottom: var(--space-md);">사용할 웹폰트의 @font-face 코드를 모두 입력하세요. 여러 폰트를 한번에 관리할 수 있습니다.</p>
                                 <div class="form-group">
-                                    <label class="form-label">폰트명</label>
-                                    <input type="text" class="form-input" id="font-title" placeholder="예: Paperozi">
-                                </div>
-                                <div class="form-group">
-                                    <label class="form-label">두께 (font-weight)</label>
-                                    <select class="form-select" id="font-weight-title">
-                                        <option value="100">100 (Thin)</option>
-                                        <option value="200">200 (Extra Light)</option>
-                                        <option value="300">300 (Light)</option>
-                                        <option value="400">400 (Normal)</option>
-                                        <option value="500">500 (Medium)</option>
-                                        <option value="600" selected>600 (Semi Bold)</option>
-                                        <option value="700">700 (Bold)</option>
-                                        <option value="800">800 (Extra Bold)</option>
-                                        <option value="900">900 (Black)</option>
-                                    </select>
-                                </div>
-                                <div class="form-group">
-                                    <label class="form-label">@font-face 코드</label>
-                                    <textarea class="form-textarea" id="font-face-title" rows="10" placeholder="@font-face {
+                                    <textarea class="form-textarea" id="font-face-all" rows="18" style="font-family: monospace; font-size: 12px;" placeholder="@font-face {
     font-family: 'Paperozi';
-    src: url('...') format('woff2');
+    src: url('https://...') format('woff2');
+    font-weight: 400;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Pretendard';
+    src: url('https://...') format('woff2');
     font-weight: 400;
     font-display: swap;
 }"></textarea>
+                                </div>
+                                <div class="form-group" style="margin-top: var(--space-md);">
+                                    <label class="form-label">제목 폰트명</label>
+                                    <input type="text" class="form-input" id="font-title" placeholder="예: Paperozi">
+                                    <span style="font-size: 11px; color: #888;">섹션 제목, 대제목에 적용</span>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">본문 폰트명</label>
+                                    <input type="text" class="form-input" id="font-content" placeholder="예: Pretendard">
+                                    <span style="font-size: 11px; color: #888;">일반 텍스트, 설명에 적용</span>
                                 </div>
                             </div>
-                            <!-- 내용 폰트 (오른쪽) -->
+                            <!-- 오른쪽: 글자 크기 조절 -->
                             <div class="font-setting-column">
-                                <h4 style="margin-bottom: var(--space-md); color: var(--color-secondary);">내용 폰트</h4>
+                                <h4 style="margin-bottom: var(--space-md); color: var(--color-secondary);">글자 크기 설정</h4>
+                                <p style="font-size: 12px; color: #888; margin-bottom: var(--space-md);">사이트에서 사용되는 각 글자 크기를 조절하세요.</p>
+
                                 <div class="form-group">
-                                    <label class="form-label">폰트명</label>
-                                    <input type="text" class="form-input" id="font-content" placeholder="예: Pretendard">
+                                    <label class="form-label">히어로 제목</label>
+                                    <input type="text" class="form-input" id="font-size-5xl" placeholder="3rem">
+                                    <span style="font-size: 11px; color: #888;">메인 페이지 최상단 큰 제목</span>
                                 </div>
                                 <div class="form-group">
-                                    <label class="form-label">두께 (font-weight)</label>
-                                    <select class="form-select" id="font-weight-content">
-                                        <option value="100">100 (Thin)</option>
-                                        <option value="200">200 (Extra Light)</option>
-                                        <option value="300">300 (Light)</option>
-                                        <option value="400" selected>400 (Normal)</option>
-                                        <option value="500">500 (Medium)</option>
-                                        <option value="600">600 (Semi Bold)</option>
-                                        <option value="700">700 (Bold)</option>
-                                        <option value="800">800 (Extra Bold)</option>
-                                        <option value="900">900 (Black)</option>
-                                    </select>
+                                    <label class="form-label">대제목</label>
+                                    <input type="text" class="form-input" id="font-size-4xl" placeholder="2.25rem">
+                                    <span style="font-size: 11px; color: #888;">페이지 주요 제목</span>
                                 </div>
                                 <div class="form-group">
-                                    <label class="form-label">@font-face 코드</label>
-                                    <textarea class="form-textarea" id="font-face-content" rows="10" placeholder="@font-face {
-    font-family: 'Pretendard';
-    src: url('...') format('woff2');
-    font-weight: 400;
-    font-display: swap;
-}"></textarea>
+                                    <label class="form-label">섹션 제목</label>
+                                    <input type="text" class="form-input" id="font-size-3xl" placeholder="1.875rem">
+                                    <span style="font-size: 11px; color: #888;">각 섹션의 제목 (자기소개, 경력 등)</span>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">소제목</label>
+                                    <input type="text" class="form-input" id="font-size-2xl" placeholder="1.5rem">
+                                    <span style="font-size: 11px; color: #888;">카드 제목, 항목 제목</span>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">기본 본문</label>
+                                    <input type="text" class="form-input" id="font-size-base" placeholder="1rem">
+                                    <span style="font-size: 11px; color: #888;">일반 텍스트, 설명 문구</span>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">작은 텍스트</label>
+                                    <input type="text" class="form-input" id="font-size-sm" placeholder="0.875rem">
+                                    <span style="font-size: 11px; color: #888;">부가 정보, 날짜, 메타 정보</span>
                                 </div>
                             </div>
                         </div>
@@ -1310,13 +1285,6 @@
             <div class="minimap-header">
                 <span class="minimap-header-icon">🗺️</span>
                 <span>미리보기</span>
-            </div>
-
-            <!-- Page Navigation (moved to top) -->
-            <div class="minimap-nav-top">
-                <button class="minimap-nav-btn active" data-page="portfolio">혼자제작</button>
-                <button class="minimap-nav-btn" data-page="ai">AI활용</button>
-                <button class="minimap-nav-btn" data-page="team">팀플</button>
             </div>
 
             <div class="minimap-frame-container">
