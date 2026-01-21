@@ -3200,6 +3200,42 @@ class AdminPanel {
                 <label class="form-label">사이트 URL (선택)</label>
                 <input type="text" class="form-input" id="modal-portfolio-siteurl" value="${existing?.siteUrl || ''}" placeholder="작품 사이트 주소 (예: https://example.com)">
             </div>
+
+            <hr style="border: none; border-top: 1px solid var(--color-border); margin: var(--space-lg) 0;">
+            <h4 style="margin-bottom: var(--space-md); color: var(--color-primary);">📋 상세보기 페이지 설정</h4>
+            <p style="font-size: 11px; color: #888; margin-bottom: var(--space-md);">상세보기 클릭 시 표시될 이미지와 설명을 추가하세요.</p>
+
+            <div class="form-group">
+                <label class="form-label">상세 이미지</label>
+                <div id="modal-detail-images-preview" style="display: flex; flex-wrap: wrap; gap: var(--space-sm); margin-bottom: var(--space-sm);">
+                    ${(existing?.detailImages || []).map((url, i) => `
+                        <div class="detail-image-item" data-index="${i}" style="position: relative; width: 80px; height: 80px; border: 1px solid var(--color-border); border-radius: var(--radius-sm); overflow: hidden;">
+                            ${createImageElement(url, '', 'width: 100%; height: 100%; object-fit: cover;')}
+                            <button type="button" class="btn-remove-detail-image" data-index="${i}" style="position: absolute; top: 2px; right: 2px; width: 20px; height: 20px; border-radius: 50%; background: rgba(0,0,0,0.6); color: white; border: none; cursor: pointer; font-size: 12px;">✕</button>
+                        </div>
+                    `).join('')}
+                </div>
+                <div style="display: flex; gap: var(--space-sm);">
+                    <input type="file" id="modal-detail-images-file" accept="image/*" multiple style="display: none;">
+                    <button type="button" class="btn btn-secondary btn-sm" id="btn-detail-images-add">📁 상세 이미지 추가</button>
+                </div>
+                <input type="hidden" id="modal-detail-images" value="${(existing?.detailImages || []).join('|||')}">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">상세 설명 (제목-설명)</label>
+                <div id="detail-descriptions-container" style="display: flex; flex-direction: column; gap: var(--space-sm);">
+                    ${(existing?.detailDescriptions || []).map((d, i) => `
+                        <div class="detail-desc-item" data-index="${i}" style="background: var(--color-bg-secondary); padding: var(--space-sm); border-radius: var(--radius-sm); border: 1px solid var(--color-border);">
+                            <input type="text" class="form-input" value="${d.title || ''}" data-field="title" placeholder="제목" style="margin-bottom: var(--space-xs);">
+                            <textarea class="form-textarea" data-field="description" placeholder="설명" style="min-height: 60px;">${d.description || ''}</textarea>
+                            <button type="button" class="btn btn-accent btn-sm" data-action="remove-detail-desc" style="margin-top: var(--space-xs);">삭제</button>
+                        </div>
+                    `).join('')}
+                </div>
+                <button type="button" class="btn btn-secondary btn-sm" id="btn-add-detail-desc" style="margin-top: var(--space-sm);">+ 설명 추가</button>
+            </div>
+
             <div class="form-actions">
                 <button class="btn btn-primary" id="modal-save">${existing ? '수정' : '추가'}</button>
                 <button class="btn btn-secondary" id="modal-cancel">취소</button>
@@ -3255,6 +3291,51 @@ class AdminPanel {
         // Bind remove buttons
         this.bindThumbnailRemove(previewContainer, thumbnailsInput);
 
+        // Detail images upload
+        const detailImagesFile = document.getElementById('modal-detail-images-file');
+        const detailImagesAddBtn = document.getElementById('btn-detail-images-add');
+        const detailImagesInput = document.getElementById('modal-detail-images');
+        const detailImagesPreview = document.getElementById('modal-detail-images-preview');
+
+        detailImagesAddBtn?.addEventListener('click', () => detailImagesFile?.click());
+
+        detailImagesFile?.addEventListener('change', async (e) => {
+            const files = e.target.files;
+            if (files.length > 0) {
+                showUploadLoading(detailImagesPreview);
+                for (const file of Array.from(files)) {
+                    const imageUrl = await uploadImageToStorage(file, 'portfolio-detail');
+                    const currentImages = detailImagesInput.value ? detailImagesInput.value.split('|||').filter(s => s) : [];
+                    currentImages.push(imageUrl);
+                    detailImagesInput.value = currentImages.join('|||');
+                    this.updateDetailImagesPreview(detailImagesPreview, currentImages);
+                }
+                hideUploadLoading(detailImagesPreview);
+            }
+            detailImagesFile.value = '';
+        });
+
+        this.bindDetailImageRemove(detailImagesPreview, detailImagesInput);
+
+        // Detail descriptions add/remove
+        document.getElementById('btn-add-detail-desc')?.addEventListener('click', () => {
+            const container = document.getElementById('detail-descriptions-container');
+            const index = container.children.length;
+            const newItem = document.createElement('div');
+            newItem.className = 'detail-desc-item';
+            newItem.dataset.index = index;
+            newItem.style.cssText = 'background: var(--color-bg-secondary); padding: var(--space-sm); border-radius: var(--radius-sm); border: 1px solid var(--color-border);';
+            newItem.innerHTML = `
+                <input type="text" class="form-input" value="" data-field="title" placeholder="제목" style="margin-bottom: var(--space-xs);">
+                <textarea class="form-textarea" data-field="description" placeholder="설명" style="min-height: 60px;"></textarea>
+                <button type="button" class="btn btn-accent btn-sm" data-action="remove-detail-desc" style="margin-top: var(--space-xs);">삭제</button>
+            `;
+            container.appendChild(newItem);
+            this.bindDetailDescRemove();
+        });
+
+        this.bindDetailDescRemove();
+
         document.getElementById('modal-save').addEventListener('click', () => {
             const selectedSection = document.getElementById('modal-portfolio-section').value;
             const title = document.getElementById('modal-portfolio-title').value.trim();
@@ -3277,12 +3358,26 @@ class AdminPanel {
                 }
             });
 
+            // Collect detail images
+            const detailImages = document.getElementById('modal-detail-images').value.split('|||').map(s => s.trim()).filter(s => s);
+
+            // Collect detail descriptions
+            const detailDescriptionsContainer = document.getElementById('detail-descriptions-container');
+            const detailDescriptions = [];
+            detailDescriptionsContainer.querySelectorAll('.detail-desc-item').forEach(item => {
+                const title = item.querySelector('[data-field="title"]').value.trim();
+                const description = item.querySelector('[data-field="description"]').value.trim();
+                if (title || description) {
+                    detailDescriptions.push({ title, description });
+                }
+            });
+
             if (!title) {
                 alert('제목을 입력해주세요.');
                 return;
             }
 
-            const item = { title, subject, target, contributions, review, thumbnails, links, siteUrl };
+            const item = { title, subject, target, contributions, review, thumbnails, links, siteUrl, detailImages, detailDescriptions };
 
             if (existing) {
                 dataManager.updatePortfolioItem(editId, { ...item, section: selectedSection });
@@ -3356,6 +3451,38 @@ class AdminPanel {
                 } else {
                     alert('최소 1개의 기여도가 필요합니다.');
                 }
+            };
+        });
+    }
+
+    updateDetailImagesPreview(container, images) {
+        container.innerHTML = images.map((url, i) => `
+            <div class="detail-image-item" data-index="${i}" style="position: relative; width: 80px; height: 80px; border: 1px solid var(--color-border); border-radius: var(--radius-sm); overflow: hidden;">
+                ${createImageElement(url, '', 'width: 100%; height: 100%; object-fit: cover;')}
+                <button type="button" class="btn-remove-detail-image" data-index="${i}" style="position: absolute; top: 2px; right: 2px; width: 20px; height: 20px; border-radius: 50%; background: rgba(0,0,0,0.6); color: white; border: none; cursor: pointer; font-size: 12px;">✕</button>
+            </div>
+        `).join('');
+
+        const imagesInput = document.getElementById('modal-detail-images');
+        this.bindDetailImageRemove(container, imagesInput);
+    }
+
+    bindDetailImageRemove(container, imagesInput) {
+        container.querySelectorAll('.btn-remove-detail-image').forEach(btn => {
+            btn.onclick = () => {
+                const index = parseInt(btn.dataset.index);
+                const currentImages = imagesInput.value ? imagesInput.value.split('|||').filter(s => s) : [];
+                currentImages.splice(index, 1);
+                imagesInput.value = currentImages.join('|||');
+                this.updateDetailImagesPreview(container, currentImages);
+            };
+        });
+    }
+
+    bindDetailDescRemove() {
+        document.querySelectorAll('[data-action="remove-detail-desc"]').forEach(btn => {
+            btn.onclick = () => {
+                btn.closest('.detail-desc-item').remove();
             };
         });
     }

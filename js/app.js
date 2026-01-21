@@ -1513,3 +1513,274 @@ window.RadarChart = RadarChart;
 window.Calendar = Calendar;
 window.PortfolioRenderer = PortfolioRenderer;
 window.PageInitializer = PageInitializer;
+
+// Portfolio Detail Modal
+window.showPortfolioDetail = function(itemId) {
+    const data = window.dataManager?.getData();
+    if (!data) return;
+
+    // Find the portfolio item
+    const item = data.portfolioSolo?.items?.find(i => i.id === itemId);
+    if (!item) {
+        console.warn('Portfolio item not found:', itemId);
+        return;
+    }
+
+    // Check if there's detail content
+    const hasDetailImages = item.detailImages && item.detailImages.length > 0;
+    const hasDetailDescriptions = item.detailDescriptions && item.detailDescriptions.length > 0;
+
+    if (!hasDetailImages && !hasDetailDescriptions) {
+        alert('상세 정보가 없습니다.');
+        return;
+    }
+
+    // Create modal
+    const modal = document.createElement('div');
+    modal.className = 'portfolio-detail-modal';
+    modal.innerHTML = `
+        <div class="portfolio-detail-backdrop"></div>
+        <div class="portfolio-detail-content">
+            <button class="portfolio-detail-close">&times;</button>
+            <div class="portfolio-detail-body">
+                <div class="portfolio-detail-left">
+                    <div class="portfolio-detail-thumbnails">
+                        ${(item.detailImages || []).map((url, i) => `
+                            <div class="portfolio-detail-thumb ${i === 0 ? 'active' : ''}" data-index="${i}">
+                                <img src="${url}" alt="썸네일 ${i + 1}">
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div class="portfolio-detail-main-image">
+                        ${item.detailImages?.[0] ? `<img src="${item.detailImages[0]}" alt="상세 이미지">` : '<div class="no-image">이미지 없음</div>'}
+                    </div>
+                </div>
+                <div class="portfolio-detail-right">
+                    <h2 class="portfolio-detail-title">${item.title || '작품 상세'}</h2>
+                    <div class="portfolio-detail-descriptions">
+                        ${(item.detailDescriptions || []).map(d => `
+                            <div class="portfolio-detail-desc-item">
+                                <h4>${d.title || ''}</h4>
+                                <p>${(d.description || '').replace(/\n/g, '<br>')}</p>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    // Add styles
+    const style = document.createElement('style');
+    style.textContent = `
+        .portfolio-detail-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .portfolio-detail-backdrop {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.85);
+        }
+        .portfolio-detail-content {
+            position: relative;
+            width: 90%;
+            max-width: 1200px;
+            max-height: 90vh;
+            background: var(--color-bg, #fff);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+        }
+        .portfolio-detail-close {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            width: 40px;
+            height: 40px;
+            border: none;
+            background: rgba(0, 0, 0, 0.5);
+            color: white;
+            font-size: 24px;
+            border-radius: 50%;
+            cursor: pointer;
+            z-index: 10;
+            transition: all 0.2s;
+        }
+        .portfolio-detail-close:hover {
+            background: rgba(0, 0, 0, 0.8);
+            transform: scale(1.1);
+        }
+        .portfolio-detail-body {
+            display: flex;
+            height: 80vh;
+            max-height: 700px;
+        }
+        .portfolio-detail-left {
+            flex: 1;
+            display: flex;
+            background: #1a1a1a;
+            min-width: 0;
+        }
+        .portfolio-detail-thumbnails {
+            width: 90px;
+            padding: 16px 8px;
+            overflow-y: auto;
+            background: #111;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .portfolio-detail-thumb {
+            width: 70px;
+            height: 70px;
+            border-radius: 8px;
+            overflow: hidden;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+        .portfolio-detail-thumb:hover {
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+        .portfolio-detail-thumb.active {
+            border-color: var(--color-primary, #3498db);
+        }
+        .portfolio-detail-thumb img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .portfolio-detail-main-image {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            min-width: 0;
+        }
+        .portfolio-detail-main-image img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            border-radius: 8px;
+        }
+        .portfolio-detail-main-image .no-image {
+            color: #666;
+            font-size: 14px;
+        }
+        .portfolio-detail-right {
+            width: 400px;
+            padding: 32px;
+            overflow-y: auto;
+            background: var(--color-bg, #fff);
+        }
+        .portfolio-detail-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 24px;
+            color: var(--color-text, #212529);
+            padding-bottom: 16px;
+            border-bottom: 2px solid var(--color-border, #dee2e6);
+        }
+        .portfolio-detail-descriptions {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .portfolio-detail-desc-item {
+            padding: 16px;
+            background: var(--color-bg-secondary, #f8f9fa);
+            border-radius: 12px;
+        }
+        .portfolio-detail-desc-item h4 {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--color-primary, #3498db);
+        }
+        .portfolio-detail-desc-item p {
+            font-size: 0.9rem;
+            line-height: 1.6;
+            color: var(--color-text-secondary, #666);
+            margin: 0;
+        }
+        @media (max-width: 768px) {
+            .portfolio-detail-body {
+                flex-direction: column;
+                height: auto;
+                max-height: none;
+            }
+            .portfolio-detail-left {
+                height: 300px;
+            }
+            .portfolio-detail-thumbnails {
+                width: 70px;
+                padding: 8px 4px;
+            }
+            .portfolio-detail-thumb {
+                width: 54px;
+                height: 54px;
+            }
+            .portfolio-detail-right {
+                width: 100%;
+                max-height: 50vh;
+            }
+        }
+    `;
+    document.head.appendChild(style);
+    document.body.appendChild(modal);
+
+    // Prevent body scroll
+    document.body.style.overflow = 'hidden';
+
+    // Close handlers
+    const closeModal = () => {
+        modal.remove();
+        style.remove();
+        document.body.style.overflow = '';
+    };
+
+    modal.querySelector('.portfolio-detail-backdrop').addEventListener('click', closeModal);
+    modal.querySelector('.portfolio-detail-close').addEventListener('click', closeModal);
+
+    // Escape key
+    const handleEscape = (e) => {
+        if (e.key === 'Escape') {
+            closeModal();
+            document.removeEventListener('keydown', handleEscape);
+        }
+    };
+    document.addEventListener('keydown', handleEscape);
+
+    // Thumbnail click handlers
+    const thumbs = modal.querySelectorAll('.portfolio-detail-thumb');
+    const mainImage = modal.querySelector('.portfolio-detail-main-image img');
+
+    thumbs.forEach(thumb => {
+        thumb.addEventListener('click', () => {
+            const index = parseInt(thumb.dataset.index);
+            const imageUrl = item.detailImages[index];
+
+            // Update active state
+            thumbs.forEach(t => t.classList.remove('active'));
+            thumb.classList.add('active');
+
+            // Update main image
+            if (mainImage && imageUrl) {
+                mainImage.src = imageUrl;
+            }
+        });
+    });
+};
