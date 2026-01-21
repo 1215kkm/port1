@@ -1315,6 +1315,135 @@
                     </div>
                 </div>
 
+                <!-- Background Image Settings -->
+                <div class="settings-section">
+                    <h2 class="settings-section-title">배경 이미지 설정</h2>
+                    <div class="settings-section-content">
+                        <p style="color: var(--color-text-muted); margin-bottom: var(--space-lg); font-size: var(--font-sm);">
+                            전체 페이지와 각 섹션에 배경 이미지를 설정할 수 있습니다.
+                        </p>
+
+                        <h3 style="margin-bottom: var(--space-md);">전체 페이지 배경</h3>
+                        <div class="settings-row" style="margin-bottom: var(--space-xl);">
+                            <div class="form-group">
+                                <label class="form-label">배경 이미지</label>
+                                <div style="display: flex; gap: var(--space-sm); align-items: flex-start;">
+                                    <div style="flex: 1;">
+                                        <input type="text" class="form-input" id="bg-body-image" placeholder="이미지 URL 또는 파일 업로드">
+                                        <input type="file" id="bg-body-file" accept="image/*" style="display: none;">
+                                        <button type="button" class="btn btn-secondary btn-sm" id="btn-bg-body-upload" style="margin-top: var(--space-sm);">이미지 선택</button>
+                                    </div>
+                                    <div id="bg-body-preview" style="width: 80px; height: 60px; border: 1px solid var(--color-border); border-radius: var(--radius-sm); overflow: hidden; display: flex; align-items: center; justify-content: center; background: var(--color-bg-secondary);">
+                                        <span style="color: var(--color-text-muted); font-size: 10px;">미리보기</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">배경 설정</label>
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-sm);">
+                                    <select class="form-select" id="bg-body-size">
+                                        <option value="cover">Cover (꽉 채움)</option>
+                                        <option value="contain">Contain (맞춤)</option>
+                                        <option value="auto">Auto (원본)</option>
+                                    </select>
+                                    <select class="form-select" id="bg-body-position">
+                                        <option value="center center">중앙</option>
+                                        <option value="top center">상단</option>
+                                        <option value="bottom center">하단</option>
+                                        <option value="center left">좌측</option>
+                                        <option value="center right">우측</option>
+                                    </select>
+                                    <select class="form-select" id="bg-body-repeat">
+                                        <option value="no-repeat">반복 안함</option>
+                                        <option value="repeat">반복</option>
+                                        <option value="repeat-x">가로 반복</option>
+                                        <option value="repeat-y">세로 반복</option>
+                                    </select>
+                                    <select class="form-select" id="bg-body-attachment">
+                                        <option value="scroll">스크롤</option>
+                                        <option value="fixed">고정</option>
+                                    </select>
+                                </div>
+                                <div style="margin-top: var(--space-sm);">
+                                    <label class="form-label">투명도 (0-1)</label>
+                                    <input type="number" class="form-input" id="bg-body-opacity" min="0" max="1" step="0.1" value="1" style="width: 80px;">
+                                </div>
+                            </div>
+                        </div>
+
+                        <h3 style="margin-bottom: var(--space-md);">섹션별 배경</h3>
+                        <div id="section-backgrounds-list" style="display: flex; flex-direction: column; gap: var(--space-lg);">
+                            <!-- About Section -->
+                            <div class="section-bg-item" data-section="about">
+                                <div class="settings-row">
+                                    <div class="form-group">
+                                        <label class="form-label">자기소개 배경</label>
+                                        <div style="display: flex; gap: var(--space-sm); align-items: center;">
+                                            <input type="text" class="form-input" id="bg-about-image" placeholder="이미지 URL" style="flex: 1;">
+                                            <input type="file" id="bg-about-file" accept="image/*" style="display: none;">
+                                            <button type="button" class="btn btn-secondary btn-sm section-bg-upload" data-section="about">📁</button>
+                                            <div id="bg-about-preview" style="width: 40px; height: 40px; border: 1px solid var(--color-border); border-radius: 4px; overflow: hidden; background: var(--color-bg-secondary);"></div>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">배경색 (대체)</label>
+                                        <div style="display: flex; gap: var(--space-sm); align-items: center;">
+                                            <input type="color" id="bg-about-color" value="#ffffff" style="width: 40px; height: 32px; border: none; cursor: pointer;">
+                                            <input type="text" class="form-input" id="bg-about-color-text" placeholder="#ffffff" style="flex: 1;">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Portfolio Sections -->
+                            <div class="section-bg-item" data-section="portfolio">
+                                <div class="settings-row">
+                                    <div class="form-group">
+                                        <label class="form-label">작품 섹션 배경</label>
+                                        <div style="display: flex; gap: var(--space-sm); align-items: center;">
+                                            <input type="text" class="form-input" id="bg-portfolio-image" placeholder="이미지 URL" style="flex: 1;">
+                                            <input type="file" id="bg-portfolio-file" accept="image/*" style="display: none;">
+                                            <button type="button" class="btn btn-secondary btn-sm section-bg-upload" data-section="portfolio">📁</button>
+                                            <div id="bg-portfolio-preview" style="width: 40px; height: 40px; border: 1px solid var(--color-border); border-radius: 4px; overflow: hidden; background: var(--color-bg-secondary);"></div>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">배경색 (대체)</label>
+                                        <div style="display: flex; gap: var(--space-sm); align-items: center;">
+                                            <input type="color" id="bg-portfolio-color" value="#f8f9fa" style="width: 40px; height: 32px; border: none; cursor: pointer;">
+                                            <input type="text" class="form-input" id="bg-portfolio-color-text" placeholder="#f8f9fa" style="flex: 1;">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Contact Section -->
+                            <div class="section-bg-item" data-section="contact">
+                                <div class="settings-row">
+                                    <div class="form-group">
+                                        <label class="form-label">연락처 배경</label>
+                                        <div style="display: flex; gap: var(--space-sm); align-items: center;">
+                                            <input type="text" class="form-input" id="bg-contact-image" placeholder="이미지 URL" style="flex: 1;">
+                                            <input type="file" id="bg-contact-file" accept="image/*" style="display: none;">
+                                            <button type="button" class="btn btn-secondary btn-sm section-bg-upload" data-section="contact">📁</button>
+                                            <div id="bg-contact-preview" style="width: 40px; height: 40px; border: 1px solid var(--color-border); border-radius: 4px; overflow: hidden; background: var(--color-bg-secondary);"></div>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">배경색 (대체)</label>
+                                        <div style="display: flex; gap: var(--space-sm); align-items: center;">
+                                            <input type="color" id="bg-contact-color" value="#f8f9fa" style="width: 40px; height: 32px; border: none; cursor: pointer;">
+                                            <input type="text" class="form-input" id="bg-contact-color-text" placeholder="#f8f9fa" style="flex: 1;">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button class="btn btn-primary" id="btn-save-backgrounds" style="margin-top: var(--space-lg);">배경 설정 저장</button>
+                    </div>
+                </div>
+
                 <!-- Theme Modes -->
                 <div class="settings-section">
                     <h2 class="settings-section-title">테마 모드 관리</h2>

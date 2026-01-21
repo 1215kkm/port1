@@ -53,6 +53,26 @@ function hideUploadLoading(element) {
     }
 }
 
+// Cache busting helper for images (especially Firebase Storage URLs)
+function addImageCacheBuster(url) {
+    if (!url) return url;
+    // Skip data URLs (base64)
+    if (url.startsWith('data:')) return url;
+
+    // Add cache buster for Firebase Storage URLs or any http URLs
+    if (url.includes('firebasestorage.googleapis.com') || url.includes('firebasestorage.app') || url.startsWith('http')) {
+        const separator = url.includes('?') ? '&' : '?';
+        return `${url}${separator}t=${Date.now()}`;
+    }
+    return url;
+}
+
+// Create image element with error handling
+function createImageElement(url, alt = '', styles = '') {
+    const cachedUrl = addImageCacheBuster(url);
+    return `<img src="${cachedUrl}" alt="${alt}" style="${styles}" onerror="this.onerror=null; this.style.display='none'; this.parentElement.innerHTML='<span style=\\'color:#999;font-size:12px;\\'>이미지 로드 실패</span>';">`;
+}
+
 class AdminPanel {
     constructor() {
         this.data = dataManager.getData();
@@ -105,12 +125,14 @@ class AdminPanel {
         this.renderCSSVariables();
         this.renderFloatingThemePanel();
         this.renderPageSettings();
+        this.renderBackgroundSettings();
 
         // Initialize event listeners
         this.initEventListeners();
         this.initDragAndDrop();
         this.initModal();
         this.initImageUpload();
+        this.initBackgroundUpload();
 
         // Listen for data updates
         window.addEventListener('dataUpdated', () => {
@@ -185,12 +207,44 @@ class AdminPanel {
             });
         }
 
-        // Click overlay to refresh minimap
+        // Click overlay to refresh minimap or navigate to section
         if (minimapOverlay) {
-            minimapOverlay.addEventListener('click', () => {
+            minimapOverlay.addEventListener('click', (e) => {
+                // Get click position relative to overlay
+                const rect = minimapOverlay.getBoundingClientRect();
+                const clickY = e.clientY - rect.top;
+                const totalHeight = rect.height;
+                const ratio = clickY / totalHeight;
+
+                // Map ratio to sections (approximate section positions)
+                // These are rough estimates based on typical portfolio layout
+                let targetSection = null;
+                if (ratio < 0.15) {
+                    targetSection = 'about'; // 자기소개 (hero + profile area)
+                } else if (ratio < 0.25) {
+                    targetSection = 'aitools'; // AI 도구
+                } else if (ratio < 0.35) {
+                    targetSection = 'related'; // 관련경력
+                } else if (ratio < 0.45) {
+                    targetSection = 'evaluation'; // 내평가
+                } else if (ratio < 0.55) {
+                    targetSection = 'video'; // 영상
+                } else if (ratio < 0.85) {
+                    targetSection = 'web-mobile'; // 작품 섹션들
+                } else {
+                    targetSection = 'contact'; // 연락처
+                }
+
+                // Try to scroll to the section in admin
+                this.scrollToAdminSection(targetSection);
+
+                // Also refresh minimap
                 this.refreshMinimap();
             });
         }
+
+        // Add click handlers to section labels for navigation
+        this.initSectionLabelClicks();
 
         // Minimap page navigation buttons
         document.querySelectorAll('.minimap-nav-btn').forEach(btn => {
@@ -240,6 +294,84 @@ class AdminPanel {
                 refreshTimeout = setTimeout(() => {
                     this.refreshMinimap();
                 }, 1500); // Refresh 1.5 seconds after typing stops
+            });
+        });
+    }
+
+    // Scroll to section settings in admin panel
+    scrollToAdminSection(sectionKey) {
+        // Map section keys to admin section IDs
+        const sectionMap = {
+            'about': 'section-about',
+            'aitools': 'section-about', // AI tools are in about section
+            'related': 'section-about', // Related experience in about section
+            'other': 'section-about',
+            'evaluation': 'section-about',
+            'video': 'section-about',
+            'web-mobile': 'section-web-mobile',
+            'popup-banner': 'section-popup-banner',
+            'detail-page': 'section-detail-page',
+            'portfolio': 'section-web-mobile', // Default portfolio section
+            'contact': 'section-contact'
+        };
+
+        const targetId = sectionMap[sectionKey];
+        if (!targetId) return;
+
+        // Try to find the section
+        let targetEl = document.getElementById(targetId);
+
+        // If not found, try with # prefix
+        if (!targetEl) {
+            targetEl = document.querySelector(`.section-anchor#${targetId}`);
+        }
+
+        // Fallback: try to find by section title text
+        if (!targetEl) {
+            const allSections = document.querySelectorAll('.settings-section');
+            const sectionTitles = {
+                'about': '자기소개',
+                'aitools': 'AI',
+                'contact': 'Contact',
+                'web-mobile': '웹',
+                'popup-banner': '팝업',
+                'detail-page': '상세'
+            };
+            const searchText = sectionTitles[sectionKey] || sectionKey;
+            allSections.forEach(section => {
+                const title = section.querySelector('.settings-section-title');
+                if (title && title.textContent.includes(searchText)) {
+                    targetEl = section;
+                }
+            });
+        }
+
+        if (targetEl) {
+            targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            // Highlight briefly
+            targetEl.style.outline = '2px solid var(--color-primary)';
+            setTimeout(() => {
+                targetEl.style.outline = '';
+            }, 1500);
+        }
+    }
+
+    // Add click handlers to section labels for quick navigation
+    initSectionLabelClicks() {
+        const sectionLabels = document.querySelectorAll('.section-setting-item label');
+
+        sectionLabels.forEach(label => {
+            label.style.cursor = 'pointer';
+            label.addEventListener('click', (e) => {
+                // Don't trigger if clicking on checkbox
+                if (e.target.tagName === 'INPUT') return;
+
+                const item = label.closest('.section-setting-item');
+                const sectionKey = item?.dataset.section;
+
+                if (sectionKey) {
+                    this.scrollToAdminSection(sectionKey);
+                }
             });
         });
     }
@@ -638,7 +770,7 @@ class AdminPanel {
                     preview.innerHTML = `<div style="padding: 20px; text-align: center;">업로드 중...</div>`;
 
                     const imageUrl = await uploadImageToStorage(file, 'profile');
-                    preview.innerHTML = `<img src="${imageUrl}?t=${Date.now()}" alt="프로필">`;
+                    preview.innerHTML = createImageElement(imageUrl, '프로필', 'max-width: 100%; max-height: 100%; object-fit: contain;');
                     urlInput.value = imageUrl;
                     hideUploadLoading(preview);
 
@@ -654,7 +786,7 @@ class AdminPanel {
         urlInput?.addEventListener('change', () => {
             if (urlInput.value) {
                 const preview = document.getElementById('profile-image-preview');
-                preview.innerHTML = `<img src="${urlInput.value}" alt="프로필">`;
+                preview.innerHTML = createImageElement(urlInput.value, '프로필', 'max-width: 100%; max-height: 100%; object-fit: contain;');
             }
         });
 
@@ -695,7 +827,7 @@ class AdminPanel {
     updateLogoPreview(src) {
         const logoPreview = document.getElementById('logo-preview');
         if (logoPreview && src) {
-            logoPreview.innerHTML = `<img src="${src}" alt="로고" style="max-width: 100%; max-height: 100%; object-fit: contain;">`;
+            logoPreview.innerHTML = createImageElement(src, '로고', 'max-width: 100%; max-height: 100%; object-fit: contain;');
         } else if (logoPreview) {
             logoPreview.innerHTML = `<span style="color: var(--color-text-muted); font-size: var(--font-xs);">미리보기</span>`;
         }
@@ -1153,7 +1285,7 @@ class AdminPanel {
         // Profile image preview
         if (profile.profileImage) {
             const preview = document.getElementById('profile-image-preview');
-            preview.innerHTML = `<img src="${profile.profileImage}" alt="프로필">`;
+            preview.innerHTML = createImageElement(profile.profileImage, '프로필', 'max-width: 100%; max-height: 100%; object-fit: contain;');
         }
     }
 
@@ -1746,6 +1878,162 @@ class AdminPanel {
         this.refreshMinimap();
     }
 
+    // =====================
+    // Background Settings
+    // =====================
+    renderBackgroundSettings() {
+        const bgSettings = this.data.backgroundSettings || {};
+
+        // Body background
+        const bodyBg = bgSettings.body || {};
+        const bgBodyImageEl = document.getElementById('bg-body-image');
+        const bgBodySizeEl = document.getElementById('bg-body-size');
+        const bgBodyPositionEl = document.getElementById('bg-body-position');
+        const bgBodyRepeatEl = document.getElementById('bg-body-repeat');
+        const bgBodyAttachmentEl = document.getElementById('bg-body-attachment');
+        const bgBodyOpacityEl = document.getElementById('bg-body-opacity');
+
+        if (bgBodyImageEl) bgBodyImageEl.value = bodyBg.image || '';
+        if (bgBodySizeEl) bgBodySizeEl.value = bodyBg.size || 'cover';
+        if (bgBodyPositionEl) bgBodyPositionEl.value = bodyBg.position || 'center center';
+        if (bgBodyRepeatEl) bgBodyRepeatEl.value = bodyBg.repeat || 'no-repeat';
+        if (bgBodyAttachmentEl) bgBodyAttachmentEl.value = bodyBg.attachment || 'scroll';
+        if (bgBodyOpacityEl) bgBodyOpacityEl.value = bodyBg.opacity ?? 1;
+
+        // Update body preview
+        this.updateBackgroundPreview('body', bodyBg.image);
+
+        // Section backgrounds
+        ['about', 'portfolio', 'contact'].forEach(section => {
+            const sectionBg = bgSettings[section] || {};
+            const imageEl = document.getElementById(`bg-${section}-image`);
+            const colorEl = document.getElementById(`bg-${section}-color`);
+            const colorTextEl = document.getElementById(`bg-${section}-color-text`);
+
+            if (imageEl) imageEl.value = sectionBg.image || '';
+            if (colorEl) colorEl.value = sectionBg.color || '#ffffff';
+            if (colorTextEl) colorTextEl.value = sectionBg.color || '#ffffff';
+
+            this.updateBackgroundPreview(section, sectionBg.image);
+
+            // Sync color inputs
+            if (colorEl && colorTextEl) {
+                colorEl.addEventListener('input', () => {
+                    colorTextEl.value = colorEl.value;
+                });
+                colorTextEl.addEventListener('input', () => {
+                    if (/^#[0-9A-Fa-f]{6}$/.test(colorTextEl.value)) {
+                        colorEl.value = colorTextEl.value;
+                    }
+                });
+            }
+        });
+
+        // Save button
+        document.getElementById('btn-save-backgrounds')?.addEventListener('click', () => {
+            this.saveBackgroundSettings();
+        });
+    }
+
+    updateBackgroundPreview(section, imageUrl) {
+        const previewEl = document.getElementById(`bg-${section}-preview`);
+        if (!previewEl) return;
+
+        if (imageUrl) {
+            previewEl.innerHTML = createImageElement(imageUrl, '', 'width: 100%; height: 100%; object-fit: cover;');
+        } else {
+            previewEl.innerHTML = '<span style="color: var(--color-text-muted); font-size: 10px;">미리보기</span>';
+        }
+    }
+
+    initBackgroundUpload() {
+        // Body background upload
+        const bodyFileInput = document.getElementById('bg-body-file');
+        const bodyUploadBtn = document.getElementById('btn-bg-body-upload');
+        const bodyUrlInput = document.getElementById('bg-body-image');
+
+        if (bodyUploadBtn && bodyFileInput) {
+            bodyUploadBtn.addEventListener('click', () => bodyFileInput.click());
+
+            bodyFileInput.addEventListener('change', async (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const previewEl = document.getElementById('bg-body-preview');
+                    showUploadLoading(previewEl);
+
+                    const imageUrl = await uploadImageToStorage(file, 'backgrounds');
+                    bodyUrlInput.value = imageUrl;
+                    this.updateBackgroundPreview('body', imageUrl);
+
+                    hideUploadLoading(previewEl);
+                    bodyFileInput.value = '';
+                }
+            });
+        }
+
+        // URL input change
+        bodyUrlInput?.addEventListener('change', () => {
+            this.updateBackgroundPreview('body', bodyUrlInput.value);
+        });
+
+        // Section background uploads
+        document.querySelectorAll('.section-bg-upload').forEach(btn => {
+            const section = btn.dataset.section;
+            const fileInput = document.getElementById(`bg-${section}-file`);
+            const urlInput = document.getElementById(`bg-${section}-image`);
+
+            btn.addEventListener('click', () => fileInput?.click());
+
+            fileInput?.addEventListener('change', async (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const previewEl = document.getElementById(`bg-${section}-preview`);
+                    showUploadLoading(previewEl);
+
+                    const imageUrl = await uploadImageToStorage(file, 'backgrounds');
+                    urlInput.value = imageUrl;
+                    this.updateBackgroundPreview(section, imageUrl);
+
+                    hideUploadLoading(previewEl);
+                    fileInput.value = '';
+                }
+            });
+
+            urlInput?.addEventListener('change', () => {
+                this.updateBackgroundPreview(section, urlInput.value);
+            });
+        });
+    }
+
+    saveBackgroundSettings() {
+        const bgSettings = {
+            body: {
+                image: document.getElementById('bg-body-image')?.value || '',
+                size: document.getElementById('bg-body-size')?.value || 'cover',
+                position: document.getElementById('bg-body-position')?.value || 'center center',
+                repeat: document.getElementById('bg-body-repeat')?.value || 'no-repeat',
+                attachment: document.getElementById('bg-body-attachment')?.value || 'scroll',
+                opacity: parseFloat(document.getElementById('bg-body-opacity')?.value || 1)
+            }
+        };
+
+        // Section backgrounds
+        ['about', 'portfolio', 'contact'].forEach(section => {
+            bgSettings[section] = {
+                image: document.getElementById(`bg-${section}-image`)?.value || '',
+                color: document.getElementById(`bg-${section}-color`)?.value || ''
+            };
+        });
+
+        dataManager.set('backgroundSettings', bgSettings);
+        dataManager.saveData();
+
+        // Refresh minimap to show changes
+        this.refreshMinimap();
+
+        alert('배경 설정이 저장되었습니다.');
+    }
+
     renderFloatingThemePanel() {
         const container = document.getElementById('floating-theme-panel');
         if (!container) return;
@@ -1975,7 +2263,7 @@ class AdminPanel {
                 <div id="modal-portfolio-thumbnails-preview" style="display: flex; flex-wrap: wrap; gap: var(--space-sm); margin-bottom: var(--space-sm);">
                     ${(existing?.thumbnails || []).map((url, i) => `
                         <div class="thumbnail-preview-item" data-index="${i}" style="position: relative; width: 80px; height: 80px; border: 1px solid var(--color-border); border-radius: var(--radius-sm); overflow: hidden;">
-                            <img src="${url}" style="width: 100%; height: 100%; object-fit: cover;">
+                            ${createImageElement(url, '', 'width: 100%; height: 100%; object-fit: cover;')}
                             <button type="button" class="btn-remove-thumbnail" data-index="${i}" style="position: absolute; top: 2px; right: 2px; width: 20px; height: 20px; border-radius: 50%; background: rgba(0,0,0,0.6); color: white; border: none; cursor: pointer; font-size: 12px;">✕</button>
                         </div>
                     `).join('')}
@@ -2091,7 +2379,7 @@ class AdminPanel {
     updateThumbnailPreview(container, thumbnails) {
         container.innerHTML = thumbnails.map((url, i) => `
             <div class="thumbnail-preview-item" data-index="${i}" style="position: relative; width: 80px; height: 80px; border: 1px solid var(--color-border); border-radius: var(--radius-sm); overflow: hidden;">
-                <img src="${url}" style="width: 100%; height: 100%; object-fit: cover;">
+                ${createImageElement(url, '', 'width: 100%; height: 100%; object-fit: cover;')}
                 <button type="button" class="btn-remove-thumbnail" data-index="${i}" style="position: absolute; top: 2px; right: 2px; width: 20px; height: 20px; border-radius: 50%; background: rgba(0,0,0,0.6); color: white; border: none; cursor: pointer; font-size: 12px;">✕</button>
             </div>
         `).join('');
@@ -2115,7 +2403,7 @@ class AdminPanel {
     updateProjectImagePreview(container, images) {
         container.innerHTML = images.map((url, i) => `
             <div class="thumbnail-preview-item" data-index="${i}" style="position: relative; width: 80px; height: 80px; border: 1px solid var(--color-border); border-radius: var(--radius-sm); overflow: hidden;">
-                <img src="${url}" style="width: 100%; height: 100%; object-fit: cover;">
+                ${createImageElement(url, '', 'width: 100%; height: 100%; object-fit: cover;')}
                 <button type="button" class="btn-remove-project-image" data-index="${i}" style="position: absolute; top: 2px; right: 2px; width: 20px; height: 20px; border-radius: 50%; background: rgba(0,0,0,0.6); color: white; border: none; cursor: pointer; font-size: 12px;">✕</button>
             </div>
         `).join('');
@@ -2195,7 +2483,7 @@ class AdminPanel {
                 <div id="modal-project-images-preview" style="display: flex; flex-wrap: wrap; gap: var(--space-sm); margin-bottom: var(--space-sm);">
                     ${(existing?.images || []).map((url, i) => `
                         <div class="thumbnail-preview-item" data-index="${i}" style="position: relative; width: 80px; height: 80px; border: 1px solid var(--color-border); border-radius: var(--radius-sm); overflow: hidden;">
-                            <img src="${url}" style="width: 100%; height: 100%; object-fit: cover;">
+                            ${createImageElement(url, '', 'width: 100%; height: 100%; object-fit: cover;')}
                             <button type="button" class="btn-remove-project-image" data-index="${i}" style="position: absolute; top: 2px; right: 2px; width: 20px; height: 20px; border-radius: 50%; background: rgba(0,0,0,0.6); color: white; border: none; cursor: pointer; font-size: 12px;">✕</button>
                         </div>
                     `).join('')}

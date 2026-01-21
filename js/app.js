@@ -752,6 +752,9 @@ class PageInitializer {
         // Apply font settings
         this.applyFontSettings();
 
+        // Apply background settings
+        this.applyBackgroundSettings();
+
         // Render dynamic content
         this.renderLogo();
         this.renderProfile();
@@ -782,6 +785,7 @@ class PageInitializer {
 
     renderAll() {
         this.applyFontSettings();
+        this.applyBackgroundSettings();
         this.renderLogo();
         this.renderProfile();
         this.renderAITools();
@@ -953,6 +957,73 @@ class PageInitializer {
         if (colors.content) {
             document.documentElement.style.setProperty('--color-content', colors.content);
         }
+    }
+
+    applyBackgroundSettings() {
+        const bgSettings = this.data.backgroundSettings || {};
+
+        // Apply body background
+        const bodyBg = bgSettings.body || {};
+        if (bodyBg.image) {
+            const imageUrl = addCacheBuster(bodyBg.image);
+
+            // Create or update background style
+            let bgStyleEl = document.getElementById('custom-background-style');
+            if (!bgStyleEl) {
+                bgStyleEl = document.createElement('style');
+                bgStyleEl.id = 'custom-background-style';
+                document.head.appendChild(bgStyleEl);
+            }
+
+            // Create pseudo element for background with opacity
+            const opacity = bodyBg.opacity ?? 1;
+            bgStyleEl.textContent = `
+                body::before {
+                    content: '';
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    background-image: url('${imageUrl}');
+                    background-size: ${bodyBg.size || 'cover'};
+                    background-position: ${bodyBg.position || 'center center'};
+                    background-repeat: ${bodyBg.repeat || 'no-repeat'};
+                    background-attachment: ${bodyBg.attachment || 'scroll'};
+                    opacity: ${opacity};
+                    z-index: -1;
+                    pointer-events: none;
+                }
+            `;
+        }
+
+        // Apply section backgrounds
+        const sectionMap = {
+            'about': '#about',
+            'portfolio': '.portfolio-section',
+            'contact': '#contact'
+        };
+
+        Object.entries(sectionMap).forEach(([key, selector]) => {
+            const sectionBg = bgSettings[key] || {};
+            const elements = document.querySelectorAll(selector);
+
+            elements.forEach(el => {
+                if (sectionBg.image) {
+                    const imageUrl = addCacheBuster(sectionBg.image);
+                    el.style.backgroundImage = `url('${imageUrl}')`;
+                    el.style.backgroundSize = 'cover';
+                    el.style.backgroundPosition = 'center';
+                    el.style.backgroundRepeat = 'no-repeat';
+                } else if (sectionBg.color) {
+                    el.style.backgroundColor = sectionBg.color;
+                    el.style.backgroundImage = '';
+                } else {
+                    el.style.backgroundImage = '';
+                    el.style.backgroundColor = '';
+                }
+            });
+        });
     }
 
     renderProfile() {

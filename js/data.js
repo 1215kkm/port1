@@ -220,6 +220,21 @@ const defaultData = {
         aboutPhoto: true
     },
 
+    // Background Settings
+    backgroundSettings: {
+        body: {
+            image: '',
+            size: 'cover',
+            position: 'center center',
+            repeat: 'no-repeat',
+            attachment: 'scroll',
+            opacity: 1
+        },
+        about: { image: '', color: '' },
+        portfolio: { image: '', color: '' },
+        contact: { image: '', color: '' }
+    },
+
     // Portfolio Items (Solo) - organized by section (각 섹션 1개씩 샘플)
     portfolioSolo: {
         items: [
