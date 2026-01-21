@@ -773,6 +773,7 @@ class PageInitializer {
         this.renderContact();
         this.renderMenu();
         this.initPortfolios();
+        this.applySectionVisibility();
 
         if (window.radarChart) {
             window.radarChart.update(this.data.evaluation.radarChart);
@@ -781,6 +782,33 @@ class PageInitializer {
         if (window.calendar) {
             window.calendar.setEvents(this.data.interviews);
         }
+    }
+
+    applySectionVisibility() {
+        const settings = this.data.sectionSettings || {};
+
+        // Apply visibility to sections with data-section attribute
+        const sectionMap = {
+            'about': '#about .about-grid-top',
+            'aitools': '[data-section="aitools"]',
+            'related': '[data-section="related"]',
+            'other': '[data-section="other"]',
+            'evaluation': '[data-section="evaluation"]',
+            'video': '[data-section="video"]',
+            'portfolio': '.portfolio-section',
+            'contact': '#contact'
+        };
+
+        Object.entries(sectionMap).forEach(([key, selector]) => {
+            const elements = document.querySelectorAll(selector);
+            elements.forEach(el => {
+                if (settings[key] === false) {
+                    el.style.display = 'none';
+                } else {
+                    el.style.display = '';
+                }
+            });
+        });
     }
 
     initPortfolios() {

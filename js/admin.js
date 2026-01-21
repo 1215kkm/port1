@@ -210,8 +210,9 @@ class AdminPanel {
 
     initMinimapPageSettings() {
         const pageSettings = this.data.pageSettings || { intro: true, ai: true, team: true };
+        const sectionSettings = this.data.sectionSettings || {};
 
-        // Set initial checkbox states
+        // Page checkboxes
         const introCheck = document.getElementById('minimap-page-intro');
         const aiCheck = document.getElementById('minimap-page-ai');
         const teamCheck = document.getElementById('minimap-page-team');
@@ -220,7 +221,17 @@ class AdminPanel {
         if (aiCheck) aiCheck.checked = pageSettings.ai !== false;
         if (teamCheck) teamCheck.checked = pageSettings.team !== false;
 
-        // Add change listeners
+        // Section checkboxes
+        const sectionIds = ['about', 'aitools', 'related', 'other', 'evaluation', 'video', 'portfolio', 'contact'];
+        sectionIds.forEach(id => {
+            const check = document.getElementById(`section-enable-${id}`);
+            if (check) {
+                check.checked = sectionSettings[id] !== false;
+                check.addEventListener('change', () => this.saveSectionSettings());
+            }
+        });
+
+        // Add change listeners for page settings
         [introCheck, aiCheck, teamCheck].forEach(check => {
             if (check) {
                 check.addEventListener('change', () => {
@@ -228,6 +239,25 @@ class AdminPanel {
                 });
             }
         });
+    }
+
+    saveSectionSettings() {
+        const sectionSettings = {
+            about: document.getElementById('section-enable-about')?.checked !== false,
+            aitools: document.getElementById('section-enable-aitools')?.checked !== false,
+            related: document.getElementById('section-enable-related')?.checked !== false,
+            other: document.getElementById('section-enable-other')?.checked !== false,
+            evaluation: document.getElementById('section-enable-evaluation')?.checked !== false,
+            video: document.getElementById('section-enable-video')?.checked !== false,
+            portfolio: document.getElementById('section-enable-portfolio')?.checked !== false,
+            contact: document.getElementById('section-enable-contact')?.checked !== false
+        };
+
+        dataManager.set('sectionSettings', sectionSettings);
+        dataManager.saveData();
+
+        // Refresh minimap to show changes
+        setTimeout(() => this.refreshMinimap(), 500);
     }
 
     saveMinimapPageSettings() {
