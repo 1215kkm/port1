@@ -200,6 +200,13 @@ const defaultData = {
         "detail-page": "single"
     },
 
+    // Page Settings (enable/disable pages)
+    pageSettings: {
+        intro: true,
+        ai: true,
+        team: true
+    },
+
     // Portfolio Items (Solo) - organized by section (각 섹션 1개씩 샘플)
     portfolioSolo: {
         items: [

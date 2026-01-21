@@ -201,84 +201,8 @@ class AdminPanel {
             });
         });
 
-        // Minimap page settings checkboxes
-        this.initMinimapPageSettings();
-
         // Auto-refresh minimap every 3 seconds when editing
         this.startMinimapAutoRefresh();
-    }
-
-    initMinimapPageSettings() {
-        const pageSettings = this.data.pageSettings || { intro: true, ai: true, team: true };
-        const sectionSettings = this.data.sectionSettings || {};
-
-        // Page checkboxes
-        const introCheck = document.getElementById('minimap-page-intro');
-        const aiCheck = document.getElementById('minimap-page-ai');
-        const teamCheck = document.getElementById('minimap-page-team');
-
-        if (introCheck) introCheck.checked = pageSettings.intro !== false;
-        if (aiCheck) aiCheck.checked = pageSettings.ai !== false;
-        if (teamCheck) teamCheck.checked = pageSettings.team !== false;
-
-        // Section checkboxes
-        const sectionIds = ['about', 'aitools', 'related', 'other', 'evaluation', 'video', 'portfolio', 'contact'];
-        sectionIds.forEach(id => {
-            const check = document.getElementById(`section-enable-${id}`);
-            if (check) {
-                check.checked = sectionSettings[id] !== false;
-                check.addEventListener('change', () => this.saveSectionSettings());
-            }
-        });
-
-        // Add change listeners for page settings
-        [introCheck, aiCheck, teamCheck].forEach(check => {
-            if (check) {
-                check.addEventListener('change', () => {
-                    this.saveMinimapPageSettings();
-                });
-            }
-        });
-    }
-
-    saveSectionSettings() {
-        const sectionSettings = {
-            about: document.getElementById('section-enable-about')?.checked !== false,
-            aitools: document.getElementById('section-enable-aitools')?.checked !== false,
-            related: document.getElementById('section-enable-related')?.checked !== false,
-            other: document.getElementById('section-enable-other')?.checked !== false,
-            evaluation: document.getElementById('section-enable-evaluation')?.checked !== false,
-            video: document.getElementById('section-enable-video')?.checked !== false,
-            portfolio: document.getElementById('section-enable-portfolio')?.checked !== false,
-            contact: document.getElementById('section-enable-contact')?.checked !== false
-        };
-
-        dataManager.set('sectionSettings', sectionSettings);
-        dataManager.saveData();
-
-        // Refresh minimap to show changes
-        setTimeout(() => this.refreshMinimap(), 500);
-    }
-
-    saveMinimapPageSettings() {
-        const pageSettings = {
-            intro: document.getElementById('minimap-page-intro')?.checked !== false,
-            ai: document.getElementById('minimap-page-ai')?.checked !== false,
-            team: document.getElementById('minimap-page-team')?.checked !== false
-        };
-
-        // Update both minimap and main page settings
-        dataManager.set('pageSettings', pageSettings);
-        dataManager.saveData();
-
-        // Sync with main page settings panel
-        const mainIntro = document.getElementById('page-enable-intro');
-        const mainAi = document.getElementById('page-enable-ai');
-        const mainTeam = document.getElementById('page-enable-team');
-
-        if (mainIntro) mainIntro.checked = pageSettings.intro;
-        if (mainAi) mainAi.checked = pageSettings.ai;
-        if (mainTeam) mainTeam.checked = pageSettings.team;
     }
 
     switchMinimapPage(page) {
@@ -1552,23 +1476,21 @@ class AdminPanel {
     }
 
     savePageSettings() {
+        const introToggle = document.getElementById('page-enable-intro');
+        const aiToggle = document.getElementById('page-enable-ai');
+        const teamToggle = document.getElementById('page-enable-team');
+
         const pageSettings = {
-            intro: document.getElementById('page-enable-intro')?.checked !== false,
-            ai: document.getElementById('page-enable-ai')?.checked !== false,
-            team: document.getElementById('page-enable-team')?.checked !== false
+            intro: introToggle ? introToggle.checked : true,
+            ai: aiToggle ? aiToggle.checked : true,
+            team: teamToggle ? teamToggle.checked : true
         };
 
         dataManager.set('pageSettings', pageSettings);
         dataManager.saveData();
 
-        // Sync with minimap checkboxes
-        const miniIntro = document.getElementById('minimap-page-intro');
-        const miniAi = document.getElementById('minimap-page-ai');
-        const miniTeam = document.getElementById('minimap-page-team');
-
-        if (miniIntro) miniIntro.checked = pageSettings.intro;
-        if (miniAi) miniAi.checked = pageSettings.ai;
-        if (miniTeam) miniTeam.checked = pageSettings.team;
+        // Refresh minimap to show changes
+        this.refreshMinimap();
     }
 
     renderFloatingThemePanel() {

@@ -486,51 +486,12 @@
             transition: all 0.3s ease;
         }
 
-        .minimap-section-settings {
-            padding: 6px 8px;
-            background: #2a2a3e;
+        .minimap-nav-top {
+            padding: 8px;
+            background: #222;
             border-bottom: 1px solid #333;
-            max-height: 120px;
-            overflow-y: auto;
-        }
-
-        .minimap-settings-row {
             display: flex;
-            align-items: center;
-            gap: 6px;
-            margin-bottom: 4px;
-            flex-wrap: wrap;
-        }
-
-        .minimap-settings-row:last-child {
-            margin-bottom: 0;
-        }
-
-        .minimap-settings-label {
-            font-size: 9px;
-            color: #888;
-            min-width: 28px;
-            font-weight: 600;
-        }
-
-        .minimap-page-item {
-            display: flex;
-            align-items: center;
-            gap: 2px;
-            font-size: 10px;
-            color: #ccc;
-        }
-
-        .minimap-page-item input[type="checkbox"] {
-            width: 12px;
-            height: 12px;
-            cursor: pointer;
-            margin: 0;
-        }
-
-        .minimap-page-item label {
-            cursor: pointer;
-            white-space: nowrap;
+            gap: 4px;
         }
 
         .minimap-refresh-hint {
@@ -550,14 +511,6 @@
 
         .minimap-overlay:hover .minimap-refresh-hint {
             opacity: 1;
-        }
-
-        .minimap-footer {
-            padding: 8px;
-            background: #222;
-            border-top: 1px solid #333;
-            display: flex;
-            gap: 4px;
         }
 
         .minimap-nav-btn {
@@ -1357,31 +1310,13 @@
             <div class="minimap-header">
                 <span class="minimap-header-icon">🗺️</span>
                 <span>미리보기</span>
-                <span class="minimap-current-section" id="minimap-current-section">자기소개</span>
             </div>
 
-            <!-- Section Settings -->
-            <div class="minimap-section-settings">
-                <div class="minimap-settings-row">
-                    <span class="minimap-settings-label">페이지</span>
-                    <div class="minimap-page-item"><input type="checkbox" id="minimap-page-intro" checked><label for="minimap-page-intro">인트로</label></div>
-                    <div class="minimap-page-item"><input type="checkbox" id="minimap-page-ai" checked><label for="minimap-page-ai">AI</label></div>
-                    <div class="minimap-page-item"><input type="checkbox" id="minimap-page-team" checked><label for="minimap-page-team">팀플</label></div>
-                </div>
-                <div class="minimap-settings-row">
-                    <span class="minimap-settings-label">섹션</span>
-                    <div class="minimap-page-item"><input type="checkbox" id="section-enable-about" checked><label for="section-enable-about">자기소개</label></div>
-                    <div class="minimap-page-item"><input type="checkbox" id="section-enable-aitools" checked><label for="section-enable-aitools">AI도구</label></div>
-                    <div class="minimap-page-item"><input type="checkbox" id="section-enable-related" checked><label for="section-enable-related">관련경력</label></div>
-                    <div class="minimap-page-item"><input type="checkbox" id="section-enable-other" checked><label for="section-enable-other">타업무</label></div>
-                </div>
-                <div class="minimap-settings-row">
-                    <span class="minimap-settings-label"></span>
-                    <div class="minimap-page-item"><input type="checkbox" id="section-enable-evaluation" checked><label for="section-enable-evaluation">내평가</label></div>
-                    <div class="minimap-page-item"><input type="checkbox" id="section-enable-video" checked><label for="section-enable-video">영상</label></div>
-                    <div class="minimap-page-item"><input type="checkbox" id="section-enable-portfolio" checked><label for="section-enable-portfolio">작품</label></div>
-                    <div class="minimap-page-item"><input type="checkbox" id="section-enable-contact" checked><label for="section-enable-contact">연락처</label></div>
-                </div>
+            <!-- Page Navigation (moved to top) -->
+            <div class="minimap-nav-top">
+                <button class="minimap-nav-btn active" data-page="portfolio">혼자제작</button>
+                <button class="minimap-nav-btn" data-page="ai">AI활용</button>
+                <button class="minimap-nav-btn" data-page="team">팀플</button>
             </div>
 
             <div class="minimap-frame-container">
@@ -1389,12 +1324,6 @@
                 <div class="minimap-overlay" id="minimap-overlay">
                     <span class="minimap-refresh-hint">클릭하여 새로고침</span>
                 </div>
-            </div>
-
-            <div class="minimap-footer">
-                <button class="minimap-nav-btn active" data-page="portfolio">혼자제작</button>
-                <button class="minimap-nav-btn" data-page="ai">AI활용</button>
-                <button class="minimap-nav-btn" data-page="team">팀플</button>
             </div>
         </div>
 

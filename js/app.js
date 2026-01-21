@@ -785,7 +785,8 @@ class PageInitializer {
     }
 
     applySectionVisibility() {
-        const settings = this.data.sectionSettings || {};
+        const sectionSettings = this.data.sectionSettings || {};
+        const pageSettings = this.data.pageSettings || {};
 
         // Apply visibility to sections with data-section attribute
         const sectionMap = {
@@ -802,13 +803,24 @@ class PageInitializer {
         Object.entries(sectionMap).forEach(([key, selector]) => {
             const elements = document.querySelectorAll(selector);
             elements.forEach(el => {
-                if (settings[key] === false) {
+                if (sectionSettings[key] === false) {
                     el.style.display = 'none';
                 } else {
                     el.style.display = '';
                 }
             });
         });
+
+        // Apply page settings to header nav buttons
+        const aiLink = document.querySelector('[data-page-link="ai"]');
+        const teamLink = document.querySelector('[data-page-link="team"]');
+
+        if (aiLink) {
+            aiLink.style.display = pageSettings.ai === false ? 'none' : '';
+        }
+        if (teamLink) {
+            teamLink.style.display = pageSettings.team === false ? 'none' : '';
+        }
     }
 
     initPortfolios() {
