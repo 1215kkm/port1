@@ -6,32 +6,85 @@ async function uploadImageToStorage(file, path = 'images') {
         const StorageManager = window.getStorageManager ? window.getStorageManager() : null;
         const userId = window.dataManager?.userId;
 
+        console.log(`[Upload] Starting upload for ${file.name} (${(file.size/1024).toFixed(1)}KB) to ${path}`);
+        console.log(`[Upload] StorageManager: ${!!StorageManager}, userId: ${userId ? 'yes' : 'no'}`);
+
         if (StorageManager && userId) {
             // Upload to Firebase Storage
+            console.log('[Upload] Attempting Firebase Storage upload...');
             const result = await StorageManager.uploadImage(userId, file, path);
             if (result.success && result.url) {
-                console.log('Firebase upload success:', result.url);
+                console.log('[Upload] Firebase Storage success:', result.url.substring(0, 50) + '...');
                 return result.url;
             } else {
-                console.warn('Firebase upload failed, falling back to base64:', result.error);
+                console.warn('[Upload] Firebase Storage failed:', result.error);
+                console.log('[Upload] Falling back to compressed base64...');
                 return await fileToBase64(file);
             }
         } else {
             // Fallback to base64 for local storage
-            console.log('Using base64 fallback (StorageManager:', !!StorageManager, ', userId:', !!userId, ')');
+            console.log('[Upload] No Firebase available, using compressed base64...');
             return await fileToBase64(file);
         }
     } catch (error) {
-        console.error('Upload error, falling back to base64:', error);
+        console.error('[Upload] Error:', error);
+        console.log('[Upload] Falling back to compressed base64...');
         return await fileToBase64(file);
     }
 }
 
-// Convert file to base64 (fallback)
+// Convert file to base64 with compression (fallback)
 function fileToBase64(file) {
     return new Promise((resolve, reject) => {
+        // For images, compress them first
+        if (file.type.startsWith('image/')) {
+            compressImage(file, 800, 0.7).then(resolve).catch(() => {
+                // Fallback to regular base64 if compression fails
+                const reader = new FileReader();
+                reader.onload = (e) => resolve(e.target.result);
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        } else {
+            const reader = new FileReader();
+            reader.onload = (e) => resolve(e.target.result);
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+        }
+    });
+}
+
+// Compress image to reduce size for base64 storage
+function compressImage(file, maxWidth = 800, quality = 0.7) {
+    return new Promise((resolve, reject) => {
         const reader = new FileReader();
-        reader.onload = (e) => resolve(e.target.result);
+        reader.onload = (e) => {
+            const img = new Image();
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                let width = img.width;
+                let height = img.height;
+
+                // Scale down if larger than maxWidth
+                if (width > maxWidth) {
+                    height = (height * maxWidth) / width;
+                    width = maxWidth;
+                }
+
+                canvas.width = width;
+                canvas.height = height;
+
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+
+                // Convert to compressed JPEG
+                const compressedBase64 = canvas.toDataURL('image/jpeg', quality);
+                console.log(`Image compressed: ${(file.size / 1024).toFixed(1)}KB → ${(compressedBase64.length * 0.75 / 1024).toFixed(1)}KB`);
+                resolve(compressedBase64);
+            };
+            img.onerror = reject;
+            img.src = e.target.result;
+        };
         reader.onerror = reject;
         reader.readAsDataURL(file);
     });
