@@ -507,6 +507,48 @@
             opacity: 1;
         }
 
+        /* Minimap Section Checkboxes */
+        .minimap-sections {
+            padding: 10px;
+            background: #1e1e2e;
+            border-top: 1px solid #333;
+            overflow-y: auto;
+            flex-shrink: 0;
+            max-height: 200px;
+        }
+
+        .minimap-sections-title {
+            font-size: 11px;
+            color: #888;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .minimap-section-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 4px 0;
+            font-size: 12px;
+            color: #ccc;
+        }
+
+        .minimap-section-item input[type="checkbox"] {
+            width: 14px;
+            height: 14px;
+            cursor: pointer;
+            accent-color: var(--color-primary);
+        }
+
+        .minimap-section-item label {
+            cursor: pointer;
+            flex: 1;
+        }
+
+        .minimap-section-item:hover {
+            color: #fff;
+        }
+
         /* Page Toggle Styles */
         .page-toggle-list {
             display: flex;
@@ -1292,6 +1334,43 @@
                 <iframe class="minimap-frame" id="minimap-frame" src="portfolio.html"></iframe>
                 <div class="minimap-overlay" id="minimap-overlay">
                     <span class="minimap-refresh-hint">클릭하여 새로고침</span>
+                </div>
+            </div>
+
+            <!-- Section Visibility Checkboxes -->
+            <div class="minimap-sections">
+                <div class="minimap-sections-title">섹션 표시 설정</div>
+                <div class="minimap-section-item">
+                    <input type="checkbox" id="section-about" checked>
+                    <label for="section-about">자기소개</label>
+                </div>
+                <div class="minimap-section-item">
+                    <input type="checkbox" id="section-aitools" checked>
+                    <label for="section-aitools">AI도구</label>
+                </div>
+                <div class="minimap-section-item">
+                    <input type="checkbox" id="section-related" checked>
+                    <label for="section-related">관련경력</label>
+                </div>
+                <div class="minimap-section-item">
+                    <input type="checkbox" id="section-other" checked>
+                    <label for="section-other">타업무경력</label>
+                </div>
+                <div class="minimap-section-item">
+                    <input type="checkbox" id="section-evaluation" checked>
+                    <label for="section-evaluation">내평가</label>
+                </div>
+                <div class="minimap-section-item">
+                    <input type="checkbox" id="section-video" checked>
+                    <label for="section-video">영상</label>
+                </div>
+                <div class="minimap-section-item">
+                    <input type="checkbox" id="section-portfolio" checked>
+                    <label for="section-portfolio">작품</label>
+                </div>
+                <div class="minimap-section-item">
+                    <input type="checkbox" id="section-contact" checked>
+                    <label for="section-contact">연락처</label>
                 </div>
             </div>
         </div>

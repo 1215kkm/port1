@@ -83,6 +83,9 @@ class AdminPanel {
         // Initialize page tabs
         this.initPageTabs();
 
+        // Initialize section checkboxes
+        this.initSectionCheckboxes();
+
         // Initialize all renderers
         this.renderMenuList();
         this.renderSiteSettings();
@@ -341,6 +344,47 @@ class AdminPanel {
         document.querySelectorAll('.minimap-nav-btn').forEach(btn => {
             btn.classList.toggle('active', btn.dataset.page === page);
         });
+    }
+
+    // =====================
+    // Section Checkboxes
+    // =====================
+    initSectionCheckboxes() {
+        const sectionIds = ['about', 'aitools', 'related', 'other', 'evaluation', 'video', 'portfolio', 'contact'];
+
+        // Load saved settings
+        const sectionSettings = this.data.sectionSettings || {};
+
+        sectionIds.forEach(id => {
+            const checkbox = document.getElementById(`section-${id}`);
+            if (checkbox) {
+                // Set initial value
+                checkbox.checked = sectionSettings[id] !== false;
+
+                // Add change listener
+                checkbox.addEventListener('change', () => {
+                    this.saveSectionSettings();
+                });
+            }
+        });
+    }
+
+    saveSectionSettings() {
+        const sectionIds = ['about', 'aitools', 'related', 'other', 'evaluation', 'video', 'portfolio', 'contact'];
+        const sectionSettings = {};
+
+        sectionIds.forEach(id => {
+            const checkbox = document.getElementById(`section-${id}`);
+            if (checkbox) {
+                sectionSettings[id] = checkbox.checked;
+            }
+        });
+
+        dataManager.set('sectionSettings', sectionSettings);
+        dataManager.saveData();
+
+        // Refresh minimap to show changes
+        this.refreshMinimap();
     }
 
     // =====================
