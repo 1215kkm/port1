@@ -806,9 +806,9 @@ class PageInitializer {
         const sectionSettings = this.data.sectionSettings || {};
         const pageSettings = this.data.pageSettings || {};
 
-        // Apply visibility to sections with data-section attribute
+        // Apply visibility to sections
         const sectionMap = {
-            'about': '#about .about-grid-top',
+            'about': '#about',
             'aitools': '[data-section="aitools"]',
             'related': '[data-section="related"]',
             'other': '[data-section="other"]',
@@ -828,6 +828,16 @@ class PageInitializer {
                 }
             });
         });
+
+        // Apply photo visibility for about section
+        const profileImageEl = document.querySelector('[data-content="profile-image"]');
+        if (profileImageEl) {
+            if (sectionSettings.aboutPhoto === false) {
+                profileImageEl.style.display = 'none';
+            } else {
+                profileImageEl.style.display = '';
+            }
+        }
 
         // Apply page settings to header nav buttons
         const aiLink = document.querySelector('[data-page-link="ai"]');

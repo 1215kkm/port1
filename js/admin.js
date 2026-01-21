@@ -367,6 +367,15 @@ class AdminPanel {
                 });
             }
         });
+
+        // Photo checkbox for about section
+        const photoCheckbox = document.getElementById('section-about-photo');
+        if (photoCheckbox) {
+            photoCheckbox.checked = sectionSettings.aboutPhoto !== false;
+            photoCheckbox.addEventListener('change', () => {
+                this.saveSectionSettings();
+            });
+        }
     }
 
     saveSectionSettings() {
@@ -380,6 +389,12 @@ class AdminPanel {
             }
         });
 
+        // Photo setting for about section
+        const photoCheckbox = document.getElementById('section-about-photo');
+        if (photoCheckbox) {
+            sectionSettings.aboutPhoto = photoCheckbox.checked;
+        }
+
         dataManager.set('sectionSettings', sectionSettings);
         dataManager.saveData();
 
@@ -392,25 +407,22 @@ class AdminPanel {
     // =====================
     initResizeHandle() {
         const handle = document.getElementById('resize-handle');
-        const minimap = document.getElementById('site-minimap');
+        const rightPanel = document.getElementById('right-panel');
         const adminMain = document.querySelector('.admin-main');
 
-        console.log('initResizeHandle - handle:', !!handle, 'minimap:', !!minimap);
-
-        if (!handle || !minimap) {
-            console.log('Resize handle or minimap not found!');
+        if (!handle || !rightPanel) {
+            console.log('Resize handle or right panel not found');
             return;
         }
 
         let isResizing = false;
         let startX = 0;
-        let startWidth = 280;
+        let startWidth = 400;
 
         handle.addEventListener('mousedown', (e) => {
-            console.log('Resize handle mousedown');
             isResizing = true;
             startX = e.clientX;
-            startWidth = minimap.offsetWidth;
+            startWidth = rightPanel.offsetWidth;
             handle.classList.add('active');
             document.body.style.cursor = 'col-resize';
             document.body.style.userSelect = 'none';
@@ -421,13 +433,13 @@ class AdminPanel {
             if (!isResizing) return;
 
             const diff = startX - e.clientX;
-            const newWidth = Math.min(Math.max(startWidth + diff, 200), 600);
+            const newWidth = Math.min(Math.max(startWidth + diff, 300), 700);
 
-            minimap.style.width = newWidth + 'px';
-            handle.style.right = (newWidth + 40) + 'px';
+            rightPanel.style.width = newWidth + 'px';
+            handle.style.right = (newWidth + 10) + 'px';
 
             if (adminMain) {
-                adminMain.style.marginRight = (newWidth + 60) + 'px';
+                adminMain.style.marginRight = (newWidth + 30) + 'px';
             }
         });
 
@@ -439,18 +451,18 @@ class AdminPanel {
                 document.body.style.userSelect = '';
 
                 // Save width preference
-                localStorage.setItem('minimapWidth', minimap.offsetWidth);
+                localStorage.setItem('rightPanelWidth', rightPanel.offsetWidth);
             }
         });
 
         // Restore saved width
-        const savedWidth = localStorage.getItem('minimapWidth');
+        const savedWidth = localStorage.getItem('rightPanelWidth');
         if (savedWidth) {
             const width = parseInt(savedWidth);
-            minimap.style.width = width + 'px';
-            handle.style.right = (width + 40) + 'px';
+            rightPanel.style.width = width + 'px';
+            handle.style.right = (width + 10) + 'px';
             if (adminMain) {
-                adminMain.style.marginRight = (width + 60) + 'px';
+                adminMain.style.marginRight = (width + 30) + 'px';
             }
         }
     }

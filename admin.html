@@ -92,7 +92,7 @@
         .admin-main {
             flex: 1;
             margin-left: 280px;
-            margin-right: 330px;
+            margin-right: 440px;
             padding: var(--space-xl);
             background: var(--color-bg);
         }
@@ -388,7 +388,7 @@
         /* Resize Handle */
         .resize-handle {
             position: fixed;
-            right: 320px;
+            right: 410px;
             top: 70px;
             bottom: 10px;
             width: 12px;
@@ -416,21 +416,117 @@
             letter-spacing: -2px;
         }
 
-        /* Site Preview Minimap */
-        .site-minimap {
+        /* Right Panel (Minimap + Section Settings) */
+        .right-panel {
             position: fixed;
-            right: 40px;
+            right: 20px;
             top: 70px;
             bottom: 10px;
-            width: 280px;
+            width: 400px;
+            display: flex;
+            gap: 10px;
+            z-index: calc(var(--z-fixed) - 1);
+        }
+
+        /* Site Preview Minimap */
+        .site-minimap {
+            flex: 1;
             background: #1a1a2e;
             border: 1px solid var(--color-border);
             border-radius: var(--radius-lg);
             box-shadow: var(--shadow-lg);
-            z-index: calc(var(--z-fixed) - 1);
             overflow: hidden;
             display: flex;
             flex-direction: column;
+        }
+
+        /* Section Settings Panel */
+        .section-settings-panel {
+            width: 120px;
+            background: #1a1a2e;
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-lg);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .section-settings-title {
+            padding: 10px;
+            background: #222;
+            border-bottom: 1px solid #333;
+            font-size: 11px;
+            font-weight: 600;
+            color: #fff;
+            text-align: center;
+        }
+
+        .section-settings-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 8px;
+        }
+
+        .section-setting-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 4px;
+            font-size: 11px;
+            color: #ccc;
+        }
+
+        .section-setting-item input[type="checkbox"] {
+            width: 13px;
+            height: 13px;
+            cursor: pointer;
+            accent-color: var(--color-primary);
+        }
+
+        .section-setting-item label {
+            cursor: pointer;
+            flex: 1;
+        }
+
+        .section-setting-item:hover {
+            color: #fff;
+        }
+
+        .section-setting-sub {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 3px 4px 5px 20px;
+            font-size: 10px;
+            color: #999;
+            border-bottom: 1px solid #333;
+            margin-bottom: 3px;
+        }
+
+        .section-setting-sub input[type="checkbox"] {
+            width: 11px;
+            height: 11px;
+            cursor: pointer;
+            accent-color: var(--color-secondary);
+        }
+
+        .section-setting-sub label {
+            cursor: pointer;
+        }
+
+        /* Floating Theme Panel (in right panel) */
+        .right-panel .floating-theme-panel {
+            position: absolute;
+            bottom: 10px;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            padding: 8px;
+            background: rgba(0,0,0,0.5);
+            border-radius: var(--radius-md);
         }
 
         .minimap-header {
@@ -505,48 +601,6 @@
 
         .minimap-overlay:hover .minimap-refresh-hint {
             opacity: 1;
-        }
-
-        /* Minimap Section Checkboxes */
-        .minimap-sections {
-            padding: 10px;
-            background: #1e1e2e;
-            border-top: 1px solid #333;
-            overflow-y: auto;
-            flex-shrink: 0;
-            max-height: 200px;
-        }
-
-        .minimap-sections-title {
-            font-size: 11px;
-            color: #888;
-            margin-bottom: 8px;
-            font-weight: 600;
-        }
-
-        .minimap-section-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 4px 0;
-            font-size: 12px;
-            color: #ccc;
-        }
-
-        .minimap-section-item input[type="checkbox"] {
-            width: 14px;
-            height: 14px;
-            cursor: pointer;
-            accent-color: var(--color-primary);
-        }
-
-        .minimap-section-item label {
-            cursor: pointer;
-            flex: 1;
-        }
-
-        .minimap-section-item:hover {
-            color: #fff;
         }
 
         /* Page Toggle Styles */
@@ -698,7 +752,7 @@
         }
 
         @media (max-width: 1400px) {
-            .site-minimap,
+            .right-panel,
             .resize-handle {
                 display: none;
             }
@@ -1315,63 +1369,72 @@
             </div>
         </main>
 
-        <!-- Floating Theme Panel -->
-        <div class="floating-theme-panel" id="floating-theme-panel">
-            <!-- Theme buttons will be rendered dynamically -->
-        </div>
-
         <!-- Resize Handle -->
         <div class="resize-handle" id="resize-handle"></div>
 
-        <!-- Site Preview Minimap -->
-        <div class="site-minimap" id="site-minimap">
-            <div class="minimap-header">
-                <span class="minimap-header-icon">🗺️</span>
-                <span>미리보기</span>
+        <!-- Right Panel: Minimap + Section Settings -->
+        <div class="right-panel" id="right-panel">
+            <!-- Site Preview Minimap -->
+            <div class="site-minimap" id="site-minimap">
+                <div class="minimap-header">
+                    <span class="minimap-header-icon">🗺️</span>
+                    <span>미리보기</span>
+                </div>
+
+                <div class="minimap-frame-container">
+                    <iframe class="minimap-frame" id="minimap-frame" src="portfolio.html"></iframe>
+                    <div class="minimap-overlay" id="minimap-overlay">
+                        <span class="minimap-refresh-hint">클릭하여 새로고침</span>
+                    </div>
+                </div>
             </div>
 
-            <div class="minimap-frame-container">
-                <iframe class="minimap-frame" id="minimap-frame" src="portfolio.html"></iframe>
-                <div class="minimap-overlay" id="minimap-overlay">
-                    <span class="minimap-refresh-hint">클릭하여 새로고침</span>
+            <!-- Section Visibility Settings -->
+            <div class="section-settings-panel" id="section-settings-panel">
+                <div class="section-settings-title">섹션 표시</div>
+                <div class="section-settings-list">
+                    <div class="section-setting-item">
+                        <input type="checkbox" id="section-about" checked>
+                        <label for="section-about">자기소개</label>
+                    </div>
+                    <div class="section-setting-sub">
+                        <input type="checkbox" id="section-about-photo" checked>
+                        <label for="section-about-photo">사진표시</label>
+                    </div>
+                    <div class="section-setting-item">
+                        <input type="checkbox" id="section-aitools" checked>
+                        <label for="section-aitools">AI도구</label>
+                    </div>
+                    <div class="section-setting-item">
+                        <input type="checkbox" id="section-related" checked>
+                        <label for="section-related">관련경력</label>
+                    </div>
+                    <div class="section-setting-item">
+                        <input type="checkbox" id="section-other" checked>
+                        <label for="section-other">타업무경력</label>
+                    </div>
+                    <div class="section-setting-item">
+                        <input type="checkbox" id="section-evaluation" checked>
+                        <label for="section-evaluation">내평가</label>
+                    </div>
+                    <div class="section-setting-item">
+                        <input type="checkbox" id="section-video" checked>
+                        <label for="section-video">영상</label>
+                    </div>
+                    <div class="section-setting-item">
+                        <input type="checkbox" id="section-portfolio" checked>
+                        <label for="section-portfolio">작품</label>
+                    </div>
+                    <div class="section-setting-item">
+                        <input type="checkbox" id="section-contact" checked>
+                        <label for="section-contact">연락처</label>
+                    </div>
                 </div>
             </div>
 
-            <!-- Section Visibility Checkboxes -->
-            <div class="minimap-sections">
-                <div class="minimap-sections-title">섹션 표시 설정</div>
-                <div class="minimap-section-item">
-                    <input type="checkbox" id="section-about" checked>
-                    <label for="section-about">자기소개</label>
-                </div>
-                <div class="minimap-section-item">
-                    <input type="checkbox" id="section-aitools" checked>
-                    <label for="section-aitools">AI도구</label>
-                </div>
-                <div class="minimap-section-item">
-                    <input type="checkbox" id="section-related" checked>
-                    <label for="section-related">관련경력</label>
-                </div>
-                <div class="minimap-section-item">
-                    <input type="checkbox" id="section-other" checked>
-                    <label for="section-other">타업무경력</label>
-                </div>
-                <div class="minimap-section-item">
-                    <input type="checkbox" id="section-evaluation" checked>
-                    <label for="section-evaluation">내평가</label>
-                </div>
-                <div class="minimap-section-item">
-                    <input type="checkbox" id="section-video" checked>
-                    <label for="section-video">영상</label>
-                </div>
-                <div class="minimap-section-item">
-                    <input type="checkbox" id="section-portfolio" checked>
-                    <label for="section-portfolio">작품</label>
-                </div>
-                <div class="minimap-section-item">
-                    <input type="checkbox" id="section-contact" checked>
-                    <label for="section-contact">연락처</label>
-                </div>
+            <!-- Floating Theme Panel (moved to bottom) -->
+            <div class="floating-theme-panel" id="floating-theme-panel">
+                <!-- Theme buttons will be rendered dynamically -->
             </div>
         </div>
 
