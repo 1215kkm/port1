@@ -265,7 +265,11 @@ class AdminPanel {
     refreshMinimap() {
         const minimapFrame = document.getElementById('minimap-frame');
         if (minimapFrame) {
-            minimapFrame.contentWindow.location.reload();
+            // Add cache-busting parameter to force reload
+            const currentSrc = minimapFrame.src.split('?')[0].split('#')[0];
+            const userId = this.minimapUserId;
+            const userParam = userId ? `u=${userId}&` : '';
+            minimapFrame.src = `${currentSrc}?${userParam}t=${Date.now()}`;
         }
     }
 
@@ -441,9 +445,14 @@ class AdminPanel {
                     preview.innerHTML = `<div style="padding: 20px; text-align: center;">업로드 중...</div>`;
 
                     const imageUrl = await uploadImageToStorage(file, 'profile');
-                    preview.innerHTML = `<img src="${imageUrl}" alt="프로필">`;
+                    preview.innerHTML = `<img src="${imageUrl}?t=${Date.now()}" alt="프로필">`;
                     urlInput.value = imageUrl;
                     hideUploadLoading(preview);
+
+                    // Save immediately after upload
+                    dataManager.set('profile.profileImage', imageUrl);
+                    await dataManager.saveData();
+                    this.refreshMinimap();
                 }
             });
         }
@@ -473,8 +482,13 @@ class AdminPanel {
 
                     const imageUrl = await uploadImageToStorage(file, 'logo');
                     logoUrlInput.value = imageUrl;
-                    this.updateLogoPreview(imageUrl);
+                    this.updateLogoPreview(imageUrl + '?t=' + Date.now());
                     hideUploadLoading(logoPreview);
+
+                    // Save immediately after upload
+                    dataManager.set('siteSettings.logo.imageUrl', imageUrl);
+                    await dataManager.saveData();
+                    this.refreshMinimap();
                 }
             });
         }
@@ -1251,6 +1265,11 @@ class AdminPanel {
                                 this.iconData[prefix].imageUrl = imageUrl;
                             }
                             this.updateIconPreview(prefix);
+
+                            // Save immediately after upload
+                            this.saveEmojiIcons();
+                            await dataManager.saveData();
+                            this.refreshMinimap();
                         } catch (error) {
                             console.error('Icon upload error:', error);
                             if (previewEl) previewEl.textContent = '❌';
@@ -1277,7 +1296,9 @@ class AdminPanel {
 
         const data = this.iconData[prefix];
         if (data.type === 'image' && data.imageUrl) {
-            previewEl.innerHTML = `<img src="${data.imageUrl}" style="max-width: 100%; max-height: 100%; object-fit: contain;">`;
+            // Add cache-busting parameter
+            const url = data.imageUrl + (data.imageUrl.includes('?') ? '&' : '?') + 't=' + Date.now();
+            previewEl.innerHTML = `<img src="${url}" style="max-width: 100%; max-height: 100%; object-fit: contain;">`;
         } else {
             previewEl.textContent = data.emoji || '';
         }
@@ -1829,6 +1850,7 @@ class AdminPanel {
             this.data = dataManager.getData();
             this.renderPortfolioSections();
             this.closeModal();
+            this.refreshMinimap();
         });
 
         document.getElementById('modal-cancel').addEventListener('click', () => this.closeModal());
@@ -2045,6 +2067,7 @@ class AdminPanel {
             }
 
             this.closeModal();
+            this.refreshMinimap();
         });
 
         document.getElementById('modal-cancel').addEventListener('click', () => this.closeModal());
