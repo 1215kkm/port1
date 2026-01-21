@@ -766,6 +766,9 @@ class PageInitializer {
             window.radarChart = new RadarChart(radarCanvas, this.data.evaluation.radarChart);
         }
 
+        // Create dynamic sections for menu items that don't have HTML sections
+        this.createDynamicSections();
+
         // Initialize portfolio renderers
         this.initPortfolios();
 
@@ -817,6 +820,7 @@ class PageInitializer {
         this.renderVideo();
         this.renderContact();
         this.renderMenu();
+        this.createDynamicSections();
         this.initPortfolios();
         this.applySectionVisibility();
         this.applySectionTitles();
@@ -984,6 +988,106 @@ class PageInitializer {
             const dot = document.querySelector(config.dotSelector);
             if (dot) dot.setAttribute('data-label', title);
         });
+    }
+
+    // 동적으로 포트폴리오 섹션 생성 (메뉴에는 있지만 HTML에 없는 경우)
+    createDynamicSections() {
+        const mainEl = document.querySelector('.main');
+        const sectionNav = document.querySelector('.section-nav');
+        if (!mainEl) return;
+
+        // Get all menu items
+        const menuItems = this.data.menuItems || [];
+
+        menuItems.forEach(menu => {
+            // 섹션이 이미 존재하는지 확인
+            const existingSection = document.getElementById(menu.id);
+
+            if (!existingSection && menu.visible !== false) {
+                // 포트폴리오 섹션인 경우 새 섹션 생성
+                if (menu.isPortfolio) {
+                    const newSection = document.createElement('section');
+                    newSection.id = menu.id;
+                    newSection.className = 'section portfolio-section';
+                    newSection.innerHTML = `
+                        <div class="container">
+                            <h2 class="section-title">${menu.label}</h2>
+                            <div class="portfolio-container">
+                                <!-- Portfolio items will be rendered by JS -->
+                            </div>
+                        </div>
+                    `;
+
+                    // contact 섹션 앞에 추가하거나, 없으면 맨 끝에 추가
+                    const contactSection = document.getElementById('contact');
+                    if (contactSection) {
+                        mainEl.insertBefore(newSection, contactSection);
+                    } else {
+                        mainEl.appendChild(newSection);
+                    }
+
+                    console.log(`Created dynamic section: ${menu.id}`);
+                }
+            }
+
+            // 섹션 네비게이션 dot이 없으면 생성
+            if (sectionNav && menu.visible !== false) {
+                const existingDot = sectionNav.querySelector(`[data-section="${menu.id}"]`);
+                if (!existingDot) {
+                    const newDot = document.createElement('button');
+                    newDot.className = 'section-nav-dot';
+                    newDot.dataset.section = menu.id;
+                    newDot.dataset.label = menu.label;
+
+                    // contact dot 앞에 추가하거나 없으면 맨 끝에
+                    const contactDot = sectionNav.querySelector('[data-section="contact"]');
+                    if (contactDot) {
+                        sectionNav.insertBefore(newDot, contactDot);
+                    } else {
+                        sectionNav.appendChild(newDot);
+                    }
+
+                    // 클릭 이벤트 추가
+                    newDot.addEventListener('click', () => {
+                        const section = document.getElementById(menu.id);
+                        if (section) {
+                            const headerHeight = document.querySelector('.header')?.offsetHeight || 70;
+                            window.scrollTo({
+                                top: section.offsetTop - headerHeight,
+                                behavior: 'smooth'
+                            });
+                        }
+                    });
+
+                    console.log(`Created dynamic nav dot: ${menu.id}`);
+                }
+            }
+        });
+
+        // 메뉴에 없는 섹션과 dot 숨기기 (about, contact 제외)
+        const allSections = mainEl.querySelectorAll('section.portfolio-section');
+        allSections.forEach(section => {
+            const menuItem = menuItems.find(m => m.id === section.id);
+            if (!menuItem) {
+                section.style.display = 'none';
+            }
+        });
+
+        if (sectionNav) {
+            const allDots = sectionNav.querySelectorAll('.section-nav-dot');
+            allDots.forEach(dot => {
+                const sectionId = dot.dataset.section;
+                // about과 contact는 기본 섹션이므로 유지
+                if (sectionId !== 'about' && sectionId !== 'contact') {
+                    const menuItem = menuItems.find(m => m.id === sectionId && m.visible !== false);
+                    if (!menuItem) {
+                        dot.style.display = 'none';
+                    } else {
+                        dot.style.display = '';
+                    }
+                }
+            });
+        }
     }
 
     initPortfolios() {
