@@ -2,21 +2,27 @@
 
 // Helper function to upload image to Firebase Storage
 async function uploadImageToStorage(file, path = 'images') {
-    const StorageManager = window.getStorageManager ? window.getStorageManager() : null;
-    const userId = dataManager.userId;
+    try {
+        const StorageManager = window.getStorageManager ? window.getStorageManager() : null;
+        const userId = window.dataManager?.userId;
 
-    if (StorageManager && userId) {
-        // Upload to Firebase Storage
-        const result = await StorageManager.uploadImage(userId, file, path);
-        if (result.success) {
-            return result.url;
+        if (StorageManager && userId) {
+            // Upload to Firebase Storage
+            const result = await StorageManager.uploadImage(userId, file, path);
+            if (result.success && result.url) {
+                console.log('Firebase upload success:', result.url);
+                return result.url;
+            } else {
+                console.warn('Firebase upload failed, falling back to base64:', result.error);
+                return await fileToBase64(file);
+            }
         } else {
-            console.error('Upload failed:', result.error);
-            // Fallback to base64
+            // Fallback to base64 for local storage
+            console.log('Using base64 fallback (StorageManager:', !!StorageManager, ', userId:', !!userId, ')');
             return await fileToBase64(file);
         }
-    } else {
-        // Fallback to base64 for local storage
+    } catch (error) {
+        console.error('Upload error, falling back to base64:', error);
         return await fileToBase64(file);
     }
 }
@@ -70,6 +76,9 @@ class AdminPanel {
 
         // Initialize minimap
         this.initMinimap();
+
+        // Initialize resize handle
+        this.initResizeHandle();
 
         // Initialize page tabs
         this.initPageTabs();
@@ -334,6 +343,12 @@ class AdminPanel {
                     this.switchMinimapPage('team');
                     this.updateMinimapNavActive('team');
                 }
+
+                // Show/hide menu management section (only for solo/skin pages)
+                const menuSection = document.getElementById('menu-management-section');
+                if (menuSection) {
+                    menuSection.style.display = (page === 'solo' || page === 'skin') ? 'block' : 'none';
+                }
             });
         });
     }
@@ -342,6 +357,67 @@ class AdminPanel {
         document.querySelectorAll('.minimap-nav-btn').forEach(btn => {
             btn.classList.toggle('active', btn.dataset.page === page);
         });
+    }
+
+    // =====================
+    // Resize Handle
+    // =====================
+    initResizeHandle() {
+        const handle = document.getElementById('resize-handle');
+        const minimap = document.getElementById('site-minimap');
+        const adminMain = document.querySelector('.admin-main');
+
+        if (!handle || !minimap) return;
+
+        let isResizing = false;
+        let startX = 0;
+        let startWidth = 280;
+
+        handle.addEventListener('mousedown', (e) => {
+            isResizing = true;
+            startX = e.clientX;
+            startWidth = minimap.offsetWidth;
+            handle.classList.add('active');
+            document.body.style.cursor = 'col-resize';
+            document.body.style.userSelect = 'none';
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (!isResizing) return;
+
+            const diff = startX - e.clientX;
+            const newWidth = Math.min(Math.max(startWidth + diff, 200), 600);
+
+            minimap.style.width = newWidth + 'px';
+            handle.style.right = (newWidth + 40) + 'px';
+
+            if (adminMain) {
+                adminMain.style.marginRight = (newWidth + 60) + 'px';
+            }
+        });
+
+        document.addEventListener('mouseup', () => {
+            if (isResizing) {
+                isResizing = false;
+                handle.classList.remove('active');
+                document.body.style.cursor = '';
+                document.body.style.userSelect = '';
+
+                // Save width preference
+                localStorage.setItem('minimapWidth', minimap.offsetWidth);
+            }
+        });
+
+        // Restore saved width
+        const savedWidth = localStorage.getItem('minimapWidth');
+        if (savedWidth) {
+            const width = parseInt(savedWidth);
+            minimap.style.width = width + 'px';
+            handle.style.right = (width + 40) + 'px';
+            if (adminMain) {
+                adminMain.style.marginRight = (width + 60) + 'px';
+            }
+        }
     }
 
     // =====================
@@ -1210,12 +1286,21 @@ class AdminPanel {
                     if (file) {
                         const previewEl = document.getElementById(`icon-${prefix}-preview`);
                         showUploadLoading(previewEl);
-                        previewEl.textContent = '...';
+                        if (previewEl) previewEl.innerHTML = '<span style="font-size: 12px;">업로드중...</span>';
 
-                        const imageUrl = await uploadImageToStorage(file, 'icons');
-                        this.iconData[prefix].type = 'image';
-                        this.iconData[prefix].imageUrl = imageUrl;
-                        this.updateIconPreview(prefix);
+                        try {
+                            const imageUrl = await uploadImageToStorage(file, 'icons');
+                            console.log('Icon upload result:', prefix, imageUrl ? 'success' : 'failed');
+
+                            if (imageUrl) {
+                                this.iconData[prefix].type = 'image';
+                                this.iconData[prefix].imageUrl = imageUrl;
+                            }
+                            this.updateIconPreview(prefix);
+                        } catch (error) {
+                            console.error('Icon upload error:', error);
+                            if (previewEl) previewEl.textContent = '❌';
+                        }
                         hideUploadLoading(previewEl);
                     }
                 });

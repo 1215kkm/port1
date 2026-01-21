@@ -385,6 +385,35 @@
             transform: scale(1.1);
         }
 
+        /* Resize Handle */
+        .resize-handle {
+            position: fixed;
+            right: 320px;
+            top: 70px;
+            bottom: 10px;
+            width: 8px;
+            background: transparent;
+            cursor: col-resize;
+            z-index: 1000;
+            transition: background 0.2s;
+        }
+
+        .resize-handle:hover,
+        .resize-handle.active {
+            background: var(--color-primary);
+            opacity: 0.5;
+        }
+
+        .resize-handle::before {
+            content: '⋮';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #666;
+            font-size: 14px;
+        }
+
         /* Site Preview Minimap */
         .site-minimap {
             position: fixed;
@@ -765,7 +794,7 @@
                 </div>
             </div>
 
-            <div class="sidebar-section">
+            <div class="sidebar-section" id="menu-management-section">
                 <h3 class="sidebar-title">메뉴 관리 (드래그로 순서변경)</h3>
                 <div id="menu-list">
                     <!-- Menu items will be rendered here -->
@@ -1299,6 +1328,9 @@
         <div class="floating-theme-panel" id="floating-theme-panel">
             <!-- Theme buttons will be rendered dynamically -->
         </div>
+
+        <!-- Resize Handle -->
+        <div class="resize-handle" id="resize-handle"></div>
 
         <!-- Site Preview Minimap -->
         <div class="site-minimap" id="site-minimap">

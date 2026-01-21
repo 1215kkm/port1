@@ -104,11 +104,11 @@ const defaultData = {
 
     // Personal Info
     profile: {
-        name: "강경모",
-        kakaoId: "kkm1215",
+        name: "홍길동",
+        kakaoId: "honggildong",
         jobRoles: ["쇼핑몰 디자이너", "마케터", "퍼블리셔", "프론트엔드"],
         skills: ["포토샵", "일러스트", "인디자인", "html", "javascript", "포토샵", "일러스트", "인디자인", "html", "javascript", "포토샵", "일러스트", "인디자인", "html", "javascript"],
-        education: "성남그린컴퓨터 강경모쌤",
+        education: "OO컴퓨터학원",
         residence: "경기 용인시 기흥구 청덕동",
         employmentStatus: "재직중",
         desiredSalary: "연봉3,800",
@@ -435,9 +435,9 @@ Slack과 Notion을 통해 디자인 피드백을 체계적으로 관리했습니
 
     // Contact Info
     contact: {
-        name: "강경모",
+        name: "홍길동",
         phone: "010-1234-5678",
-        email: "kkm1215@email.com",
+        email: "honggildong@email.com",
         message: "감사합니다"
     },
 
