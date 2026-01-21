@@ -633,15 +633,15 @@
 
         .minimap-refresh-hint {
             position: absolute;
-            top: 50%;
+            bottom: 8px;
             left: 50%;
-            transform: translate(-50%, -50%);
+            transform: translateX(-50%);
             background: rgba(0, 0, 0, 0.7);
             color: white;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 11px;
-            opacity: 0;
+            padding: 4px 10px;
+            border-radius: 10px;
+            font-size: 10px;
+            opacity: 0.6;
             transition: opacity 0.3s;
             pointer-events: none;
         }
@@ -837,6 +837,18 @@
             .display-mode-grid,
             .theme-color-grid {
                 grid-template-columns: 1fr;
+            }
+        }
+
+        /* Toast animation */
+        @keyframes toastSlideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-50%) translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
             }
         }
     </style>
@@ -1556,7 +1568,7 @@
                 <div class="minimap-frame-container">
                     <iframe class="minimap-frame" id="minimap-frame" src="portfolio.html"></iframe>
                     <div class="minimap-overlay" id="minimap-overlay">
-                        <span class="minimap-refresh-hint">클릭하여 새로고침</span>
+                        <span class="minimap-refresh-hint">클릭: 해당 설정으로 이동</span>
                     </div>
                 </div>
             </div>

@@ -854,26 +854,70 @@ class AdminPanel {
     // =====================
     // Save All
     // =====================
-    saveAll() {
-        // Collect all form data and save
-        this.saveSiteSettings();
-        this.saveProfile();
-        this.saveEvaluation();
-        this.saveVideo();
-        this.saveContact();
-        this.saveEmojiIcons();
-        this.saveCSSVariables();
-        this.saveAllThemes();
+    async saveAll() {
+        // Show saving indicator
+        this.showToast('저장 중...', 'info');
 
-        dataManager.saveAll();
+        try {
+            // Collect all form data and save
+            this.saveSiteSettings();
+            this.saveProfile();
+            this.saveEvaluation();
+            this.saveVideo();
+            this.saveContact();
+            this.saveEmojiIcons();
+            this.saveCSSVariables();
+            this.saveAllThemes();
 
-        // Update header with new name if changed
-        this.setUserNameInHeader();
+            // Save to Firebase/localStorage
+            await dataManager.saveData();
 
-        // Refresh minimap
-        this.refreshMinimap();
+            // Update header with new name if changed
+            this.setUserNameInHeader();
 
-        alert('모든 설정이 저장되었습니다.');
+            // Refresh minimap
+            this.refreshMinimap();
+
+            // Show success message
+            this.showToast('✓ 저장 완료!', 'success');
+            console.log('All settings saved successfully');
+        } catch (error) {
+            console.error('Save error:', error);
+            this.showToast('저장 실패: ' + error.message, 'error');
+        }
+    }
+
+    // Toast notification
+    showToast(message, type = 'info') {
+        // Remove existing toast
+        const existingToast = document.querySelector('.admin-toast');
+        if (existingToast) existingToast.remove();
+
+        const toast = document.createElement('div');
+        toast.className = `admin-toast admin-toast-${type}`;
+        toast.textContent = message;
+        toast.style.cssText = `
+            position: fixed;
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            z-index: 10000;
+            animation: toastSlideIn 0.3s ease;
+            ${type === 'success' ? 'background: #27ae60; color: white;' : ''}
+            ${type === 'error' ? 'background: #e74c3c; color: white;' : ''}
+            ${type === 'info' ? 'background: #3498db; color: white;' : ''}
+        `;
+
+        document.body.appendChild(toast);
+
+        // Auto remove after 2 seconds (except for info which stays until replaced)
+        if (type !== 'info') {
+            setTimeout(() => toast.remove(), 2000);
+        }
     }
 
     saveSiteSettings() {
