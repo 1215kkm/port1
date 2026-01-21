@@ -882,39 +882,43 @@ class AdminPanel {
     }
 
     renderSiteSettings() {
-        const settings = this.data.siteSettings;
+        const settings = this.data.siteSettings || {};
 
-        // Logo
-        document.getElementById('logo-type').value = settings.logo?.type || 'text';
-        document.getElementById('logo-text').value = settings.logo?.text || '';
-        document.getElementById('logo-image-url').value = settings.logo?.imageUrl || '';
+        // Logo - with null checks
+        const logoTypeEl = document.getElementById('logo-type');
+        const logoTextEl = document.getElementById('logo-text');
+        const logoImageUrlEl = document.getElementById('logo-image-url');
+
+        if (logoTypeEl) logoTypeEl.value = settings.logo?.type || 'text';
+        if (logoTextEl) logoTextEl.value = settings.logo?.text || '';
+        if (logoImageUrlEl) logoImageUrlEl.value = settings.logo?.imageUrl || '';
 
         // Show/hide based on type
         const textGroup = document.getElementById('logo-text-group');
         const imageGroup = document.getElementById('logo-image-group');
-        if (settings.logo?.type === 'image') {
+        if (textGroup && imageGroup && settings.logo?.type === 'image') {
             textGroup.style.display = 'none';
             imageGroup.style.display = 'block';
-            // Show logo preview
             this.updateLogoPreview(settings.logo?.imageUrl);
         }
 
-        // Font
-        document.getElementById('font-title').value = settings.font?.title || 'Paperozi';
-        document.getElementById('font-content').value = settings.font?.content || 'Paperozi';
+        // Font - with null checks
+        const fontTitleEl = document.getElementById('font-title');
+        const fontContentEl = document.getElementById('font-content');
+        if (fontTitleEl) fontTitleEl.value = settings.font?.title || 'Paperozi';
+        if (fontContentEl) fontContentEl.value = settings.font?.content || 'Paperozi';
 
-        // Font-face all (combined) - also check old separate values for backward compatibility
+        // Font-face all (combined)
         const fontFaceAllEl = document.getElementById('font-face-all');
         if (fontFaceAllEl) {
             let fontFaceAll = settings.font?.fontFaceAll || '';
-            // If no combined value, try to combine old separate values
             if (!fontFaceAll && (settings.font?.fontFaceTitle || settings.font?.fontFaceContent)) {
                 fontFaceAll = [settings.font?.fontFaceTitle, settings.font?.fontFaceContent].filter(Boolean).join('\n\n');
             }
             fontFaceAllEl.value = fontFaceAll;
         }
 
-        // Font sizes
+        // Font sizes - with null checks
         const fontSizes = settings.font?.fontSizes || {};
         const fontSizeEl5xl = document.getElementById('font-size-5xl');
         const fontSizeEl4xl = document.getElementById('font-size-4xl');
@@ -930,18 +934,25 @@ class AdminPanel {
         if (fontSizeElBase) fontSizeElBase.value = fontSizes['base'] || '1rem';
         if (fontSizeElSm) fontSizeElSm.value = fontSizes['sm'] || '0.875rem';
 
-        // Font Colors
+        // Font Colors - with null checks
         const fontColors = settings.font?.colors || {};
         const colorTitle1 = fontColors.title1 || '#212529';
         const colorTitle2 = fontColors.title2 || '#212529';
         const colorContent = fontColors.content || '#212529';
 
-        document.getElementById('font-color-title1').value = colorTitle1;
-        document.getElementById('font-color-title1-text').value = colorTitle1;
-        document.getElementById('font-color-title2').value = colorTitle2;
-        document.getElementById('font-color-title2-text').value = colorTitle2;
-        document.getElementById('font-color-content').value = colorContent;
-        document.getElementById('font-color-content-text').value = colorContent;
+        const fontColorTitle1El = document.getElementById('font-color-title1');
+        const fontColorTitle1TextEl = document.getElementById('font-color-title1-text');
+        const fontColorTitle2El = document.getElementById('font-color-title2');
+        const fontColorTitle2TextEl = document.getElementById('font-color-title2-text');
+        const fontColorContentEl = document.getElementById('font-color-content');
+        const fontColorContentTextEl = document.getElementById('font-color-content-text');
+
+        if (fontColorTitle1El) fontColorTitle1El.value = colorTitle1;
+        if (fontColorTitle1TextEl) fontColorTitle1TextEl.value = colorTitle1;
+        if (fontColorTitle2El) fontColorTitle2El.value = colorTitle2;
+        if (fontColorTitle2TextEl) fontColorTitle2TextEl.value = colorTitle2;
+        if (fontColorContentEl) fontColorContentEl.value = colorContent;
+        if (fontColorContentTextEl) fontColorContentTextEl.value = colorContent;
 
         // Sync color picker with text input
         this.setupColorSync('font-color-title1');
