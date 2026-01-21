@@ -721,6 +721,7 @@ class PortfolioRenderer {
 class PageInitializer {
     constructor() {
         this.data = dataManager.getData();
+        console.log('PageInitializer data loaded, sectionSettings:', JSON.stringify(this.data.sectionSettings));
         this.init();
     }
 
@@ -810,6 +811,8 @@ class PageInitializer {
         const sectionSettings = this.data.sectionSettings || {};
         const pageSettings = this.data.pageSettings || {};
 
+        console.log('applySectionVisibility called with settings:', JSON.stringify(sectionSettings));
+
         // Apply visibility to sections with specific selectors
         // Note: 'about' controls the entire #about section
         // Other keys control sub-sections within about
@@ -827,6 +830,8 @@ class PageInitializer {
         Object.entries(sectionMap).forEach(([key, selector]) => {
             const elements = document.querySelectorAll(selector);
             const isHidden = sectionSettings[key] === false;
+
+            console.log(`Section ${key}: found ${elements.length} elements, isHidden=${isHidden}`);
 
             elements.forEach(el => {
                 if (isHidden) {

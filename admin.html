@@ -351,40 +351,6 @@
             width: 80px;
         }
 
-        .floating-theme-panel {
-            position: fixed;
-            right: 8px;
-            top: 50%;
-            transform: translateY(-50%);
-            background: var(--color-bg);
-            border: 1px solid var(--color-border);
-            border-radius: var(--radius-md);
-            padding: 6px;
-            box-shadow: var(--shadow-md);
-            z-index: var(--z-fixed);
-        }
-
-        .floating-theme-btn {
-            display: block;
-            width: 20px;
-            height: 20px;
-            border-radius: 4px;
-            margin-bottom: 4px;
-            border: 2px solid transparent;
-            cursor: pointer;
-            transition: all var(--transition-fast);
-        }
-
-        .floating-theme-btn:last-child {
-            margin-bottom: 0;
-        }
-
-        .floating-theme-btn:hover,
-        .floating-theme-btn.active {
-            border-color: var(--color-primary);
-            transform: scale(1.1);
-        }
-
         /* Resize Handle */
         .resize-handle {
             position: fixed;
@@ -443,6 +409,8 @@
         /* Section Settings Panel */
         .section-settings-panel {
             width: 120px;
+            min-width: 120px;
+            flex-shrink: 0;
             background: #1a1a2e;
             border: 1px solid var(--color-border);
             border-radius: var(--radius-lg);
@@ -583,7 +551,7 @@
             transform: translateX(-50%);
             display: flex;
             gap: 8px;
-            padding: 10px 16px;
+            padding: 8px 12px;
             background: rgba(30, 30, 50, 0.95);
             border: 1px solid var(--color-border);
             border-radius: 30px;
@@ -591,8 +559,21 @@
             z-index: var(--z-fixed);
         }
 
-        .floating-theme-panel .floating-theme-btn {
-            margin-bottom: 0;
+        .floating-theme-btn {
+            display: block;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            flex-shrink: 0;
+        }
+
+        .floating-theme-btn:hover,
+        .floating-theme-btn.active {
+            border-color: #fff;
+            transform: scale(1.15);
         }
 
         .minimap-header {

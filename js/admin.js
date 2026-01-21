@@ -622,6 +622,9 @@ class AdminPanel {
             const checkbox = document.getElementById(`section-${id}`);
             if (checkbox) {
                 sectionSettings[id] = checkbox.checked;
+                console.log(`Section ${id}: ${checkbox.checked}`);
+            } else {
+                console.warn(`Checkbox not found: section-${id}`);
             }
         });
 
@@ -629,13 +632,21 @@ class AdminPanel {
         const photoCheckbox = document.getElementById('section-about-photo');
         if (photoCheckbox) {
             sectionSettings.aboutPhoto = photoCheckbox.checked;
+            console.log(`Section aboutPhoto: ${photoCheckbox.checked}`);
         }
 
+        console.log('Saving sectionSettings:', JSON.stringify(sectionSettings));
         dataManager.set('sectionSettings', sectionSettings);
-        dataManager.saveData();
+        dataManager.saveData().then(() => {
+            // Verify the save
+            const savedData = dataManager.getData();
+            console.log('After save, sectionSettings in dataManager:', JSON.stringify(savedData.sectionSettings));
+        });
 
-        // Refresh minimap to show changes
-        this.refreshMinimap();
+        // Refresh minimap to show changes (with slight delay to ensure save completes)
+        setTimeout(() => {
+            this.refreshMinimap();
+        }, 100);
     }
 
     // =====================
@@ -645,11 +656,14 @@ class AdminPanel {
         const handle = document.getElementById('resize-handle');
         const rightPanel = document.getElementById('right-panel');
         const adminMain = document.querySelector('.admin-main');
+        const minimap = document.getElementById('site-minimap');
 
         if (!handle || !rightPanel) {
             console.log('Resize handle or right panel not found');
             return;
         }
+
+        console.log('Resize handle initialized');
 
         let isResizing = false;
         let startX = 0;
@@ -663,6 +677,7 @@ class AdminPanel {
             document.body.style.cursor = 'col-resize';
             document.body.style.userSelect = 'none';
             e.preventDefault();
+            console.log('Resize started, initial width:', startWidth);
         });
 
         document.addEventListener('mousemove', (e) => {
@@ -676,6 +691,11 @@ class AdminPanel {
 
             if (adminMain) {
                 adminMain.style.marginRight = (newWidth + 30) + 'px';
+            }
+
+            // Force minimap to recalculate its width
+            if (minimap) {
+                minimap.style.width = '';  // Reset to allow flex to recalculate
             }
         });
 
@@ -1952,23 +1972,40 @@ class AdminPanel {
         const bodyUploadBtn = document.getElementById('btn-bg-body-upload');
         const bodyUrlInput = document.getElementById('bg-body-image');
 
+        console.log('initBackgroundUpload - bodyFileInput:', !!bodyFileInput, ', bodyUploadBtn:', !!bodyUploadBtn);
+
         if (bodyUploadBtn && bodyFileInput) {
-            bodyUploadBtn.addEventListener('click', () => bodyFileInput.click());
+            bodyUploadBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('Background upload button clicked');
+                bodyFileInput.click();
+            });
 
             bodyFileInput.addEventListener('change', async (e) => {
+                console.log('Body file input changed');
                 const file = e.target.files[0];
                 if (file) {
+                    console.log('File selected:', file.name, file.type);
                     const previewEl = document.getElementById('bg-body-preview');
                     showUploadLoading(previewEl);
 
-                    const imageUrl = await uploadImageToStorage(file, 'backgrounds');
-                    bodyUrlInput.value = imageUrl;
-                    this.updateBackgroundPreview('body', imageUrl);
+                    try {
+                        const imageUrl = await uploadImageToStorage(file, 'backgrounds');
+                        console.log('Upload result:', imageUrl);
+                        bodyUrlInput.value = imageUrl;
+                        this.updateBackgroundPreview('body', imageUrl);
+                    } catch (error) {
+                        console.error('Upload error:', error);
+                        alert('이미지 업로드 중 오류가 발생했습니다.');
+                    }
 
                     hideUploadLoading(previewEl);
                     bodyFileInput.value = '';
                 }
             });
+        } else {
+            console.warn('Background upload elements not found - bodyFileInput:', !!bodyFileInput, ', bodyUploadBtn:', !!bodyUploadBtn);
         }
 
         // URL input change
@@ -1977,12 +2014,26 @@ class AdminPanel {
         });
 
         // Section background uploads
-        document.querySelectorAll('.section-bg-upload').forEach(btn => {
+        const sectionBtns = document.querySelectorAll('.section-bg-upload');
+        console.log('Section bg upload buttons found:', sectionBtns.length);
+
+        sectionBtns.forEach(btn => {
             const section = btn.dataset.section;
             const fileInput = document.getElementById(`bg-${section}-file`);
             const urlInput = document.getElementById(`bg-${section}-image`);
 
-            btn.addEventListener('click', () => fileInput?.click());
+            console.log(`Section ${section} - fileInput:`, !!fileInput, ', urlInput:', !!urlInput);
+
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log(`Section ${section} upload button clicked`);
+                if (fileInput) {
+                    fileInput.click();
+                } else {
+                    console.error(`File input not found for section: ${section}`);
+                }
+            });
 
             fileInput?.addEventListener('change', async (e) => {
                 const file = e.target.files[0];
