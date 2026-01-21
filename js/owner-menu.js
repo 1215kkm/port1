@@ -264,6 +264,12 @@
 
     const currentInfo = pageInfo[currentPage] || null;
 
+    // 페이지 설정 가져오기
+    let pageSettings = { intro: true, ai: true, team: true };
+    if (window.dataManager && window.dataManager.data) {
+        pageSettings = window.dataManager.data.pageSettings || pageSettings;
+    }
+
     // 메뉴 생성
     const menu = document.createElement('div');
     menu.className = 'owner-menu';
@@ -295,31 +301,49 @@
 
         <div class="owner-menu-divider"></div>
 
+        ${pageSettings.intro !== false ? `
         <a href="intro.html" class="owner-menu-item ${currentPage === 'intro.html' ? 'active' : ''}" title="인트로">
             <span class="owner-menu-icon">🚀</span>
             <span class="owner-menu-label">인트로</span>
         </a>
+        ` : ''}
 
         <a href="portfolio.html" class="owner-menu-item ${currentPage === 'portfolio.html' ? 'active' : ''}" title="포트폴리오">
             <span class="owner-menu-icon">📄</span>
             <span class="owner-menu-label">포트폴리오</span>
         </a>
 
+        ${pageSettings.ai !== false ? `
         <a href="ai.html" class="owner-menu-item ${currentPage === 'ai.html' ? 'active' : ''}" title="AI 작품">
             <span class="owner-menu-icon">🤖</span>
             <span class="owner-menu-label">AI작품</span>
         </a>
+        ` : ''}
 
+        ${pageSettings.team !== false ? `
         <a href="team.html" class="owner-menu-item ${currentPage === 'team.html' ? 'active' : ''}" title="팀 프로젝트">
             <span class="owner-menu-icon">👥</span>
             <span class="owner-menu-label">팀플</span>
         </a>
+        ` : ''}
 
         <div class="owner-menu-divider"></div>
 
         <button class="owner-menu-item" id="owner-pdf-btn" title="PDF 미리보기">
             <span class="owner-menu-icon">📑</span>
             <span class="owner-menu-label">PDF</span>
+        </button>
+
+        <button class="owner-menu-item" id="owner-share-btn" title="URL 복사">
+            <span class="owner-menu-icon">🔗</span>
+            <span class="owner-menu-label">URL복사</span>
+        </button>
+
+        <div class="owner-menu-divider"></div>
+
+        <button class="owner-menu-item" id="owner-logout-btn" title="로그아웃" style="color: #ff6b6b;">
+            <span class="owner-menu-icon">🚪</span>
+            <span class="owner-menu-label">로그아웃</span>
         </button>
     `;
 
@@ -369,4 +393,40 @@
             }
         }, 1000);
     }
+
+    // URL 복사 버튼 기능
+    const shareBtn = document.getElementById('owner-share-btn');
+    shareBtn.addEventListener('click', async () => {
+        const baseUrl = window.location.origin + window.location.pathname.replace(/[^/]*$/, '');
+        const shareUrl = `${baseUrl}intro.html?u=${userId}`;
+
+        try {
+            await navigator.clipboard.writeText(shareUrl);
+            // 복사 완료 피드백
+            const originalLabel = shareBtn.querySelector('.owner-menu-label').textContent;
+            shareBtn.querySelector('.owner-menu-label').textContent = '복사됨!';
+            shareBtn.style.background = 'rgba(46, 204, 113, 0.6)';
+            setTimeout(() => {
+                shareBtn.querySelector('.owner-menu-label').textContent = originalLabel;
+                shareBtn.style.background = '';
+            }, 1500);
+        } catch (e) {
+            alert('URL 복사에 실패했습니다.\n' + shareUrl);
+        }
+    });
+
+    // 로그아웃 버튼 기능
+    const logoutBtn = document.getElementById('owner-logout-btn');
+    logoutBtn.addEventListener('click', async () => {
+        if (confirm('로그아웃 하시겠습니까?')) {
+            try {
+                const module = await import('./firebase-config.js');
+                await module.AuthManager.signOut();
+                window.location.href = 'login.html';
+            } catch (e) {
+                console.error('Logout error:', e);
+                alert('로그아웃에 실패했습니다.');
+            }
+        }
+    });
 })();

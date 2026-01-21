@@ -92,6 +92,7 @@ class AdminPanel {
         this.renderThemeModes();
         this.renderCSSVariables();
         this.renderFloatingThemePanel();
+        this.renderPageSettings();
 
         // Initialize event listeners
         this.initEventListeners();
@@ -1290,6 +1291,42 @@ class AdminPanel {
         document.getElementById('css-font-title2').value = vars.fontTitle2 || '1.5rem';
         document.getElementById('css-space-section').value = vars.spaceSection || '6rem';
         document.getElementById('css-space-content').value = vars.spaceContent || '1.5rem';
+    }
+
+    renderPageSettings() {
+        const pageSettings = this.data.pageSettings || {
+            intro: true,
+            ai: true,
+            team: true
+        };
+
+        const introToggle = document.getElementById('page-enable-intro');
+        const aiToggle = document.getElementById('page-enable-ai');
+        const teamToggle = document.getElementById('page-enable-team');
+
+        if (introToggle) introToggle.checked = pageSettings.intro !== false;
+        if (aiToggle) aiToggle.checked = pageSettings.ai !== false;
+        if (teamToggle) teamToggle.checked = pageSettings.team !== false;
+
+        // Add change listeners
+        [introToggle, aiToggle, teamToggle].forEach(toggle => {
+            if (toggle) {
+                toggle.addEventListener('change', () => {
+                    this.savePageSettings();
+                });
+            }
+        });
+    }
+
+    savePageSettings() {
+        const pageSettings = {
+            intro: document.getElementById('page-enable-intro')?.checked !== false,
+            ai: document.getElementById('page-enable-ai')?.checked !== false,
+            team: document.getElementById('page-enable-team')?.checked !== false
+        };
+
+        dataManager.set('pageSettings', pageSettings);
+        dataManager.saveData();
     }
 
     renderFloatingThemePanel() {

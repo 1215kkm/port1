@@ -221,9 +221,38 @@
                     });
                 }
 
-                // Load emoji icons from settings
+                // Load settings from dataManager
                 const data = dataManager.getData();
                 const emojiIcons = data.emojiIcons?.intro || {};
+                const pageSettings = data.pageSettings || { intro: true, ai: true, team: true };
+
+                // If intro page is disabled, redirect to portfolio
+                if (pageSettings.intro === false) {
+                    const userId = window.getUrlUserId ? window.getUrlUserId() : null;
+                    window.location.href = userId ? `portfolio.html?u=${userId}` : 'portfolio.html';
+                    return;
+                }
+
+                // Hide disabled page cards
+                if (pageSettings.ai === false) {
+                    const aiCard = document.querySelector('.intro-card-ai');
+                    if (aiCard) aiCard.style.display = 'none';
+                }
+                if (pageSettings.team === false) {
+                    const teamCard = document.querySelector('.intro-card-team');
+                    if (teamCard) teamCard.style.display = 'none';
+                }
+
+                // Update grid columns based on visible cards
+                const visibleCards = [true, pageSettings.ai !== false, pageSettings.team !== false].filter(Boolean).length;
+                const introGrid = document.querySelector('.intro-grid');
+                if (visibleCards === 1) {
+                    introGrid.style.gridTemplateColumns = '1fr';
+                    introGrid.style.maxWidth = '400px';
+                } else if (visibleCards === 2) {
+                    introGrid.style.gridTemplateColumns = 'repeat(2, 1fr)';
+                    introGrid.style.maxWidth = '700px';
+                }
 
                 // Update page title with user name
                 if (data.profile?.name) {

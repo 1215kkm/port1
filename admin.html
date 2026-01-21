@@ -457,6 +457,82 @@
             transition: all 0.3s ease;
         }
 
+        /* Page Toggle Styles */
+        .page-toggle-list {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-md);
+        }
+
+        .page-toggle-item {
+            display: flex;
+            align-items: center;
+            gap: var(--space-lg);
+            padding: var(--space-md) var(--space-lg);
+            background: var(--color-bg-secondary);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-md);
+        }
+
+        .page-toggle-info {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .page-toggle-name {
+            font-weight: 600;
+            font-size: var(--font-base);
+        }
+
+        .page-toggle-desc {
+            font-size: var(--font-sm);
+            color: var(--color-text-muted);
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 28px;
+            flex-shrink: 0;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            inset: 0;
+            background: #ccc;
+            transition: 0.3s;
+            border-radius: 28px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 4px;
+            bottom: 4px;
+            background: white;
+            transition: 0.3s;
+            border-radius: 50%;
+        }
+
+        .toggle-switch input:checked + .toggle-slider {
+            background: var(--color-primary);
+        }
+
+        .toggle-switch input:checked + .toggle-slider:before {
+            transform: translateX(22px);
+        }
+
         .preview-frame {
             position: fixed;
             right: 80px;
@@ -843,6 +919,48 @@
 
             <!-- Skin Settings -->
             <div class="admin-panel" id="panel-skin">
+                <!-- Page Enable/Disable Settings -->
+                <div class="settings-section" id="section-page-settings">
+                    <h2 class="settings-section-title">페이지 사용 설정</h2>
+                    <div class="settings-section-content">
+                        <p style="color: var(--color-text-muted); margin-bottom: var(--space-lg); font-size: var(--font-sm);">
+                            사용하지 않을 페이지를 비활성화할 수 있습니다. 비활성화된 페이지는 인트로 화면과 메뉴에서 숨겨집니다.
+                        </p>
+                        <div class="page-toggle-list">
+                            <div class="page-toggle-item">
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="page-enable-intro" checked>
+                                    <span class="toggle-slider"></span>
+                                </label>
+                                <div class="page-toggle-info">
+                                    <span class="page-toggle-name">인트로 페이지</span>
+                                    <span class="page-toggle-desc">포트폴리오 진입 화면 (비활성화 시 portfolio.html로 바로 이동)</span>
+                                </div>
+                            </div>
+                            <div class="page-toggle-item">
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="page-enable-ai" checked>
+                                    <span class="toggle-slider"></span>
+                                </label>
+                                <div class="page-toggle-info">
+                                    <span class="page-toggle-name">AI 제작 페이지</span>
+                                    <span class="page-toggle-desc">AI를 활용한 프로젝트 페이지 (ai.html)</span>
+                                </div>
+                            </div>
+                            <div class="page-toggle-item">
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="page-enable-team" checked>
+                                    <span class="toggle-slider"></span>
+                                </label>
+                                <div class="page-toggle-info">
+                                    <span class="page-toggle-name">팀플 제작 페이지</span>
+                                    <span class="page-toggle-desc">팀 프로젝트 페이지 (team.html)</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Site Settings -->
                 <div class="settings-section" id="section-site">
                     <h2 class="settings-section-title">사이트 설정</h2>
