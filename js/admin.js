@@ -1058,15 +1058,15 @@ class AdminPanel {
     }
 
     saveSiteSettings() {
-        const logoType = document.getElementById('logo-type').value;
-        const logoText = document.getElementById('logo-text').value;
-        const logoImageUrl = document.getElementById('logo-image-url').value;
-        const fontTitle = document.getElementById('font-title').value;
-        const fontContent = document.getElementById('font-content').value;
+        const logoType = document.getElementById('logo-type')?.value || 'text';
+        const logoText = document.getElementById('logo-text')?.value || '';
+        const logoImageUrl = document.getElementById('logo-image-url')?.value || '';
+        const fontTitle = document.getElementById('font-title')?.value || 'Paperozi';
+        const fontContent = document.getElementById('font-content')?.value || 'Paperozi';
         const fontFaceAll = document.getElementById('font-face-all')?.value || '';
-        const fontColorTitle1 = document.getElementById('font-color-title1-text').value || '#212529';
-        const fontColorTitle2 = document.getElementById('font-color-title2-text').value || '#212529';
-        const fontColorContent = document.getElementById('font-color-content-text').value || '#212529';
+        const fontColorTitle1 = document.getElementById('font-color-title1-text')?.value || '#212529';
+        const fontColorTitle2 = document.getElementById('font-color-title2-text')?.value || '#212529';
+        const fontColorContent = document.getElementById('font-color-content-text')?.value || '#212529';
 
         // Font sizes
         const fontSizes = {
@@ -1107,28 +1107,28 @@ class AdminPanel {
 
     saveProfile() {
         const updates = {
-            name: document.getElementById('profile-name').value,
-            kakaoId: document.getElementById('profile-kakao').value,
-            employmentStatus: document.getElementById('profile-employment').value,
-            desiredSalary: document.getElementById('profile-salary').value,
-            showEmployment: document.getElementById('profile-show-employment').checked,
-            jobRoles: document.getElementById('profile-roles').value.split(',').map(s => s.trim()).filter(s => s),
-            skills: document.getElementById('profile-skills').value.split(',').map(s => s.trim()).filter(s => s),
-            education: document.getElementById('profile-education').value,
-            residence: document.getElementById('profile-residence').value,
-            motto: document.getElementById('profile-motto').value,
-            profileImage: document.getElementById('profile-image').value
+            name: document.getElementById('profile-name')?.value || '',
+            kakaoId: document.getElementById('profile-kakao')?.value || '',
+            employmentStatus: document.getElementById('profile-employment')?.value || '',
+            desiredSalary: document.getElementById('profile-salary')?.value || '',
+            showEmployment: document.getElementById('profile-show-employment')?.checked || false,
+            jobRoles: (document.getElementById('profile-roles')?.value || '').split(',').map(s => s.trim()).filter(s => s),
+            skills: (document.getElementById('profile-skills')?.value || '').split(',').map(s => s.trim()).filter(s => s),
+            education: document.getElementById('profile-education')?.value || '',
+            residence: document.getElementById('profile-residence')?.value || '',
+            motto: document.getElementById('profile-motto')?.value || '',
+            profileImage: document.getElementById('profile-image')?.value || ''
         };
         dataManager.updateProfile(updates);
     }
 
     saveEvaluation() {
-        const text = document.getElementById('evaluation-text').value;
+        const text = document.getElementById('evaluation-text')?.value || '';
         const radarInputs = document.querySelectorAll('#radar-inputs .radar-input-item');
 
         const radarChart = Array.from(radarInputs).map(item => ({
-            label: item.querySelector('[data-field="label"]').value,
-            value: parseInt(item.querySelector('[data-field="value"]').value) || 0
+            label: item.querySelector('[data-field="label"]')?.value || '',
+            value: parseInt(item.querySelector('[data-field="value"]')?.value) || 0
         }));
 
         dataManager.updateEvaluation({ text });
@@ -1136,17 +1136,17 @@ class AdminPanel {
     }
 
     saveVideo() {
-        const type = document.getElementById('video-type').value;
-        const url = document.getElementById('video-url').value;
+        const type = document.getElementById('video-type')?.value || 'youtube';
+        const url = document.getElementById('video-url')?.value || '';
         dataManager.setVideo(type, url);
     }
 
     saveContact() {
         const updates = {
-            name: document.getElementById('contact-name').value,
-            phone: document.getElementById('contact-phone').value,
-            email: document.getElementById('contact-email').value,
-            message: document.getElementById('contact-message').value
+            name: document.getElementById('contact-name')?.value || '',
+            phone: document.getElementById('contact-phone')?.value || '',
+            email: document.getElementById('contact-email')?.value || '',
+            message: document.getElementById('contact-message')?.value || ''
         };
         dataManager.updateContact(updates);
     }
