@@ -131,6 +131,56 @@
             transform: scale(1.05);
         }
 
+        /* 쿠폰 입력 영역 */
+        .owner-menu-coupon {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            padding: 8px 12px;
+        }
+
+        .owner-menu-coupon input {
+            width: 100%;
+            padding: 8px 10px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 12px;
+            outline: none;
+            box-sizing: border-box;
+        }
+
+        .owner-menu-coupon input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .owner-menu-coupon input:focus {
+            border-color: rgba(52, 152, 219, 0.8);
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .owner-menu-coupon button {
+            padding: 8px 12px;
+            background: rgba(46, 204, 113, 0.7);
+            border: none;
+            border-radius: 6px;
+            color: white;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .owner-menu-coupon button:hover {
+            background: rgba(46, 204, 113, 0.9);
+        }
+
+        .owner-menu-coupon button:disabled {
+            background: rgba(100, 100, 100, 0.5);
+            cursor: not-allowed;
+        }
+
         /* 모바일 대응 */
         @media (max-width: 768px) {
             .owner-menu {
@@ -289,18 +339,6 @@
             <div class="owner-menu-divider"></div>
         ` : ''}
 
-        <a href="dashboard.html" class="owner-menu-item ${currentPage === 'dashboard.html' ? 'active' : ''}" title="대시보드">
-            <span class="owner-menu-icon">🏠</span>
-            <span class="owner-menu-label">대시보드</span>
-        </a>
-
-        <a href="admin.html" class="owner-menu-item" title="편집">
-            <span class="owner-menu-icon">✏️</span>
-            <span class="owner-menu-label">편집</span>
-        </a>
-
-        <div class="owner-menu-divider"></div>
-
         ${pageSettings.intro !== false ? `
         <a href="intro.html" class="owner-menu-item ${currentPage === 'intro.html' ? 'active' : ''}" title="인트로">
             <span class="owner-menu-icon">🚀</span>
@@ -345,6 +383,13 @@
             <span class="owner-menu-icon">🚪</span>
             <span class="owner-menu-label">로그아웃</span>
         </button>
+
+        <div class="owner-menu-divider"></div>
+
+        <div class="owner-menu-coupon">
+            <input type="text" id="owner-coupon-input" placeholder="쿠폰 코드" maxlength="20">
+            <button id="owner-coupon-btn">적용</button>
+        </div>
     `;
 
     document.body.appendChild(menu);
@@ -427,6 +472,48 @@
                 console.error('Logout error:', e);
                 alert('로그아웃에 실패했습니다.');
             }
+        }
+    });
+
+    // 쿠폰 적용 버튼 기능
+    const couponInput = document.getElementById('owner-coupon-input');
+    const couponBtn = document.getElementById('owner-coupon-btn');
+
+    couponBtn.addEventListener('click', async () => {
+        const code = couponInput.value.trim();
+        if (!code) {
+            alert('쿠폰 코드를 입력해주세요.');
+            return;
+        }
+
+        couponBtn.disabled = true;
+        couponBtn.textContent = '처리중...';
+
+        try {
+            const module = await import('./firebase-config.js');
+            const CouponManager = module.CouponManager;
+
+            const result = await CouponManager.applyCoupon(code, userId);
+
+            if (result.success) {
+                alert(`쿠폰이 적용되었습니다!\n\n만료일: ${result.expiresAt.toLocaleDateString()}`);
+                couponInput.value = '';
+            } else {
+                alert(`쿠폰 적용 실패: ${result.error}`);
+            }
+        } catch (e) {
+            console.error('Coupon apply error:', e);
+            alert('쿠폰 적용 중 오류가 발생했습니다.');
+        }
+
+        couponBtn.disabled = false;
+        couponBtn.textContent = '적용';
+    });
+
+    // 엔터키로 쿠폰 적용
+    couponInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            couponBtn.click();
         }
     });
 })();

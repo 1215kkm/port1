@@ -263,6 +263,18 @@ const defaultData = {
         contact: { image: '', color: '' }
     },
 
+    // Intro Page Custom Settings
+    introCustom: {
+        enabled: false, // true면 커스텀 인트로 사용
+        backgroundImage: '',
+        texts: [
+            // 예시: { id: 1, content: '환영합니다', fontSize: '3rem', color: '#ffffff', align: 'center', fontWeight: '700', top: '40%', left: '50%' }
+        ],
+        buttons: [
+            // 예시: { id: 1, label: '포트폴리오 보기', url: 'portfolio.html', bgColor: '#3498db', textColor: '#ffffff' }
+        ]
+    },
+
     // Portfolio Items (Solo) - organized by section (각 섹션 1개씩 샘플)
     portfolioSolo: {
         items: [

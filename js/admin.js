@@ -239,6 +239,7 @@ class AdminPanel {
         this.initModal();
         this.initImageUpload();
         this.initBackgroundUpload();
+        this.initIntroEditor();
 
         // Listen for data updates
         window.addEventListener('dataUpdated', () => {
@@ -393,6 +394,284 @@ class AdminPanel {
 
     showPaymentInfo() {
         alert('결제 기능은 현재 준비 중입니다.\n\n문의: 1215kkm@naver.com');
+    }
+
+    // =====================
+    // Intro Page Editor
+    // =====================
+    initIntroEditor() {
+        // Show/hide intro edit button based on intro page setting
+        this.updateIntroEditButton();
+
+        // Intro edit button click
+        document.getElementById('btn-edit-intro')?.addEventListener('click', () => {
+            this.openIntroEditor();
+        });
+
+        // Close intro editor
+        document.getElementById('intro-editor-close')?.addEventListener('click', () => {
+            this.closeIntroEditor();
+        });
+
+        // Background image upload
+        const bgFileInput = document.getElementById('intro-bg-file');
+        const bgUploadBtn = document.getElementById('btn-intro-bg-upload');
+        const bgUrlInput = document.getElementById('intro-bg-image');
+
+        bgUploadBtn?.addEventListener('click', () => bgFileInput?.click());
+        bgFileInput?.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const previewEl = document.getElementById('intro-bg-preview');
+                showUploadLoading(previewEl);
+                const imageUrl = await uploadImageToStorage(file, 'intro');
+                if (imageUrl) {
+                    bgUrlInput.value = imageUrl;
+                    this.updateIntroBgPreview(imageUrl);
+                }
+                hideUploadLoading(previewEl);
+            }
+        });
+
+        bgUrlInput?.addEventListener('change', () => {
+            this.updateIntroBgPreview(bgUrlInput.value);
+        });
+
+        // Add text button
+        document.getElementById('btn-add-intro-text')?.addEventListener('click', () => {
+            this.addIntroText();
+        });
+
+        // Add button button
+        document.getElementById('btn-add-intro-button')?.addEventListener('click', () => {
+            this.addIntroButton();
+        });
+
+        // Save intro settings
+        document.getElementById('btn-save-intro')?.addEventListener('click', () => {
+            this.saveIntroSettings();
+        });
+
+        // Preview intro
+        document.getElementById('btn-preview-intro')?.addEventListener('click', () => {
+            window.open('intro.html?preview=1', '_blank');
+        });
+    }
+
+    updateIntroEditButton() {
+        const introBtn = document.getElementById('btn-edit-intro');
+        const pageSettings = this.data.pageSettings || {};
+        if (introBtn) {
+            introBtn.style.display = pageSettings.intro !== false ? 'block' : 'none';
+        }
+    }
+
+    openIntroEditor() {
+        const overlay = document.getElementById('intro-editor-overlay');
+        if (overlay) {
+            overlay.style.display = 'flex';
+            this.renderIntroEditor();
+        }
+    }
+
+    closeIntroEditor() {
+        const overlay = document.getElementById('intro-editor-overlay');
+        if (overlay) {
+            overlay.style.display = 'none';
+        }
+    }
+
+    renderIntroEditor() {
+        const introCustom = this.data.introCustom || { texts: [], buttons: [] };
+
+        // Background image
+        const bgInput = document.getElementById('intro-bg-image');
+        if (bgInput) {
+            bgInput.value = introCustom.backgroundImage || '';
+            this.updateIntroBgPreview(introCustom.backgroundImage);
+        }
+
+        // Texts
+        this.renderIntroTexts(introCustom.texts || []);
+
+        // Buttons
+        this.renderIntroButtons(introCustom.buttons || []);
+    }
+
+    updateIntroBgPreview(imageUrl) {
+        const preview = document.getElementById('intro-bg-preview');
+        if (preview) {
+            if (imageUrl) {
+                preview.innerHTML = createImageElement(imageUrl, '배경', 'width: 100%; height: 100%; object-fit: cover;');
+            } else {
+                preview.innerHTML = '<span style="color: #666; font-size: 11px;">미리보기</span>';
+            }
+        }
+    }
+
+    renderIntroTexts(texts) {
+        const container = document.getElementById('intro-texts-container');
+        if (!container) return;
+
+        container.innerHTML = texts.map((text, index) => `
+            <div class="intro-text-item" data-index="${index}">
+                <div class="form-row">
+                    <textarea class="form-input" data-field="content" placeholder="텍스트 내용">${text.content || ''}</textarea>
+                </div>
+                <div class="form-row">
+                    <input type="text" class="form-input" data-field="fontSize" placeholder="크기 (예: 2rem)" value="${text.fontSize || '2rem'}">
+                    <input type="color" data-field="color" value="${text.color || '#ffffff'}" style="width: 40px; height: 36px; border: none; cursor: pointer;">
+                    <select class="form-select" data-field="fontWeight">
+                        <option value="400" ${text.fontWeight === '400' ? 'selected' : ''}>기본</option>
+                        <option value="600" ${text.fontWeight === '600' ? 'selected' : ''}>중간굵기</option>
+                        <option value="700" ${text.fontWeight === '700' || !text.fontWeight ? 'selected' : ''}>굵게</option>
+                    </select>
+                </div>
+                <div class="form-row">
+                    <select class="form-select" data-field="align">
+                        <option value="left" ${text.align === 'left' ? 'selected' : ''}>왼쪽</option>
+                        <option value="center" ${text.align === 'center' || !text.align ? 'selected' : ''}>가운데</option>
+                        <option value="right" ${text.align === 'right' ? 'selected' : ''}>오른쪽</option>
+                    </select>
+                    <input type="text" class="form-input" data-field="top" placeholder="위치 Y (예: 40%)" value="${text.top || '50%'}">
+                </div>
+                <div class="intro-item-actions">
+                    <button class="btn btn-accent btn-sm" data-action="delete-intro-text" data-index="${index}">삭제</button>
+                </div>
+            </div>
+        `).join('');
+
+        // Bind delete buttons
+        container.querySelectorAll('[data-action="delete-intro-text"]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const idx = parseInt(btn.dataset.index);
+                this.deleteIntroText(idx);
+            });
+        });
+    }
+
+    renderIntroButtons(buttons) {
+        const container = document.getElementById('intro-buttons-container');
+        if (!container) return;
+
+        container.innerHTML = buttons.map((button, index) => `
+            <div class="intro-button-item" data-index="${index}">
+                <div class="form-row">
+                    <input type="text" class="form-input" data-field="label" placeholder="버튼 텍스트" value="${button.label || ''}">
+                    <input type="text" class="form-input" data-field="url" placeholder="링크 URL" value="${button.url || ''}">
+                </div>
+                <div class="form-row">
+                    <div style="display: flex; align-items: center; gap: 6px; flex: 1;">
+                        <span style="font-size: 11px; color: #888;">배경:</span>
+                        <input type="color" data-field="bgColor" value="${button.bgColor || '#3498db'}" style="width: 30px; height: 30px; border: none; cursor: pointer;">
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 6px; flex: 1;">
+                        <span style="font-size: 11px; color: #888;">글자:</span>
+                        <input type="color" data-field="textColor" value="${button.textColor || '#ffffff'}" style="width: 30px; height: 30px; border: none; cursor: pointer;">
+                    </div>
+                </div>
+                <div class="intro-item-actions">
+                    <button class="btn btn-accent btn-sm" data-action="delete-intro-button" data-index="${index}">삭제</button>
+                </div>
+            </div>
+        `).join('');
+
+        // Bind delete buttons
+        container.querySelectorAll('[data-action="delete-intro-button"]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const idx = parseInt(btn.dataset.index);
+                this.deleteIntroButton(idx);
+            });
+        });
+    }
+
+    addIntroText() {
+        const introCustom = this.data.introCustom || { texts: [], buttons: [] };
+        const newText = {
+            id: Date.now(),
+            content: '',
+            fontSize: '2rem',
+            color: '#ffffff',
+            fontWeight: '700',
+            align: 'center',
+            top: '50%'
+        };
+        introCustom.texts = [...(introCustom.texts || []), newText];
+        this.data.introCustom = introCustom;
+        this.renderIntroTexts(introCustom.texts);
+    }
+
+    deleteIntroText(index) {
+        const introCustom = this.data.introCustom || { texts: [], buttons: [] };
+        introCustom.texts.splice(index, 1);
+        this.data.introCustom = introCustom;
+        this.renderIntroTexts(introCustom.texts);
+    }
+
+    addIntroButton() {
+        const introCustom = this.data.introCustom || { texts: [], buttons: [] };
+        const newButton = {
+            id: Date.now(),
+            label: '버튼',
+            url: 'portfolio.html',
+            bgColor: '#3498db',
+            textColor: '#ffffff'
+        };
+        introCustom.buttons = [...(introCustom.buttons || []), newButton];
+        this.data.introCustom = introCustom;
+        this.renderIntroButtons(introCustom.buttons);
+    }
+
+    deleteIntroButton(index) {
+        const introCustom = this.data.introCustom || { texts: [], buttons: [] };
+        introCustom.buttons.splice(index, 1);
+        this.data.introCustom = introCustom;
+        this.renderIntroButtons(introCustom.buttons);
+    }
+
+    saveIntroSettings() {
+        const introCustom = {
+            enabled: true,
+            backgroundImage: document.getElementById('intro-bg-image')?.value || '',
+            texts: [],
+            buttons: []
+        };
+
+        // Collect texts
+        document.querySelectorAll('.intro-text-item').forEach(item => {
+            const text = {
+                id: Date.now() + Math.random(),
+                content: item.querySelector('[data-field="content"]')?.value || '',
+                fontSize: item.querySelector('[data-field="fontSize"]')?.value || '2rem',
+                color: item.querySelector('[data-field="color"]')?.value || '#ffffff',
+                fontWeight: item.querySelector('[data-field="fontWeight"]')?.value || '700',
+                align: item.querySelector('[data-field="align"]')?.value || 'center',
+                top: item.querySelector('[data-field="top"]')?.value || '50%'
+            };
+            if (text.content) {
+                introCustom.texts.push(text);
+            }
+        });
+
+        // Collect buttons
+        document.querySelectorAll('.intro-button-item').forEach(item => {
+            const button = {
+                id: Date.now() + Math.random(),
+                label: item.querySelector('[data-field="label"]')?.value || '',
+                url: item.querySelector('[data-field="url"]')?.value || '',
+                bgColor: item.querySelector('[data-field="bgColor"]')?.value || '#3498db',
+                textColor: item.querySelector('[data-field="textColor"]')?.value || '#ffffff'
+            };
+            if (button.label) {
+                introCustom.buttons.push(button);
+            }
+        });
+
+        dataManager.set('introCustom', introCustom);
+        dataManager.saveData();
+
+        alert('인트로 설정이 저장되었습니다.');
+        this.closeIntroEditor();
     }
 
     // =====================

@@ -278,7 +278,90 @@
                 renderIcon(soloEl, emojiIcons.solo, '👤');
                 renderIcon(aiEl, emojiIcons.ai, '🤖');
                 renderIcon(teamEl, emojiIcons.team, '👥');
+
+                // Check for custom intro settings
+                const introCustom = data.introCustom || {};
+                if (introCustom.enabled && (introCustom.texts?.length > 0 || introCustom.buttons?.length > 0 || introCustom.backgroundImage)) {
+                    renderCustomIntro(introCustom);
+                }
             };
+
+            // Render custom intro page
+            function renderCustomIntro(introCustom) {
+                const introPage = document.querySelector('.intro-page');
+                if (!introPage) return;
+
+                // Apply background
+                if (introCustom.backgroundImage) {
+                    introPage.style.backgroundImage = `url('${introCustom.backgroundImage}')`;
+                    introPage.style.backgroundSize = 'cover';
+                    introPage.style.backgroundPosition = 'center';
+                    introPage.style.backgroundRepeat = 'no-repeat';
+                }
+
+                // Create custom content container
+                const customContent = document.createElement('div');
+                customContent.className = 'intro-custom-content';
+                customContent.style.cssText = 'position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px;';
+
+                // Render texts
+                introCustom.texts?.forEach(text => {
+                    const textEl = document.createElement('div');
+                    textEl.className = 'intro-custom-text';
+                    textEl.innerHTML = text.content.replace(/\n/g, '<br>');
+                    textEl.style.cssText = `
+                        font-size: ${text.fontSize || '2rem'};
+                        color: ${text.color || '#ffffff'};
+                        font-weight: ${text.fontWeight || '700'};
+                        text-align: ${text.align || 'center'};
+                        margin-bottom: 20px;
+                        text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+                        width: 100%;
+                    `;
+                    customContent.appendChild(textEl);
+                });
+
+                // Render buttons
+                if (introCustom.buttons?.length > 0) {
+                    const buttonsContainer = document.createElement('div');
+                    buttonsContainer.style.cssText = 'display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; margin-top: 30px;';
+
+                    introCustom.buttons.forEach(button => {
+                        const btnEl = document.createElement('a');
+                        btnEl.href = button.url || '#';
+                        btnEl.textContent = button.label || '버튼';
+                        btnEl.style.cssText = `
+                            padding: 14px 32px;
+                            background: ${button.bgColor || '#3498db'};
+                            color: ${button.textColor || '#ffffff'};
+                            text-decoration: none;
+                            border-radius: 8px;
+                            font-weight: 600;
+                            font-size: 1rem;
+                            transition: all 0.2s ease;
+                            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+                        `;
+                        btnEl.onmouseover = () => btnEl.style.transform = 'translateY(-3px)';
+                        btnEl.onmouseout = () => btnEl.style.transform = '';
+
+                        // Add user ID to URL if available
+                        const userId = window.getUrlUserId ? window.getUrlUserId() : null;
+                        if (userId && button.url) {
+                            btnEl.href = button.url.includes('?') ? `${button.url}&u=${userId}` : `${button.url}?u=${userId}`;
+                        }
+
+                        buttonsContainer.appendChild(btnEl);
+                    });
+
+                    customContent.appendChild(buttonsContainer);
+                }
+
+                // Hide default content and show custom
+                introPage.style.position = 'relative';
+                introPage.querySelector('.intro-header')?.style && (introPage.querySelector('.intro-header').style.display = 'none');
+                introPage.querySelector('.intro-grid')?.style && (introPage.querySelector('.intro-grid').style.display = 'none');
+                introPage.appendChild(customContent);
+            }
 
             // Check if dataManager is ready
             if (window.dataManager && window.dataManager.data) {

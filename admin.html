@@ -1690,6 +1690,7 @@
             <!-- Section Visibility Settings -->
             <div class="section-settings-panel" id="section-settings-panel">
                 <div class="section-settings-title">섹션 표시</div>
+                <button class="intro-edit-btn" id="btn-edit-intro" style="display: none; width: 100%; padding: 8px; margin: 8px 0; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; border-radius: 6px; color: white; font-size: 11px; font-weight: 600; cursor: pointer; transition: all 0.2s;">🚀 인트로 수정</button>
                 <div class="section-settings-list" id="section-settings-list">
                     <div class="section-setting-item" data-section="about">
                         <span class="drag-handle">⋮⋮</span>
@@ -1747,6 +1748,184 @@
         <!-- Preview Frame -->
         <iframe class="preview-frame" id="preview-frame" src="portfolio.html" scrolling="yes" style="pointer-events: auto;"></iframe>
     </div>
+
+    <!-- Intro Page Editor Panel (Overlay) -->
+    <div class="intro-editor-overlay" id="intro-editor-overlay" style="display: none;">
+        <div class="intro-editor-panel">
+            <div class="intro-editor-header">
+                <h3>🚀 인트로 페이지 커스텀 설정</h3>
+                <button class="intro-editor-close" id="intro-editor-close">&times;</button>
+            </div>
+            <div class="intro-editor-body">
+                <div class="intro-editor-section">
+                    <h4>배경 이미지</h4>
+                    <div class="form-group">
+                        <input type="text" class="form-input" id="intro-bg-image" placeholder="배경 이미지 URL">
+                        <input type="file" id="intro-bg-file" accept="image/*" style="display: none;">
+                        <button type="button" class="btn btn-secondary btn-sm" id="btn-intro-bg-upload" style="margin-top: 8px;">이미지 업로드</button>
+                        <div id="intro-bg-preview" style="margin-top: 8px; height: 80px; border: 1px solid #333; border-radius: 6px; overflow: hidden; display: flex; align-items: center; justify-content: center; background: #1a1a2e;">
+                            <span style="color: #666; font-size: 11px;">미리보기</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="intro-editor-section">
+                    <h4>텍스트 요소</h4>
+                    <p style="font-size: 11px; color: #888; margin-bottom: 12px;">여러 개의 텍스트를 추가하고 각각 스타일을 지정할 수 있습니다.</p>
+                    <div id="intro-texts-container">
+                        <!-- Text items will be rendered here -->
+                    </div>
+                    <button type="button" class="btn btn-secondary btn-sm" id="btn-add-intro-text" style="margin-top: 8px;">+ 텍스트 추가</button>
+                </div>
+
+                <div class="intro-editor-section">
+                    <h4>링크 버튼</h4>
+                    <p style="font-size: 11px; color: #888; margin-bottom: 12px;">인트로 페이지에 표시할 버튼을 추가합니다.</p>
+                    <div id="intro-buttons-container">
+                        <!-- Button items will be rendered here -->
+                    </div>
+                    <button type="button" class="btn btn-secondary btn-sm" id="btn-add-intro-button" style="margin-top: 8px;">+ 버튼 추가</button>
+                </div>
+
+                <div class="intro-editor-actions">
+                    <button class="btn btn-primary" id="btn-save-intro">저장</button>
+                    <button class="btn btn-secondary" id="btn-preview-intro">미리보기</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .intro-editor-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 3000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .intro-editor-panel {
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            background: #1e1e2f;
+            border-radius: 12px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .intro-editor-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 20px;
+            background: #16162a;
+            border-bottom: 1px solid #333;
+        }
+
+        .intro-editor-header h3 {
+            margin: 0;
+            font-size: 16px;
+            color: #fff;
+        }
+
+        .intro-editor-close {
+            background: none;
+            border: none;
+            color: #888;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 0;
+            line-height: 1;
+        }
+
+        .intro-editor-close:hover {
+            color: #fff;
+        }
+
+        .intro-editor-body {
+            padding: 20px;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .intro-editor-section {
+            margin-bottom: 24px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #333;
+        }
+
+        .intro-editor-section:last-child {
+            border-bottom: none;
+        }
+
+        .intro-editor-section h4 {
+            margin: 0 0 12px 0;
+            font-size: 14px;
+            color: #a78bfa;
+        }
+
+        .intro-text-item, .intro-button-item {
+            background: #262640;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+
+        .intro-text-item .form-row,
+        .intro-button-item .form-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .intro-text-item .form-row:last-child,
+        .intro-button-item .form-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .intro-text-item .form-input,
+        .intro-button-item .form-input,
+        .intro-text-item .form-select,
+        .intro-button-item .form-select {
+            flex: 1;
+            padding: 8px;
+            font-size: 12px;
+        }
+
+        .intro-text-item textarea {
+            width: 100%;
+            min-height: 60px;
+            resize: vertical;
+        }
+
+        .intro-item-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .intro-item-actions button {
+            padding: 4px 8px;
+            font-size: 11px;
+        }
+
+        .intro-editor-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            padding-top: 16px;
+            border-top: 1px solid #333;
+            margin-top: 16px;
+        }
+    </style>
 
     <!-- Modal Template -->
     <div class="modal" id="modal">
