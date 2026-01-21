@@ -521,7 +521,7 @@ class AdminPanel {
         if (!container) return;
 
         container.innerHTML = texts.map((text, index) => `
-            <div class="intro-text-item" data-index="${index}" data-id="${text.id || ''}">`
+            <div class="intro-text-item" data-index="${index}" data-id="${text.id || ''}">
                 <div class="form-row">
                     <textarea class="form-input" data-field="content" placeholder="텍스트 내용">${text.content || ''}</textarea>
                 </div>
