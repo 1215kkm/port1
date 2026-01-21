@@ -806,7 +806,9 @@ class PageInitializer {
         const sectionSettings = this.data.sectionSettings || {};
         const pageSettings = this.data.pageSettings || {};
 
-        // Apply visibility to sections
+        // Apply visibility to sections with specific selectors
+        // Note: 'about' controls the entire #about section
+        // Other keys control sub-sections within about
         const sectionMap = {
             'about': '#about',
             'aitools': '[data-section="aitools"]',
@@ -820,22 +822,36 @@ class PageInitializer {
 
         Object.entries(sectionMap).forEach(([key, selector]) => {
             const elements = document.querySelectorAll(selector);
+            const isHidden = sectionSettings[key] === false;
+
             elements.forEach(el => {
-                if (sectionSettings[key] === false) {
+                if (isHidden) {
                     el.style.display = 'none';
+                    el.setAttribute('data-hidden', 'true');
                 } else {
                     el.style.display = '';
+                    el.removeAttribute('data-hidden');
                 }
             });
         });
 
-        // Apply photo visibility for about section
+        // Apply photo visibility for about section (profile image and download button area)
         const profileImageEl = document.querySelector('[data-content="profile-image"]');
         if (profileImageEl) {
             if (sectionSettings.aboutPhoto === false) {
                 profileImageEl.style.display = 'none';
             } else {
                 profileImageEl.style.display = '';
+            }
+        }
+
+        // Also hide the about-profile container if photo is hidden
+        const aboutProfileEl = document.querySelector('.about-profile');
+        if (aboutProfileEl) {
+            if (sectionSettings.aboutPhoto === false) {
+                aboutProfileEl.style.display = 'none';
+            } else {
+                aboutProfileEl.style.display = '';
             }
         }
 

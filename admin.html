@@ -475,6 +475,29 @@
             padding: 5px 4px;
             font-size: 11px;
             color: #ccc;
+            cursor: grab;
+            transition: background 0.2s;
+            border-radius: 4px;
+        }
+
+        .section-setting-item:active {
+            cursor: grabbing;
+        }
+
+        .section-setting-item.dragging {
+            opacity: 0.5;
+            background: rgba(52, 152, 219, 0.2);
+        }
+
+        .section-setting-item .drag-handle {
+            color: #555;
+            font-size: 10px;
+            cursor: grab;
+            user-select: none;
+        }
+
+        .section-setting-item:hover .drag-handle {
+            color: #888;
         }
 
         .section-setting-item input[type="checkbox"] {
@@ -515,18 +538,61 @@
             cursor: pointer;
         }
 
-        /* Floating Theme Panel (in right panel) */
-        .right-panel .floating-theme-panel {
-            position: absolute;
-            bottom: 10px;
-            left: 0;
-            right: 0;
+        /* Font Size Setting with Preview */
+        .font-size-setting {
             display: flex;
-            justify-content: center;
-            gap: 8px;
+            align-items: center;
+            gap: var(--space-md);
+            margin-bottom: var(--space-md);
             padding: 8px;
-            background: rgba(0,0,0,0.5);
+            background: var(--color-bg-secondary);
             border-radius: var(--radius-md);
+        }
+
+        .font-size-input {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .font-size-input .form-label {
+            margin-bottom: 4px;
+            font-size: 12px;
+        }
+
+        .font-size-input .form-input {
+            width: 100%;
+        }
+
+        .font-size-preview {
+            flex: 0 0 140px;
+            padding: 8px 12px;
+            background: #fff;
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-sm);
+            text-align: center;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+        }
+
+        /* Floating Theme Panel (center bottom of screen) */
+        .floating-theme-panel {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 8px;
+            padding: 10px 16px;
+            background: rgba(30, 30, 50, 0.95);
+            border: 1px solid var(--color-border);
+            border-radius: 30px;
+            box-shadow: var(--shadow-lg);
+            z-index: var(--z-fixed);
+        }
+
+        .floating-theme-panel .floating-theme-btn {
+            margin-bottom: 0;
         }
 
         .minimap-header {
@@ -1177,35 +1243,47 @@
                                 <h4 style="margin-bottom: var(--space-md); color: var(--color-secondary);">글자 크기 설정</h4>
                                 <p style="font-size: 12px; color: #888; margin-bottom: var(--space-md);">사이트에서 사용되는 각 글자 크기를 조절하세요.</p>
 
-                                <div class="form-group">
-                                    <label class="form-label">히어로 제목</label>
-                                    <input type="text" class="form-input" id="font-size-5xl" placeholder="3rem">
-                                    <span style="font-size: 11px; color: #888;">메인 페이지 최상단 큰 제목</span>
+                                <div class="font-size-setting">
+                                    <div class="font-size-input">
+                                        <label class="form-label">히어로 제목</label>
+                                        <input type="text" class="form-input" id="font-size-5xl" placeholder="3rem">
+                                    </div>
+                                    <div class="font-size-preview" style="font-size: 2rem; line-height: 1.2; font-weight: bold;">포트폴리오</div>
                                 </div>
-                                <div class="form-group">
-                                    <label class="form-label">대제목</label>
-                                    <input type="text" class="form-input" id="font-size-4xl" placeholder="2.25rem">
-                                    <span style="font-size: 11px; color: #888;">페이지 주요 제목</span>
+                                <div class="font-size-setting">
+                                    <div class="font-size-input">
+                                        <label class="form-label">대제목</label>
+                                        <input type="text" class="form-input" id="font-size-4xl" placeholder="2.25rem">
+                                    </div>
+                                    <div class="font-size-preview" style="font-size: 1.5rem; line-height: 1.2; font-weight: bold;">자기소개</div>
                                 </div>
-                                <div class="form-group">
-                                    <label class="form-label">섹션 제목</label>
-                                    <input type="text" class="form-input" id="font-size-3xl" placeholder="1.875rem">
-                                    <span style="font-size: 11px; color: #888;">각 섹션의 제목 (자기소개, 경력 등)</span>
+                                <div class="font-size-setting">
+                                    <div class="font-size-input">
+                                        <label class="form-label">섹션 제목</label>
+                                        <input type="text" class="form-input" id="font-size-3xl" placeholder="1.875rem">
+                                    </div>
+                                    <div class="font-size-preview" style="font-size: 1.25rem; line-height: 1.2; font-weight: 600;">관련경력</div>
                                 </div>
-                                <div class="form-group">
-                                    <label class="form-label">소제목</label>
-                                    <input type="text" class="form-input" id="font-size-2xl" placeholder="1.5rem">
-                                    <span style="font-size: 11px; color: #888;">카드 제목, 항목 제목</span>
+                                <div class="font-size-setting">
+                                    <div class="font-size-input">
+                                        <label class="form-label">소제목</label>
+                                        <input type="text" class="form-input" id="font-size-2xl" placeholder="1.5rem">
+                                    </div>
+                                    <div class="font-size-preview" style="font-size: 1.1rem; line-height: 1.2; font-weight: 500;">카드 제목</div>
                                 </div>
-                                <div class="form-group">
-                                    <label class="form-label">기본 본문</label>
-                                    <input type="text" class="form-input" id="font-size-base" placeholder="1rem">
-                                    <span style="font-size: 11px; color: #888;">일반 텍스트, 설명 문구</span>
+                                <div class="font-size-setting">
+                                    <div class="font-size-input">
+                                        <label class="form-label">기본 본문</label>
+                                        <input type="text" class="form-input" id="font-size-base" placeholder="1rem">
+                                    </div>
+                                    <div class="font-size-preview" style="font-size: 1rem; line-height: 1.4;">일반 텍스트 내용입니다</div>
                                 </div>
-                                <div class="form-group">
-                                    <label class="form-label">작은 텍스트</label>
-                                    <input type="text" class="form-input" id="font-size-sm" placeholder="0.875rem">
-                                    <span style="font-size: 11px; color: #888;">부가 정보, 날짜, 메타 정보</span>
+                                <div class="font-size-setting">
+                                    <div class="font-size-input">
+                                        <label class="form-label">작은 텍스트</label>
+                                        <input type="text" class="form-input" id="font-size-sm" placeholder="0.875rem">
+                                    </div>
+                                    <div class="font-size-preview" style="font-size: 0.85rem; line-height: 1.4; color: #666;">부가 정보, 날짜</div>
                                 </div>
                             </div>
                         </div>
@@ -1265,22 +1343,6 @@
                             <div class="form-group">
                                 <label class="form-label">큰 (lg)</label>
                                 <input type="text" class="form-input" id="css-radius-lg" placeholder="12px">
-                            </div>
-                        </div>
-
-                        <h3 style="margin-bottom: var(--space-md);">글자 크기</h3>
-                        <div class="settings-row-3" style="margin-bottom: var(--space-xl);">
-                            <div class="form-group">
-                                <label class="form-label">제목1 크기</label>
-                                <input type="text" class="form-input" id="css-font-title1" placeholder="2.25rem">
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">제목2 크기</label>
-                                <input type="text" class="form-input" id="css-font-title2" placeholder="1.5rem">
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">내용 크기</label>
-                                <input type="text" class="form-input" id="css-font-base" placeholder="1rem">
                             </div>
                         </div>
 
@@ -1392,8 +1454,9 @@
             <!-- Section Visibility Settings -->
             <div class="section-settings-panel" id="section-settings-panel">
                 <div class="section-settings-title">섹션 표시</div>
-                <div class="section-settings-list">
-                    <div class="section-setting-item">
+                <div class="section-settings-list" id="section-settings-list">
+                    <div class="section-setting-item" data-section="about">
+                        <span class="drag-handle">⋮⋮</span>
                         <input type="checkbox" id="section-about" checked>
                         <label for="section-about">자기소개</label>
                     </div>
@@ -1401,41 +1464,48 @@
                         <input type="checkbox" id="section-about-photo" checked>
                         <label for="section-about-photo">사진표시</label>
                     </div>
-                    <div class="section-setting-item">
+                    <div class="section-setting-item" data-section="aitools">
+                        <span class="drag-handle">⋮⋮</span>
                         <input type="checkbox" id="section-aitools" checked>
                         <label for="section-aitools">AI도구</label>
                     </div>
-                    <div class="section-setting-item">
+                    <div class="section-setting-item" data-section="related">
+                        <span class="drag-handle">⋮⋮</span>
                         <input type="checkbox" id="section-related" checked>
                         <label for="section-related">관련경력</label>
                     </div>
-                    <div class="section-setting-item">
+                    <div class="section-setting-item" data-section="other">
+                        <span class="drag-handle">⋮⋮</span>
                         <input type="checkbox" id="section-other" checked>
                         <label for="section-other">타업무경력</label>
                     </div>
-                    <div class="section-setting-item">
+                    <div class="section-setting-item" data-section="evaluation">
+                        <span class="drag-handle">⋮⋮</span>
                         <input type="checkbox" id="section-evaluation" checked>
                         <label for="section-evaluation">내평가</label>
                     </div>
-                    <div class="section-setting-item">
+                    <div class="section-setting-item" data-section="video">
+                        <span class="drag-handle">⋮⋮</span>
                         <input type="checkbox" id="section-video" checked>
                         <label for="section-video">영상</label>
                     </div>
-                    <div class="section-setting-item">
+                    <div class="section-setting-item" data-section="portfolio">
+                        <span class="drag-handle">⋮⋮</span>
                         <input type="checkbox" id="section-portfolio" checked>
                         <label for="section-portfolio">작품</label>
                     </div>
-                    <div class="section-setting-item">
+                    <div class="section-setting-item" data-section="contact">
+                        <span class="drag-handle">⋮⋮</span>
                         <input type="checkbox" id="section-contact" checked>
                         <label for="section-contact">연락처</label>
                     </div>
                 </div>
             </div>
+        </div>
 
-            <!-- Floating Theme Panel (moved to bottom) -->
-            <div class="floating-theme-panel" id="floating-theme-panel">
-                <!-- Theme buttons will be rendered dynamically -->
-            </div>
+        <!-- Floating Theme Panel (center bottom of screen) -->
+        <div class="floating-theme-panel" id="floating-theme-panel">
+            <!-- Theme buttons will be rendered dynamically -->
         </div>
 
         <!-- Preview Frame -->

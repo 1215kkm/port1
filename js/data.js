@@ -207,6 +207,19 @@ const defaultData = {
         team: true
     },
 
+    // Section Visibility Settings
+    sectionSettings: {
+        about: true,
+        aitools: true,
+        related: true,
+        other: true,
+        evaluation: true,
+        video: true,
+        portfolio: true,
+        contact: true,
+        aboutPhoto: true
+    },
+
     // Portfolio Items (Solo) - organized by section (각 섹션 1개씩 샘플)
     portfolioSolo: {
         items: [

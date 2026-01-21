@@ -354,6 +354,10 @@ class AdminPanel {
 
         // Load saved settings
         const sectionSettings = this.data.sectionSettings || {};
+        const sectionOrder = this.data.sectionOrder || sectionIds;
+
+        // Reorder the list items based on sectionOrder
+        this.renderSectionOrder(sectionOrder);
 
         sectionIds.forEach(id => {
             const checkbox = document.getElementById(`section-${id}`);
@@ -376,6 +380,106 @@ class AdminPanel {
                 this.saveSectionSettings();
             });
         }
+
+        // Initialize drag-to-reorder
+        this.initSectionDragReorder();
+    }
+
+    renderSectionOrder(sectionOrder) {
+        const listContainer = document.getElementById('section-settings-list');
+        if (!listContainer) return;
+
+        const items = Array.from(listContainer.querySelectorAll('.section-setting-item[data-section]'));
+        const photoSub = listContainer.querySelector('.section-setting-sub');
+
+        // Sort items based on sectionOrder
+        items.sort((a, b) => {
+            const aSection = a.dataset.section;
+            const bSection = b.dataset.section;
+            const aIndex = sectionOrder.indexOf(aSection);
+            const bIndex = sectionOrder.indexOf(bSection);
+            return aIndex - bIndex;
+        });
+
+        // Clear and re-append in order
+        items.forEach(item => {
+            listContainer.appendChild(item);
+            // Keep photo sub-item after about
+            if (item.dataset.section === 'about' && photoSub) {
+                listContainer.appendChild(photoSub);
+            }
+        });
+    }
+
+    initSectionDragReorder() {
+        const listContainer = document.getElementById('section-settings-list');
+        if (!listContainer) return;
+
+        let draggedItem = null;
+
+        const items = listContainer.querySelectorAll('.section-setting-item[data-section]');
+
+        items.forEach(item => {
+            item.draggable = true;
+
+            item.addEventListener('dragstart', (e) => {
+                draggedItem = item;
+                item.classList.add('dragging');
+                e.dataTransfer.effectAllowed = 'move';
+            });
+
+            item.addEventListener('dragend', () => {
+                item.classList.remove('dragging');
+                draggedItem = null;
+                this.saveSectionOrder();
+            });
+
+            item.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'move';
+            });
+
+            item.addEventListener('dragenter', (e) => {
+                e.preventDefault();
+                if (draggedItem && draggedItem !== item) {
+                    const rect = item.getBoundingClientRect();
+                    const midY = rect.top + rect.height / 2;
+
+                    if (e.clientY < midY) {
+                        listContainer.insertBefore(draggedItem, item);
+                    } else {
+                        const nextItem = item.nextElementSibling;
+                        // Skip the photo sub-item
+                        if (nextItem && nextItem.classList.contains('section-setting-sub')) {
+                            listContainer.insertBefore(draggedItem, nextItem.nextElementSibling);
+                        } else {
+                            listContainer.insertBefore(draggedItem, nextItem);
+                        }
+                    }
+
+                    // Keep photo sub-item after about
+                    const aboutItem = listContainer.querySelector('[data-section="about"]');
+                    const photoSub = listContainer.querySelector('.section-setting-sub');
+                    if (aboutItem && photoSub) {
+                        aboutItem.after(photoSub);
+                    }
+                }
+            });
+        });
+    }
+
+    saveSectionOrder() {
+        const listContainer = document.getElementById('section-settings-list');
+        if (!listContainer) return;
+
+        const items = listContainer.querySelectorAll('.section-setting-item[data-section]');
+        const sectionOrder = Array.from(items).map(item => item.dataset.section);
+
+        dataManager.set('sectionOrder', sectionOrder);
+        dataManager.saveData();
+
+        // Refresh minimap to show changes
+        this.refreshMinimap();
     }
 
     saveSectionSettings() {
