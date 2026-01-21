@@ -1550,10 +1550,14 @@ class AdminPanel {
             aitools: document.getElementById('section-title-aitools')?.value || '사용해본 AI',
             related: document.getElementById('section-title-related')?.value || '관련경력',
             other: document.getElementById('section-title-other')?.value || '기타경력',
-            evaluation: document.getElementById('section-title-evaluation')?.value || '자기평가',
+            evaluation: document.getElementById('section-title-evaluation')?.value || '내가 생각하는 내평가',
+            radarchart: document.getElementById('section-title-radarchart')?.value || '자신 있는 부분과 없는 부분 그래프',
             video: document.getElementById('section-title-video')?.value || '영상',
             portfolio: document.getElementById('section-title-portfolio')?.value || '포트폴리오',
-            contact: document.getElementById('section-title-contact')?.value || '연락처'
+            contact: document.getElementById('section-title-contact')?.value || '연락처',
+            webmobile: document.getElementById('section-title-webmobile')?.value || '웹 & 모바일',
+            popupbanner: document.getElementById('section-title-popupbanner')?.value || '팝업 & 배너',
+            detailpage: document.getElementById('section-title-detailpage')?.value || '상세페이지'
         };
 
         // Font sizes
@@ -1928,16 +1932,20 @@ class AdminPanel {
 
         // Section titles - with null checks
         const sectionTitles = settings.sectionTitles || {};
-        const sectionTitleFields = ['about', 'aitools', 'related', 'other', 'evaluation', 'video', 'portfolio', 'contact'];
+        const sectionTitleFields = ['aitools', 'related', 'other', 'evaluation', 'radarchart', 'contact', 'webmobile', 'popupbanner', 'detailpage'];
         const defaultTitles = {
             about: '소개',
             aitools: '사용해본 AI',
             related: '관련경력',
             other: '기타경력',
-            evaluation: '자기평가',
+            evaluation: '내가 생각하는 내평가',
+            radarchart: '자신 있는 부분과 없는 부분 그래프',
             video: '영상',
             portfolio: '포트폴리오',
-            contact: '연락처'
+            contact: '연락처',
+            webmobile: '웹 & 모바일',
+            popupbanner: '팝업 & 배너',
+            detailpage: '상세페이지'
         };
         sectionTitleFields.forEach(field => {
             const el = document.getElementById(`section-title-${field}`);

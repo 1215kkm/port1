@@ -788,6 +788,9 @@ class PageInitializer {
         // Apply section and page visibility settings
         this.applySectionVisibility();
 
+        // Apply custom section titles
+        this.applySectionTitles();
+
         // Listen for data updates
         window.addEventListener('dataUpdated', () => {
             this.data = dataManager.getData();
@@ -816,6 +819,7 @@ class PageInitializer {
         this.renderMenu();
         this.initPortfolios();
         this.applySectionVisibility();
+        this.applySectionTitles();
 
         if (window.radarChart) {
             window.radarChart.update(this.data.evaluation.radarChart);
@@ -909,6 +913,77 @@ class PageInitializer {
             teamLink.style.display = teamDisplay;
             console.log('Team link display set to:', teamDisplay || 'default');
         }
+    }
+
+    applySectionTitles() {
+        const sectionTitles = this.data.siteSettings?.sectionTitles || {};
+
+        // Map of section title selectors and their default values
+        const titleMap = {
+            // Radar chart title in portfolio.html
+            radarchart: {
+                selector: '.evaluation-chart .evaluation-text-title',
+                defaultValue: '자신 있는 부분과 없는 부분 그래프'
+            },
+            // Web & Mobile section
+            webmobile: {
+                selector: '#web-mobile .section-title',
+                defaultValue: '웹 & 모바일'
+            },
+            // Popup & Banner section
+            popupbanner: {
+                selector: '#popup-banner .section-title',
+                defaultValue: '팝업 & 배너'
+            },
+            // Detail Page section
+            detailpage: {
+                selector: '#detail-page .section-title',
+                defaultValue: '상세페이지'
+            },
+            // Contact section title
+            contact: {
+                selector: '.contact-info-title',
+                defaultValue: '연락처'
+            }
+        };
+
+        Object.entries(titleMap).forEach(([key, config]) => {
+            const element = document.querySelector(config.selector);
+            if (element) {
+                const customTitle = sectionTitles[key];
+                element.textContent = customTitle || config.defaultValue;
+            }
+        });
+
+        // Also update nav links for portfolio sections
+        const navMap = {
+            webmobile: {
+                navSelector: 'a[href="#web-mobile"]',
+                dotSelector: '[data-section="web-mobile"]',
+                defaultValue: '웹&모바일'
+            },
+            popupbanner: {
+                navSelector: 'a[href="#popup-banner"]',
+                dotSelector: '[data-section="popup-banner"]',
+                defaultValue: '팝업&배너'
+            },
+            detailpage: {
+                navSelector: 'a[href="#detail-page"]',
+                dotSelector: '[data-section="detail-page"]',
+                defaultValue: '상세페이지'
+            }
+        };
+
+        Object.entries(navMap).forEach(([key, config]) => {
+            const customTitle = sectionTitles[key];
+            const title = customTitle || config.defaultValue;
+
+            const navLink = document.querySelector(config.navSelector);
+            if (navLink) navLink.textContent = title;
+
+            const dot = document.querySelector(config.dotSelector);
+            if (dot) dot.setAttribute('data-label', title);
+        });
     }
 
     initPortfolios() {
@@ -1249,9 +1324,11 @@ class PageInitializer {
 
     renderEvaluation() {
         const textContainer = document.querySelector('[data-content="evaluation-text"]');
+        const sectionTitles = this.data.siteSettings?.sectionTitles || {};
         if (textContainer) {
+            const evalTitle = sectionTitles.evaluation || '내가 생각하는 내평가';
             textContainer.innerHTML = `
-                <h3 class="evaluation-text-title">내가 생각하는 내평가</h3>
+                <h3 class="evaluation-text-title">${evalTitle}</h3>
                 <p class="evaluation-text-content">${this.data.evaluation.text.replace(/\n/g, '<br>')}</p>
             `;
         }

@@ -58,33 +58,46 @@ const PDFFontLoader = {
 
     // Load font from CDN (fallback)
     async loadDefaultFont() {
-        // Font URLs in order of preference
+        // Font URLs in order of preference - using TTF format for better jsPDF compatibility
         const fontUrls = [
-            // Google Fonts direct link
-            'https://fonts.gstatic.com/s/notosanskr/v27/Pby6FmXiEBPT4ITbgNA5CgmOelzI7g.otf',
-            // jsDelivr hosted Noto Sans KR
-            'https://cdn.jsdelivr.net/npm/@aspect-ratio/noto-sans-kr@0.0.7/fonts/NotoSansKR-Regular.otf',
-            // GitHub hosted fallback
-            'https://raw.githubusercontent.com/nickshanks/Allsorts/main/tests/fonts/noto/NotoSansKR-Regular.otf'
+            // Nanum Gothic from raw.githubusercontent (reliable)
+            'https://raw.githubusercontent.com/nickshanks/Allsorts/main/tests/fonts/noto/NotoSansKR-Regular.ttf',
+            // Google Fonts Noto Sans KR OTF
+            'https://fonts.gstatic.com/s/notosanskr/v36/PbyxFmXiEBPT4ITbgNA5Cgms3VYcOA-vvnIzzuoyeLTq8H4hfeE.otf',
+            // Backup: Nanum Gothic
+            'https://cdn.jsdelivr.net/gh/nickshanks/Allsorts@main/tests/fonts/nanum/NanumGothic-Regular.ttf'
         ];
 
         for (const url of fontUrls) {
             try {
                 console.log('Trying to load font from:', url);
-                const response = await fetch(url);
+                const response = await fetch(url, { mode: 'cors' });
                 if (response.ok) {
-                    const blob = await response.blob();
-                    const base64 = await this.blobToBase64(blob);
-                    console.log('Font loaded successfully from:', url);
+                    const arrayBuffer = await response.arrayBuffer();
+                    const base64 = this.arrayBufferToBase64(arrayBuffer);
+                    console.log('Font loaded successfully from:', url, 'Size:', base64.length);
                     return base64;
+                } else {
+                    console.warn('Font fetch failed with status:', response.status, url);
                 }
             } catch (error) {
-                console.warn('Failed to load font from:', url, error);
+                console.warn('Failed to load font from:', url, error.message);
             }
         }
 
-        console.error('All font sources failed');
+        console.error('All font sources failed, PDF will use default font');
         return null;
+    },
+
+    // Convert ArrayBuffer to Base64
+    arrayBufferToBase64(buffer) {
+        let binary = '';
+        const bytes = new Uint8Array(buffer);
+        const len = bytes.byteLength;
+        for (let i = 0; i < len; i++) {
+            binary += String.fromCharCode(bytes[i]);
+        }
+        return btoa(binary);
     },
 
     // Main load function - always use default Korean font for PDF (woff2 not supported by jsPDF)
@@ -116,20 +129,35 @@ const PDFFontLoader = {
     async registerFont(doc, fontSettings) {
         try {
             const fontData = await this.loadFont(fontSettings);
-            if (fontData) {
-                const fileName = `${this.fontName}.otf`;
-                doc.addFileToVFS(fileName, fontData);
-                doc.addFont(fileName, this.fontName, 'normal');
-                doc.setFont(this.fontName);
-                console.log('Font registered successfully:', this.fontName);
-                return true;
+            if (fontData && fontData.length > 1000) { // Ensure font data is substantial
+                // Try TTF first, then OTF
+                const fileNames = [`${this.fontName}.ttf`, `${this.fontName}.otf`];
+
+                for (const fileName of fileNames) {
+                    try {
+                        doc.addFileToVFS(fileName, fontData);
+                        doc.addFont(fileName, this.fontName, 'normal');
+                        doc.setFont(this.fontName);
+
+                        // Verify font is working by testing text width
+                        const testWidth = doc.getTextWidth('테스트');
+                        if (testWidth > 0) {
+                            console.log('Font registered successfully:', this.fontName, 'using', fileName);
+                            return true;
+                        }
+                    } catch (e) {
+                        console.warn('Failed to register font with', fileName, e.message);
+                    }
+                }
+            } else {
+                console.warn('Font data is empty or too small');
             }
         } catch (error) {
             console.error('Failed to register font:', error);
         }
 
         // Font registration failed, use default helvetica
-        console.log('Using default helvetica font');
+        console.warn('Using default helvetica font - Korean text may not display correctly');
         return false;
     }
 };

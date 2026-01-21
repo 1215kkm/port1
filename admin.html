@@ -1256,11 +1256,7 @@
 
                         <h3 style="margin-bottom: var(--space-md);">섹션 제목 설정</h3>
                         <p style="font-size: 12px; color: #888; margin-bottom: var(--space-md);">각 섹션의 제목을 원하는 대로 수정할 수 있습니다.</p>
-                        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-md); margin-bottom: var(--space-xl);">
-                            <div class="form-group">
-                                <label class="form-label">소개</label>
-                                <input type="text" class="form-input" id="section-title-about" placeholder="소개">
-                            </div>
+                        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-md); margin-bottom: var(--space-md);">
                             <div class="form-group">
                                 <label class="form-label">AI 도구</label>
                                 <input type="text" class="form-input" id="section-title-aitools" placeholder="사용해본 AI">
@@ -1274,20 +1270,31 @@
                                 <input type="text" class="form-input" id="section-title-other" placeholder="기타경력">
                             </div>
                             <div class="form-group">
-                                <label class="form-label">자기평가</label>
-                                <input type="text" class="form-input" id="section-title-evaluation" placeholder="자기평가">
+                                <label class="form-label">자기평가 제목</label>
+                                <input type="text" class="form-input" id="section-title-evaluation" placeholder="내가 생각하는 내평가">
                             </div>
                             <div class="form-group">
-                                <label class="form-label">영상</label>
-                                <input type="text" class="form-input" id="section-title-video" placeholder="영상">
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">포트폴리오</label>
-                                <input type="text" class="form-input" id="section-title-portfolio" placeholder="포트폴리오">
+                                <label class="form-label">그래프 제목</label>
+                                <input type="text" class="form-input" id="section-title-radarchart" placeholder="자신 있는 부분과 없는 부분 그래프">
                             </div>
                             <div class="form-group">
                                 <label class="form-label">연락처</label>
                                 <input type="text" class="form-input" id="section-title-contact" placeholder="연락처">
+                            </div>
+                        </div>
+                        <p style="font-size: 12px; color: #a78bfa; margin-bottom: var(--space-md);">📂 포트폴리오 섹션 제목</p>
+                        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-md); margin-bottom: var(--space-xl);">
+                            <div class="form-group">
+                                <label class="form-label">웹 & 모바일</label>
+                                <input type="text" class="form-input" id="section-title-webmobile" placeholder="웹 & 모바일">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">팝업 & 배너</label>
+                                <input type="text" class="form-input" id="section-title-popupbanner" placeholder="팝업 & 배너">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">상세페이지</label>
+                                <input type="text" class="form-input" id="section-title-detailpage" placeholder="상세페이지">
                             </div>
                         </div>
 
@@ -1947,7 +1954,10 @@
     <!-- Scripts -->
     <script type="module">
         // Check authentication before loading admin
-        import { AuthManager, AnalyticsManager } from './js/firebase-config.js';
+        import { AuthManager, AnalyticsManager, CouponManager } from './js/firebase-config.js';
+
+        // Make CouponManager available globally
+        window.CouponManager = CouponManager;
 
         // Super admin emails
         const SUPER_ADMIN_EMAILS = ['1215kkm@naver.com'];
