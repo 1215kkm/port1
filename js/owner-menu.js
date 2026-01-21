@@ -314,9 +314,9 @@
         </a>
 
         ${pageSettings.ai !== false ? `
-        <a href="ai.html" class="owner-menu-item ${currentPage === 'ai.html' ? 'active' : ''}" title="AI 작품">
+        <a href="ai.html" class="owner-menu-item ${currentPage === 'ai.html' ? 'active' : ''}" title="AI 활용제작">
             <span class="owner-menu-icon">🤖</span>
-            <span class="owner-menu-label">AI작품</span>
+            <span class="owner-menu-label">AI활용</span>
         </a>
         ` : ''}
 

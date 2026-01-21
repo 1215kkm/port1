@@ -150,6 +150,9 @@ class AdminPanel {
 
         // Set the portfolio URL with user ID
         const userId = dataManager.userId;
+        this.minimapUserId = userId;
+        this.currentMinimapPage = 'portfolio';
+
         if (userId) {
             minimapFrame.src = `portfolio.html?u=${userId}`;
         }
@@ -176,6 +179,103 @@ class AdminPanel {
                 this.refreshMinimap();
             });
         }
+
+        // Minimap page navigation buttons
+        document.querySelectorAll('.minimap-nav-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const page = btn.dataset.page;
+                this.switchMinimapPage(page);
+
+                // Update active state
+                document.querySelectorAll('.minimap-nav-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+            });
+        });
+
+        // Minimap page settings checkboxes
+        this.initMinimapPageSettings();
+
+        // Auto-refresh minimap every 3 seconds when editing
+        this.startMinimapAutoRefresh();
+    }
+
+    initMinimapPageSettings() {
+        const pageSettings = this.data.pageSettings || { intro: true, ai: true, team: true };
+
+        // Set initial checkbox states
+        const introCheck = document.getElementById('minimap-page-intro');
+        const aiCheck = document.getElementById('minimap-page-ai');
+        const teamCheck = document.getElementById('minimap-page-team');
+
+        if (introCheck) introCheck.checked = pageSettings.intro !== false;
+        if (aiCheck) aiCheck.checked = pageSettings.ai !== false;
+        if (teamCheck) teamCheck.checked = pageSettings.team !== false;
+
+        // Add change listeners
+        [introCheck, aiCheck, teamCheck].forEach(check => {
+            if (check) {
+                check.addEventListener('change', () => {
+                    this.saveMinimapPageSettings();
+                });
+            }
+        });
+    }
+
+    saveMinimapPageSettings() {
+        const pageSettings = {
+            intro: document.getElementById('minimap-page-intro')?.checked !== false,
+            ai: document.getElementById('minimap-page-ai')?.checked !== false,
+            team: document.getElementById('minimap-page-team')?.checked !== false
+        };
+
+        // Update both minimap and main page settings
+        dataManager.set('pageSettings', pageSettings);
+        dataManager.saveData();
+
+        // Sync with main page settings panel
+        const mainIntro = document.getElementById('page-enable-intro');
+        const mainAi = document.getElementById('page-enable-ai');
+        const mainTeam = document.getElementById('page-enable-team');
+
+        if (mainIntro) mainIntro.checked = pageSettings.intro;
+        if (mainAi) mainAi.checked = pageSettings.ai;
+        if (mainTeam) mainTeam.checked = pageSettings.team;
+    }
+
+    switchMinimapPage(page) {
+        const minimapFrame = document.getElementById('minimap-frame');
+        if (!minimapFrame) return;
+
+        this.currentMinimapPage = page;
+        const userId = this.minimapUserId;
+        const userParam = userId ? `?u=${userId}` : '';
+
+        minimapFrame.src = `${page}.html${userParam}`;
+
+        // Update header text
+        const headerText = {
+            'portfolio': '혼자제작',
+            'ai': 'AI활용',
+            'team': '팀플'
+        };
+        const currentSectionEl = document.getElementById('minimap-current-section');
+        if (currentSectionEl) {
+            currentSectionEl.textContent = headerText[page] || page;
+        }
+    }
+
+    startMinimapAutoRefresh() {
+        // Debounced refresh on input changes
+        let refreshTimeout = null;
+
+        document.querySelectorAll('.admin-main input, .admin-main textarea, .admin-main select').forEach(input => {
+            input.addEventListener('input', () => {
+                if (refreshTimeout) clearTimeout(refreshTimeout);
+                refreshTimeout = setTimeout(() => {
+                    this.refreshMinimap();
+                }, 1500); // Refresh 1.5 seconds after typing stops
+            });
+        });
     }
 
     updateMinimapSection() {
@@ -222,7 +322,25 @@ class AdminPanel {
                     panel.classList.remove('active');
                 });
                 document.getElementById(`panel-${page}`)?.classList.add('active');
+
+                // Sync minimap with page tab
+                if (page === 'solo') {
+                    this.switchMinimapPage('portfolio');
+                    this.updateMinimapNavActive('portfolio');
+                } else if (page === 'ai') {
+                    this.switchMinimapPage('ai');
+                    this.updateMinimapNavActive('ai');
+                } else if (page === 'team') {
+                    this.switchMinimapPage('team');
+                    this.updateMinimapNavActive('team');
+                }
             });
+        });
+    }
+
+    updateMinimapNavActive(page) {
+        document.querySelectorAll('.minimap-nav-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.page === page);
         });
     }
 
@@ -1327,6 +1445,15 @@ class AdminPanel {
 
         dataManager.set('pageSettings', pageSettings);
         dataManager.saveData();
+
+        // Sync with minimap checkboxes
+        const miniIntro = document.getElementById('minimap-page-intro');
+        const miniAi = document.getElementById('minimap-page-ai');
+        const miniTeam = document.getElementById('minimap-page-team');
+
+        if (miniIntro) miniIntro.checked = pageSettings.intro;
+        if (miniAi) miniAi.checked = pageSettings.ai;
+        if (miniTeam) miniTeam.checked = pageSettings.team;
     }
 
     renderFloatingThemePanel() {

@@ -457,6 +457,83 @@
             transition: all 0.3s ease;
         }
 
+        .minimap-page-settings {
+            padding: 8px 10px;
+            background: #2a2a3e;
+            border-bottom: 1px solid #333;
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .minimap-page-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 11px;
+            color: #ccc;
+        }
+
+        .minimap-page-item input[type="checkbox"] {
+            width: 14px;
+            height: 14px;
+            cursor: pointer;
+        }
+
+        .minimap-page-item label {
+            cursor: pointer;
+        }
+
+        .minimap-refresh-hint {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 11px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+        }
+
+        .minimap-overlay:hover .minimap-refresh-hint {
+            opacity: 1;
+        }
+
+        .minimap-footer {
+            padding: 8px;
+            background: #222;
+            border-top: 1px solid #333;
+            display: flex;
+            gap: 4px;
+        }
+
+        .minimap-nav-btn {
+            flex: 1;
+            padding: 6px 8px;
+            background: #333;
+            border: 1px solid #444;
+            border-radius: 4px;
+            color: #aaa;
+            font-size: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .minimap-nav-btn:hover {
+            background: #444;
+            color: #fff;
+        }
+
+        .minimap-nav-btn.active {
+            background: var(--color-primary);
+            color: white;
+            border-color: var(--color-primary);
+        }
+
         /* Page Toggle Styles */
         .page-toggle-list {
             display: flex;
@@ -943,7 +1020,7 @@
                                     <span class="toggle-slider"></span>
                                 </label>
                                 <div class="page-toggle-info">
-                                    <span class="page-toggle-name">AI 제작 페이지</span>
+                                    <span class="page-toggle-name">AI 활용제작 페이지</span>
                                     <span class="page-toggle-desc">AI를 활용한 프로젝트 페이지 (ai.html)</span>
                                 </div>
                             </div>
@@ -1227,12 +1304,37 @@
         <div class="site-minimap" id="site-minimap">
             <div class="minimap-header">
                 <span class="minimap-header-icon">🗺️</span>
-                <span>사이트 미리보기</span>
+                <span>미리보기</span>
                 <span class="minimap-current-section" id="minimap-current-section">자기소개</span>
             </div>
+
+            <!-- Page Settings -->
+            <div class="minimap-page-settings">
+                <div class="minimap-page-item">
+                    <input type="checkbox" id="minimap-page-intro" checked>
+                    <label for="minimap-page-intro">인트로</label>
+                </div>
+                <div class="minimap-page-item">
+                    <input type="checkbox" id="minimap-page-ai" checked>
+                    <label for="minimap-page-ai">AI활용</label>
+                </div>
+                <div class="minimap-page-item">
+                    <input type="checkbox" id="minimap-page-team" checked>
+                    <label for="minimap-page-team">팀플</label>
+                </div>
+            </div>
+
             <div class="minimap-frame-container">
                 <iframe class="minimap-frame" id="minimap-frame" src="portfolio.html"></iframe>
-                <div class="minimap-overlay" id="minimap-overlay"></div>
+                <div class="minimap-overlay" id="minimap-overlay">
+                    <span class="minimap-refresh-hint">클릭하여 새로고침</span>
+                </div>
+            </div>
+
+            <div class="minimap-footer">
+                <button class="minimap-nav-btn active" data-page="portfolio">혼자제작</button>
+                <button class="minimap-nav-btn" data-page="ai">AI활용</button>
+                <button class="minimap-nav-btn" data-page="team">팀플</button>
             </div>
         </div>
 
