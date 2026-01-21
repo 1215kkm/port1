@@ -1305,23 +1305,14 @@ class PageInitializer {
     }
 
     applySectionOrder() {
-        const sectionOrder = this.data.sectionOrder || [];
-        const mainContainer = document.querySelector('main') || document.querySelector('.main');
-        if (!mainContainer) return;
+        // Note: Section order reordering is currently disabled
+        // The admin's section settings panel controls visibility, not DOM order
+        // The actual page section order is determined by the HTML structure
+        // To enable section reordering, the sectionOrder should contain actual section IDs
+        // like 'about', 'web-mobile', 'popup-banner', 'detail-page', 'contact'
 
-        // Get all sections
-        const sections = [];
-        sectionOrder.forEach(sectionId => {
-            const section = document.getElementById(sectionId);
-            if (section) {
-                sections.push(section);
-            }
-        });
-
-        // Reorder sections in DOM
-        sections.forEach(section => {
-            mainContainer.appendChild(section);
-        });
+        // For now, we skip DOM reordering to prevent layout issues
+        return;
     }
 }
 
