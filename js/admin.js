@@ -686,16 +686,14 @@ class AdminPanel {
             const diff = startX - e.clientX;
             const newWidth = Math.min(Math.max(startWidth + diff, 300), 700);
 
+            // Update right panel width
             rightPanel.style.width = newWidth + 'px';
-            handle.style.right = (newWidth + 10) + 'px';
+            // Handle position = panel width + panel right margin (20px) + gap (10px)
+            handle.style.right = (newWidth + 30) + 'px';
 
             if (adminMain) {
-                adminMain.style.marginRight = (newWidth + 30) + 'px';
-            }
-
-            // Force minimap to recalculate its width
-            if (minimap) {
-                minimap.style.width = '';  // Reset to allow flex to recalculate
+                // Admin main margin = panel width + panel right margin + handle width + gap
+                adminMain.style.marginRight = (newWidth + 50) + 'px';
             }
         });
 
@@ -716,9 +714,9 @@ class AdminPanel {
         if (savedWidth) {
             const width = parseInt(savedWidth);
             rightPanel.style.width = width + 'px';
-            handle.style.right = (width + 10) + 'px';
+            handle.style.right = (width + 30) + 'px';
             if (adminMain) {
-                adminMain.style.marginRight = (width + 30) + 'px';
+                adminMain.style.marginRight = (width + 50) + 'px';
             }
         }
     }
