@@ -612,6 +612,7 @@
             transform: scale(0.25);
             transform-origin: top left;
             pointer-events: none;
+            transition: transform 0.15s ease, width 0.15s ease, height 0.15s ease;
         }
 
         .minimap-overlay {
@@ -1247,77 +1248,70 @@
                                     <span style="font-size: 11px; color: #888;">일반 텍스트, 설명에 적용</span>
                                 </div>
                             </div>
-                            <!-- 오른쪽: 글자 크기 조절 -->
+                            <!-- 오른쪽: 글자 크기 및 색상 조절 -->
                             <div class="font-setting-column">
-                                <h4 style="margin-bottom: var(--space-md); color: var(--color-secondary);">글자 크기 설정</h4>
-                                <p style="font-size: 12px; color: #888; margin-bottom: var(--space-md);">사이트에서 사용되는 각 글자 크기를 조절하세요.</p>
+                                <h4 style="margin-bottom: var(--space-md); color: var(--color-secondary);">글자 크기 & 색상 설정</h4>
+                                <p style="font-size: 12px; color: #888; margin-bottom: var(--space-md);">각 글자 크기와 색상을 조절하세요. 실제 포트폴리오에서 사용되는 텍스트입니다.</p>
 
                                 <div class="font-size-setting">
                                     <div class="font-size-input">
                                         <label class="form-label">히어로 제목</label>
-                                        <input type="text" class="form-input" id="font-size-5xl" placeholder="3rem">
+                                        <div style="display: flex; gap: 8px;">
+                                            <input type="text" class="form-input" id="font-size-5xl" placeholder="3rem" style="flex: 1;">
+                                            <input type="color" id="font-color-5xl" value="#212529" style="width: 36px; height: 36px; border: none; cursor: pointer; border-radius: 4px;">
+                                        </div>
                                     </div>
-                                    <div class="font-size-preview" style="font-size: 2rem; line-height: 1.2; font-weight: bold;">포트폴리오</div>
+                                    <div class="font-size-preview" id="preview-5xl" style="font-size: 2rem; line-height: 1.2; font-weight: bold;">김강모</div>
                                 </div>
                                 <div class="font-size-setting">
                                     <div class="font-size-input">
-                                        <label class="form-label">대제목</label>
-                                        <input type="text" class="form-input" id="font-size-4xl" placeholder="2.25rem">
+                                        <label class="form-label">대제목 (직무)</label>
+                                        <div style="display: flex; gap: 8px;">
+                                            <input type="text" class="form-input" id="font-size-4xl" placeholder="2.25rem" style="flex: 1;">
+                                            <input type="color" id="font-color-4xl" value="#212529" style="width: 36px; height: 36px; border: none; cursor: pointer; border-radius: 4px;">
+                                        </div>
                                     </div>
-                                    <div class="font-size-preview" style="font-size: 1.5rem; line-height: 1.2; font-weight: bold;">자기소개</div>
+                                    <div class="font-size-preview" id="preview-4xl" style="font-size: 1.5rem; line-height: 1.2; font-weight: bold;">UIUX 디자이너</div>
                                 </div>
                                 <div class="font-size-setting">
                                     <div class="font-size-input">
                                         <label class="form-label">섹션 제목</label>
-                                        <input type="text" class="form-input" id="font-size-3xl" placeholder="1.875rem">
+                                        <div style="display: flex; gap: 8px;">
+                                            <input type="text" class="form-input" id="font-size-3xl" placeholder="1.875rem" style="flex: 1;">
+                                            <input type="color" id="font-color-3xl" value="#212529" style="width: 36px; height: 36px; border: none; cursor: pointer; border-radius: 4px;">
+                                        </div>
                                     </div>
-                                    <div class="font-size-preview" style="font-size: 1.25rem; line-height: 1.2; font-weight: 600;">관련경력</div>
+                                    <div class="font-size-preview" id="preview-3xl" style="font-size: 1.25rem; line-height: 1.2; font-weight: 600;">사용해본 AI (13가지)</div>
                                 </div>
                                 <div class="font-size-setting">
                                     <div class="font-size-input">
-                                        <label class="form-label">소제목</label>
-                                        <input type="text" class="form-input" id="font-size-2xl" placeholder="1.5rem">
+                                        <label class="form-label">소제목 (가능직무)</label>
+                                        <div style="display: flex; gap: 8px;">
+                                            <input type="text" class="form-input" id="font-size-2xl" placeholder="1.5rem" style="flex: 1;">
+                                            <input type="color" id="font-color-2xl" value="#495057" style="width: 36px; height: 36px; border: none; cursor: pointer; border-radius: 4px;">
+                                        </div>
                                     </div>
-                                    <div class="font-size-preview" style="font-size: 1.1rem; line-height: 1.2; font-weight: 500;">카드 제목</div>
+                                    <div class="font-size-preview" id="preview-2xl" style="font-size: 1.1rem; line-height: 1.2; font-weight: 500;">쇼핑몰 디자이너, 퍼블리셔</div>
                                 </div>
                                 <div class="font-size-setting">
                                     <div class="font-size-input">
                                         <label class="form-label">기본 본문</label>
-                                        <input type="text" class="form-input" id="font-size-base" placeholder="1rem">
+                                        <div style="display: flex; gap: 8px;">
+                                            <input type="text" class="form-input" id="font-size-base" placeholder="1rem" style="flex: 1;">
+                                            <input type="color" id="font-color-base" value="#495057" style="width: 36px; height: 36px; border: none; cursor: pointer; border-radius: 4px;">
+                                        </div>
                                     </div>
-                                    <div class="font-size-preview" style="font-size: 1rem; line-height: 1.4;">일반 텍스트 내용입니다</div>
+                                    <div class="font-size-preview" id="preview-base" style="font-size: 1rem; line-height: 1.4;">안녕하세요, UIUX 디자이너입니다</div>
                                 </div>
                                 <div class="font-size-setting">
                                     <div class="font-size-input">
-                                        <label class="form-label">작은 텍스트</label>
-                                        <input type="text" class="form-input" id="font-size-sm" placeholder="0.875rem">
+                                        <label class="form-label">작은 텍스트 (날짜)</label>
+                                        <div style="display: flex; gap: 8px;">
+                                            <input type="text" class="form-input" id="font-size-sm" placeholder="0.875rem" style="flex: 1;">
+                                            <input type="color" id="font-color-sm" value="#6c757d" style="width: 36px; height: 36px; border: none; cursor: pointer; border-radius: 4px;">
+                                        </div>
                                     </div>
-                                    <div class="font-size-preview" style="font-size: 0.85rem; line-height: 1.4; color: #666;">부가 정보, 날짜</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <h3 style="margin-bottom: var(--space-md);">글자 색상</h3>
-                        <div class="settings-row-3">
-                            <div class="form-group">
-                                <label class="form-label">큰제목 색상</label>
-                                <div style="display: flex; gap: var(--space-sm); align-items: center;">
-                                    <input type="color" id="font-color-title1" value="#212529" style="width: 40px; height: 32px; border: none; cursor: pointer;">
-                                    <input type="text" class="form-input" id="font-color-title1-text" placeholder="#212529" style="flex: 1;">
-                                </div>
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">중간제목 색상</label>
-                                <div style="display: flex; gap: var(--space-sm); align-items: center;">
-                                    <input type="color" id="font-color-title2" value="#212529" style="width: 40px; height: 32px; border: none; cursor: pointer;">
-                                    <input type="text" class="form-input" id="font-color-title2-text" placeholder="#212529" style="flex: 1;">
-                                </div>
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">내용 색상</label>
-                                <div style="display: flex; gap: var(--space-sm); align-items: center;">
-                                    <input type="color" id="font-color-content" value="#212529" style="width: 40px; height: 32px; border: none; cursor: pointer;">
-                                    <input type="text" class="form-input" id="font-color-content-text" placeholder="#212529" style="flex: 1;">
+                                    <div class="font-size-preview" id="preview-sm" style="font-size: 0.85rem; line-height: 1.4; color: #666;">2024.01 - 2024.12 (1년)</div>
                                 </div>
                             </div>
                         </div>

@@ -695,6 +695,9 @@ class AdminPanel {
                 // Admin main margin = panel width + panel right margin + handle width + gap
                 adminMain.style.marginRight = (newWidth + 50) + 'px';
             }
+
+            // Adjust minimap iframe scale based on panel width
+            this.updateMinimapScale(newWidth);
         });
 
         document.addEventListener('mouseup', () => {
@@ -709,16 +712,44 @@ class AdminPanel {
             }
         });
 
-        // Restore saved width
+        // Restore saved width or use default
         const savedWidth = localStorage.getItem('rightPanelWidth');
+        const initialWidth = savedWidth ? parseInt(savedWidth) : 440;
+
         if (savedWidth) {
-            const width = parseInt(savedWidth);
-            rightPanel.style.width = width + 'px';
-            handle.style.right = (width + 30) + 'px';
+            rightPanel.style.width = initialWidth + 'px';
+            handle.style.right = (initialWidth + 30) + 'px';
             if (adminMain) {
-                adminMain.style.marginRight = (width + 50) + 'px';
+                adminMain.style.marginRight = (initialWidth + 50) + 'px';
             }
         }
+
+        // Always set initial minimap scale
+        this.updateMinimapScale(initialWidth);
+    }
+
+    updateMinimapScale(panelWidth) {
+        const minimapFrame = document.getElementById('minimap-frame');
+        if (!minimapFrame) return;
+
+        // Base: 400px panel uses 0.25 scale (shows full width site scaled down)
+        // Larger panel: proportionally larger scale to show more detail
+        // Scale range: 0.25 (at 300px) to 0.45 (at 700px)
+        const minWidth = 300;
+        const maxWidth = 700;
+        const minScale = 0.25;
+        const maxScale = 0.45;
+
+        const ratio = (panelWidth - minWidth) / (maxWidth - minWidth);
+        const scale = minScale + ratio * (maxScale - minScale);
+
+        // Calculate iframe size based on scale (inverse relationship)
+        const iframeWidth = 100 / scale;
+        const iframeHeight = 100 / scale;
+
+        minimapFrame.style.width = iframeWidth + '%';
+        minimapFrame.style.height = iframeHeight + '%';
+        minimapFrame.style.transform = `scale(${scale})`;
     }
 
     // =====================
@@ -941,6 +972,16 @@ class AdminPanel {
             'sm': document.getElementById('font-size-sm')?.value || '0.875rem'
         };
 
+        // Font colors per level
+        const fontColors = {
+            '5xl': document.getElementById('font-color-5xl')?.value || '#212529',
+            '4xl': document.getElementById('font-color-4xl')?.value || '#212529',
+            '3xl': document.getElementById('font-color-3xl')?.value || '#212529',
+            '2xl': document.getElementById('font-color-2xl')?.value || '#495057',
+            'base': document.getElementById('font-color-base')?.value || '#495057',
+            'sm': document.getElementById('font-color-sm')?.value || '#6c757d'
+        };
+
         dataManager.updateSiteSettings({
             logo: { type: logoType, text: logoText, imageUrl: logoImageUrl },
             font: {
@@ -948,6 +989,7 @@ class AdminPanel {
                 content: fontContent,
                 fontFaceAll: fontFaceAll,
                 fontSizes: fontSizes,
+                fontColors: fontColors,
                 colors: {
                     title1: fontColorTitle1,
                     title2: fontColorTitle2,
@@ -1312,6 +1354,48 @@ class AdminPanel {
         this.setupColorSync('font-color-title1');
         this.setupColorSync('font-color-title2');
         this.setupColorSync('font-color-content');
+
+        // Per-level font colors
+        const fontColorsPerLevel = settings.font?.fontColors || {};
+        const colorLevels = ['5xl', '4xl', '3xl', '2xl', 'base', 'sm'];
+        const defaultColors = {
+            '5xl': '#212529',
+            '4xl': '#212529',
+            '3xl': '#212529',
+            '2xl': '#495057',
+            'base': '#495057',
+            'sm': '#6c757d'
+        };
+
+        colorLevels.forEach(level => {
+            const colorEl = document.getElementById('font-color-' + level);
+            const previewEl = document.getElementById('preview-' + level);
+            const colorValue = fontColorsPerLevel[level] || defaultColors[level];
+
+            if (colorEl) {
+                colorEl.value = colorValue;
+                // Add event listener for real-time preview update
+                colorEl.addEventListener('input', (e) => {
+                    if (previewEl) {
+                        previewEl.style.color = e.target.value;
+                    }
+                });
+            }
+            if (previewEl) {
+                previewEl.style.color = colorValue;
+            }
+        });
+
+        // Also add event listeners for font size inputs to update preview
+        colorLevels.forEach(level => {
+            const sizeEl = document.getElementById('font-size-' + level);
+            const previewEl = document.getElementById('preview-' + level);
+            if (sizeEl && previewEl) {
+                sizeEl.addEventListener('input', (e) => {
+                    previewEl.style.fontSize = e.target.value;
+                });
+            }
+        });
     }
 
     setupColorSync(baseId) {
@@ -1917,6 +2001,30 @@ class AdminPanel {
         Object.entries(fontSizeInputs).forEach(([id, defaultValue]) => {
             const el = document.getElementById(id);
             if (el) el.value = defaultValue;
+        });
+
+        // Font color settings per level
+        const fontColors = this.data.fontSettings?.fontColors || {};
+        const fontColorInputs = {
+            'font-color-5xl': fontColors['5xl'] || '#212529',
+            'font-color-4xl': fontColors['4xl'] || '#212529',
+            'font-color-3xl': fontColors['3xl'] || '#212529',
+            'font-color-2xl': fontColors['2xl'] || '#495057',
+            'font-color-base': fontColors['base'] || '#495057',
+            'font-color-sm': fontColors['sm'] || '#6c757d'
+        };
+
+        Object.entries(fontColorInputs).forEach(([id, defaultValue]) => {
+            const el = document.getElementById(id);
+            if (el) {
+                el.value = defaultValue;
+                // Also update the preview color
+                const level = id.replace('font-color-', '');
+                const previewEl = document.getElementById('preview-' + level);
+                if (previewEl) {
+                    previewEl.style.color = defaultValue;
+                }
+            }
         });
     }
 
@@ -2583,6 +2691,24 @@ class AdminPanel {
                 <textarea class="form-textarea" id="modal-project-role-detail">${(existing?.myRoleDetail || []).join('\n')}</textarea>
             </div>
             <div class="form-group">
+                <label class="form-label">기여도 (역할별 %)</label>
+                <div id="modal-contribution-bars">
+                    ${(existing?.contributionBars || [
+                        { label: '기획', value: 50 },
+                        { label: '디자인', value: 50 },
+                        { label: '퍼블', value: 50 }
+                    ]).map((bar, i) => `
+                        <div class="contribution-bar-item" style="display: flex; gap: 8px; margin-bottom: 8px; align-items: center;">
+                            <input type="text" class="form-input contribution-label" value="${bar.label}" placeholder="역할명" style="width: 100px;">
+                            <input type="range" class="contribution-range" value="${bar.value}" min="0" max="100" style="flex: 1;">
+                            <span class="contribution-value" style="width: 40px; text-align: right;">${bar.value}%</span>
+                            <button type="button" class="btn-remove-contribution" style="width: 24px; height: 24px; border-radius: 50%; background: #e74c3c; color: white; border: none; cursor: pointer; font-size: 12px;">✕</button>
+                        </div>
+                    `).join('')}
+                </div>
+                <button type="button" class="btn btn-secondary btn-sm" id="btn-add-project-contribution" style="margin-top: 8px;">+ 기여도 추가</button>
+            </div>
+            <div class="form-group">
                 <label class="form-label">${projectType === 'ai' ? 'AI 활용' : '팀 협업'} 설명</label>
                 <textarea class="form-textarea" id="modal-project-ai">${existing?.descriptions?.aiUsage || ''}</textarea>
             </div>
@@ -2652,6 +2778,9 @@ class AdminPanel {
 
         this.bindProjectImageRemove(projectPreviewContainer, projectImagesInput);
 
+        // Contribution bars event listeners
+        this.bindContributionBars();
+
         document.getElementById('modal-save').addEventListener('click', () => {
             const title = document.getElementById('modal-project-title').value.trim();
             const team = document.getElementById('modal-project-team').value.trim();
@@ -2670,6 +2799,17 @@ class AdminPanel {
                 return;
             }
 
+            // Get contribution bars from modal
+            const contributionBars = [];
+            const contributionItems = document.querySelectorAll('#modal-contribution-bars .contribution-bar-item');
+            contributionItems.forEach(item => {
+                const label = item.querySelector('.contribution-label')?.value.trim();
+                const value = parseInt(item.querySelector('.contribution-range')?.value) || 0;
+                if (label) {
+                    contributionBars.push({ label, value });
+                }
+            });
+
             const project = {
                 title,
                 team,
@@ -2680,7 +2820,7 @@ class AdminPanel {
                 images,
                 videoUrl,
                 links: [],
-                contributionBars: existing?.contributionBars || [
+                contributionBars: contributionBars.length > 0 ? contributionBars : [
                     { label: '기획', value: 50 },
                     { label: '디자인', value: 50 },
                     { label: '퍼블', value: 50 }
@@ -2711,6 +2851,70 @@ class AdminPanel {
         });
 
         document.getElementById('modal-cancel').addEventListener('click', () => this.closeModal());
+    }
+
+    bindContributionBars() {
+        const container = document.getElementById('modal-contribution-bars');
+        if (!container) return;
+
+        // Range slider value display update
+        const updateRangeDisplays = () => {
+            container.querySelectorAll('.contribution-bar-item').forEach(item => {
+                const range = item.querySelector('.contribution-range');
+                const display = item.querySelector('.contribution-value');
+                if (range && display) {
+                    range.addEventListener('input', () => {
+                        display.textContent = range.value + '%';
+                    });
+                }
+            });
+        };
+        updateRangeDisplays();
+
+        // Remove button
+        container.querySelectorAll('.btn-remove-contribution').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const items = container.querySelectorAll('.contribution-bar-item');
+                if (items.length > 1) {
+                    e.target.closest('.contribution-bar-item').remove();
+                } else {
+                    alert('최소 1개의 기여도가 필요합니다.');
+                }
+            });
+        });
+
+        // Add button
+        const addBtn = document.getElementById('btn-add-project-contribution');
+        if (addBtn) {
+            addBtn.addEventListener('click', () => {
+                const newItem = document.createElement('div');
+                newItem.className = 'contribution-bar-item';
+                newItem.style.cssText = 'display: flex; gap: 8px; margin-bottom: 8px; align-items: center;';
+                newItem.innerHTML = `
+                    <input type="text" class="form-input contribution-label" value="" placeholder="역할명" style="width: 100px;">
+                    <input type="range" class="contribution-range" value="50" min="0" max="100" style="flex: 1;">
+                    <span class="contribution-value" style="width: 40px; text-align: right;">50%</span>
+                    <button type="button" class="btn-remove-contribution" style="width: 24px; height: 24px; border-radius: 50%; background: #e74c3c; color: white; border: none; cursor: pointer; font-size: 12px;">✕</button>
+                `;
+                container.appendChild(newItem);
+
+                // Bind events for new item
+                const range = newItem.querySelector('.contribution-range');
+                const display = newItem.querySelector('.contribution-value');
+                range.addEventListener('input', () => {
+                    display.textContent = range.value + '%';
+                });
+
+                newItem.querySelector('.btn-remove-contribution').addEventListener('click', (e) => {
+                    const items = container.querySelectorAll('.contribution-bar-item');
+                    if (items.length > 1) {
+                        newItem.remove();
+                    } else {
+                        alert('최소 1개의 기여도가 필요합니다.');
+                    }
+                });
+            });
+        }
     }
 
     showInterviewModal(editId = null) {

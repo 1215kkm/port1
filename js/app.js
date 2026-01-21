@@ -984,6 +984,15 @@ class PageInitializer {
         if (colors.content) {
             document.documentElement.style.setProperty('--color-content', colors.content);
         }
+
+        // Apply per-level font colors
+        const fontColors = font.fontColors || {};
+        if (fontColors['5xl']) document.documentElement.style.setProperty('--color-5xl', fontColors['5xl']);
+        if (fontColors['4xl']) document.documentElement.style.setProperty('--color-4xl', fontColors['4xl']);
+        if (fontColors['3xl']) document.documentElement.style.setProperty('--color-3xl', fontColors['3xl']);
+        if (fontColors['2xl']) document.documentElement.style.setProperty('--color-2xl', fontColors['2xl']);
+        if (fontColors['base']) document.documentElement.style.setProperty('--color-base', fontColors['base']);
+        if (fontColors['sm']) document.documentElement.style.setProperty('--color-sm', fontColors['sm']);
     }
 
     applyBackgroundSettings() {

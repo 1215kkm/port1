@@ -87,6 +87,14 @@
     --color-title2: #212529;
     --color-content: #212529;
 
+    /* Per-level Font Colors */
+    --color-5xl: #212529;
+    --color-4xl: #212529;
+    --color-3xl: #212529;
+    --color-2xl: #495057;
+    --color-base: #495057;
+    --color-sm: #6c757d;
+
     /* Container */
     --container-sm: 640px;
     --container-md: 768px;
@@ -389,7 +397,7 @@ ul, ol {
     font-weight: var(--font-weight-title);
     font-family: var(--font-title);
     margin-bottom: var(--space-xl);
-    color: var(--color-title1);
+    color: var(--color-3xl);
 }
 
 .section-subtitle {
@@ -445,12 +453,12 @@ ul, ol {
     font-weight: var(--font-weight-title);
     font-family: var(--font-title);
     margin-bottom: var(--space-md);
-    color: var(--color-title2);
+    color: var(--color-2xl);
 }
 
 .intro-card-desc {
     font-size: var(--font-sm);
-    color: var(--color-content);
+    color: var(--color-sm);
 }
 
 /* About Section */
@@ -519,7 +527,7 @@ ul, ol {
     align-items: center;
     gap: var(--space-md);
     padding: var(--space-md) 0;
-    color: var(--color-title1);
+    color: var(--color-4xl);
 }
 
 .about-badge {
@@ -554,6 +562,7 @@ ul, ol {
     font-size: var(--font-lg);
     font-weight: 600;
     margin-bottom: var(--space-md);
+    color: var(--color-3xl);
 }
 
 .about-skills-list {
