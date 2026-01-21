@@ -351,6 +351,11 @@
             width: 80px;
         }
 
+        /* Modal z-index override (above resize-handle) */
+        .modal {
+            z-index: 2000 !important;
+        }
+
         /* Resize Handle */
         .resize-handle {
             position: fixed;
@@ -897,16 +902,6 @@
     <div class="admin-body">
         <!-- Sidebar -->
         <aside class="admin-sidebar">
-            <!-- Subscription Status -->
-            <div class="sidebar-section" id="subscription-section" style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border-radius: 8px; padding: 12px; margin-bottom: 16px; border: 1px solid #333;">
-                <div id="subscription-status">
-                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
-                        <span style="font-size: 16px;">⏳</span>
-                        <span style="font-size: 12px; color: #888;">구독 상태 확인 중...</span>
-                    </div>
-                </div>
-            </div>
-
             <div class="sidebar-section">
                 <div class="page-tabs">
                     <button class="page-tab" data-page="skin" style="background: var(--color-accent); color: white; margin-bottom: var(--space-md);">🎨 스킨수정</button>
@@ -928,6 +923,16 @@
                     <!-- Menu items will be rendered here -->
                 </div>
                 <button class="sidebar-add-btn" id="btn-add-menu">+ 메뉴 추가</button>
+            </div>
+
+            <!-- Subscription Status (at bottom) -->
+            <div class="sidebar-section" id="subscription-section" style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border-radius: 8px; padding: 12px; margin-top: auto; border: 1px solid #333;">
+                <div id="subscription-status">
+                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                        <span style="font-size: 16px;">⏳</span>
+                        <span style="font-size: 12px; color: #888;">구독 상태 확인 중...</span>
+                    </div>
+                </div>
             </div>
         </aside>
 
@@ -1212,16 +1217,38 @@
                                 <label class="form-label">로고 텍스트</label>
                                 <input type="text" class="form-input" id="logo-text">
                             </div>
-                            <div class="form-group" id="logo-image-group" style="display: none;">
-                                <label class="form-label">로고 이미지</label>
+                            <div class="form-group" id="logo-text-color-group">
+                                <label class="form-label">로고 텍스트 색상</label>
+                                <div style="display: flex; gap: var(--space-sm); align-items: center;">
+                                    <input type="color" id="logo-text-color" value="#212529" style="width: 40px; height: 36px; border: none; cursor: pointer; border-radius: 4px;">
+                                    <input type="text" class="form-input" id="logo-text-color-value" placeholder="#212529" style="flex: 1;">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="settings-row" id="logo-image-group" style="display: none; margin-bottom: var(--space-lg);">
+                            <div class="form-group">
+                                <label class="form-label">라이트 모드 로고</label>
                                 <div style="display: flex; gap: var(--space-md); align-items: flex-start;">
                                     <div style="flex: 1;">
-                                        <input type="text" class="form-input" id="logo-image-url" placeholder="이미지 URL 또는 파일 업로드">
-                                        <input type="file" id="logo-image-file" accept="image/*" style="display: none;">
-                                        <button type="button" class="btn btn-secondary" id="btn-logo-upload" style="margin-top: var(--space-sm);">이미지 파일 선택</button>
+                                        <input type="text" class="form-input" id="logo-image-url-light" placeholder="라이트 모드용 로고 이미지">
+                                        <input type="file" id="logo-image-file-light" accept="image/*" style="display: none;">
+                                        <button type="button" class="btn btn-secondary btn-sm" id="btn-logo-upload-light" style="margin-top: var(--space-sm);">파일 선택</button>
                                     </div>
-                                    <div id="logo-preview" style="width: 100px; height: 50px; border: 1px solid var(--color-border); border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; overflow: hidden;">
-                                        <span style="color: var(--color-text-muted); font-size: var(--font-xs);">미리보기</span>
+                                    <div id="logo-preview-light" style="width: 80px; height: 40px; border: 1px solid var(--color-border); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; overflow: hidden; background: #fff;">
+                                        <span style="color: #999; font-size: 10px;">Light</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">다크 모드 로고</label>
+                                <div style="display: flex; gap: var(--space-md); align-items: flex-start;">
+                                    <div style="flex: 1;">
+                                        <input type="text" class="form-input" id="logo-image-url-dark" placeholder="다크 모드용 로고 이미지">
+                                        <input type="file" id="logo-image-file-dark" accept="image/*" style="display: none;">
+                                        <button type="button" class="btn btn-secondary btn-sm" id="btn-logo-upload-dark" style="margin-top: var(--space-sm);">파일 선택</button>
+                                    </div>
+                                    <div id="logo-preview-dark" style="width: 80px; height: 40px; border: 1px solid var(--color-border); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; overflow: hidden; background: #1a1a2e;">
+                                        <span style="color: #666; font-size: 10px;">Dark</span>
                                     </div>
                                 </div>
                             </div>
@@ -1360,6 +1387,35 @@
                                         </div>
                                     </div>
                                     <div class="font-size-preview" id="preview-sm" style="font-size: 0.85rem; line-height: 1.4; color: #666;">2024.01 - 2024.12 (1년)</div>
+                                </div>
+
+                                <h4 style="margin-top: var(--space-xl); margin-bottom: var(--space-md); color: #9b59b6;">🌙 다크 모드 색상</h4>
+                                <p style="font-size: 11px; color: #888; margin-bottom: var(--space-md);">다크 모드에서 사용할 텍스트 색상을 설정하세요.</p>
+                                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-md);">
+                                    <div class="form-group">
+                                        <label class="form-label" style="font-size: 11px;">히어로 제목</label>
+                                        <input type="color" id="font-color-5xl-dark" value="#eaeaea" style="width: 100%; height: 32px; border: none; cursor: pointer; border-radius: 4px;">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label" style="font-size: 11px;">대제목</label>
+                                        <input type="color" id="font-color-4xl-dark" value="#eaeaea" style="width: 100%; height: 32px; border: none; cursor: pointer; border-radius: 4px;">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label" style="font-size: 11px;">섹션 제목</label>
+                                        <input type="color" id="font-color-3xl-dark" value="#eaeaea" style="width: 100%; height: 32px; border: none; cursor: pointer; border-radius: 4px;">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label" style="font-size: 11px;">소제목</label>
+                                        <input type="color" id="font-color-2xl-dark" value="#b8b8b8" style="width: 100%; height: 32px; border: none; cursor: pointer; border-radius: 4px;">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label" style="font-size: 11px;">기본 본문</label>
+                                        <input type="color" id="font-color-base-dark" value="#b8b8b8" style="width: 100%; height: 32px; border: none; cursor: pointer; border-radius: 4px;">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label" style="font-size: 11px;">작은 텍스트</label>
+                                        <input type="color" id="font-color-sm-dark" value="#888888" style="width: 100%; height: 32px; border: none; cursor: pointer; border-radius: 4px;">
+                                    </div>
                                 </div>
                             </div>
                         </div>

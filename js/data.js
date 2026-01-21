@@ -32,7 +32,9 @@ const defaultData = {
         logo: {
             type: 'text', // 'text' or 'image'
             text: 'Portfolio',
-            imageUrl: ''
+            textColor: '#212529',
+            imageUrlLight: '', // Light mode logo image
+            imageUrlDark: ''   // Dark mode logo image
         },
         sectionTitles: {
             about: '소개',
@@ -107,7 +109,23 @@ const defaultData = {
             colors: {
                 title1: '#212529',
                 title2: '#212529',
-                content: '#212529'
+                content: '#212529',
+                // Light mode per-level colors
+                '5xl': '#212529',
+                '4xl': '#212529',
+                '3xl': '#212529',
+                '2xl': '#495057',
+                'base': '#495057',
+                'sm': '#6c757d'
+            },
+            colorsDark: {
+                // Dark mode per-level colors
+                '5xl': '#eaeaea',
+                '4xl': '#eaeaea',
+                '3xl': '#eaeaea',
+                '2xl': '#b8b8b8',
+                'base': '#b8b8b8',
+                'sm': '#888888'
             }
         }
     },

@@ -643,8 +643,19 @@ class PortfolioRenderer {
             </div>
         `).join('');
 
+        // Convert line breaks to <br> for review text
+        const reviewHTML = item.review ? item.review.replace(/\n/g, '<br>') : '';
+
+        // Site visit button
+        const siteButtonHTML = item.siteUrl ? `<a href="${item.siteUrl}" target="_blank" class="btn btn-secondary">사이트 방문</a>` : '';
+
+        // Detail button (links to detail page if available)
+        const detailButtonHTML = item.detailImages?.length > 0 || item.detailDescriptions?.length > 0
+            ? `<button class="btn btn-outline" onclick="window.showPortfolioDetail && window.showPortfolioDetail('${item.id || ''}')">상세보기</button>`
+            : '';
+
         return `
-            <article class="portfolio-item">
+            <article class="portfolio-item" data-item-id="${item.id || ''}">
                 <div class="portfolio-thumbnail">
                     ${thumbnailHTML}
                 </div>
@@ -654,11 +665,13 @@ class PortfolioRenderer {
                         ${item.subject ? `<span class="portfolio-meta-item">주제: ${item.subject}</span>` : ''}
                         ${item.target ? `<span class="portfolio-meta-item">타겟: ${item.target}</span>` : ''}
                     </div>
-                    ${item.review ? `<p class="portfolio-desc">${item.review}</p>` : ''}
+                    ${reviewHTML ? `<p class="portfolio-desc">${reviewHTML}</p>` : ''}
                     <div class="portfolio-contributions">
                         ${contributionsHTML}
                     </div>
                     <div class="portfolio-links">
+                        ${detailButtonHTML}
+                        ${siteButtonHTML}
                         ${linksHTML}
                     </div>
                 </div>
@@ -1405,6 +1418,8 @@ document.addEventListener('DOMContentLoaded', () => {
         // Check if we're on a user page (not admin)
         if (!document.querySelector('.admin-layout')) {
             new PageInitializer();
+            // Remove loading class after data is loaded to show content
+            document.body.classList.remove('loading');
         }
     };
 

@@ -1049,13 +1049,16 @@ class AdminPanel {
         // Logo type change
         document.getElementById('logo-type')?.addEventListener('change', (e) => {
             const textGroup = document.getElementById('logo-text-group');
+            const textColorGroup = document.getElementById('logo-text-color-group');
             const imageGroup = document.getElementById('logo-image-group');
             if (e.target.value === 'text') {
-                textGroup.style.display = 'block';
-                imageGroup.style.display = 'none';
+                if (textGroup) textGroup.style.display = 'block';
+                if (textColorGroup) textColorGroup.style.display = 'block';
+                if (imageGroup) imageGroup.style.display = 'none';
             } else {
-                textGroup.style.display = 'none';
-                imageGroup.style.display = 'block';
+                if (textGroup) textGroup.style.display = 'none';
+                if (textColorGroup) textColorGroup.style.display = 'none';
+                if (imageGroup) imageGroup.style.display = 'flex';
             }
         });
     }
@@ -1097,46 +1100,86 @@ class AdminPanel {
             }
         });
 
-        // Logo image upload
-        const logoFileInput = document.getElementById('logo-image-file');
-        const logoUrlInput = document.getElementById('logo-image-url');
-        const logoUploadBtn = document.getElementById('btn-logo-upload');
-        const logoPreview = document.getElementById('logo-preview');
+        // Logo image upload - Light mode
+        const logoFileInputLight = document.getElementById('logo-image-file-light');
+        const logoUrlInputLight = document.getElementById('logo-image-url-light');
+        const logoUploadBtnLight = document.getElementById('btn-logo-upload-light');
 
-        if (logoUploadBtn && logoFileInput) {
-            logoUploadBtn.addEventListener('click', () => logoFileInput.click());
+        if (logoUploadBtnLight && logoFileInputLight) {
+            logoUploadBtnLight.addEventListener('click', () => logoFileInputLight.click());
 
-            logoFileInput.addEventListener('change', async (e) => {
+            logoFileInputLight.addEventListener('change', async (e) => {
                 const file = e.target.files[0];
                 if (file) {
-                    const logoPreview = document.getElementById('logo-preview');
+                    const logoPreview = document.getElementById('logo-preview-light');
                     showUploadLoading(logoPreview);
 
                     const imageUrl = await uploadImageToStorage(file, 'logo');
-                    logoUrlInput.value = imageUrl;
-                    this.updateLogoPreview(imageUrl + '?t=' + Date.now());
-                    hideUploadLoading(logoPreview);
+                    if (imageUrl) {
+                        logoUrlInputLight.value = imageUrl;
+                        this.updateLogoPreview(imageUrl + '?t=' + Date.now(), 'light');
+                        hideUploadLoading(logoPreview);
 
-                    // Save immediately after upload
-                    dataManager.set('siteSettings.logo.imageUrl', imageUrl);
-                    await dataManager.saveData();
-                    this.refreshMinimap();
+                        // Save immediately after upload
+                        dataManager.set('siteSettings.logo.imageUrlLight', imageUrl);
+                        await dataManager.saveData();
+                        this.refreshMinimap();
+                    } else {
+                        hideUploadLoading(logoPreview);
+                    }
                 }
             });
         }
 
-        // URL input change for logo
-        logoUrlInput?.addEventListener('change', () => {
-            this.updateLogoPreview(logoUrlInput.value);
+        // URL input change for logo light mode
+        logoUrlInputLight?.addEventListener('change', () => {
+            this.updateLogoPreview(logoUrlInputLight.value, 'light');
+        });
+
+        // Logo image upload - Dark mode
+        const logoFileInputDark = document.getElementById('logo-image-file-dark');
+        const logoUrlInputDark = document.getElementById('logo-image-url-dark');
+        const logoUploadBtnDark = document.getElementById('btn-logo-upload-dark');
+
+        if (logoUploadBtnDark && logoFileInputDark) {
+            logoUploadBtnDark.addEventListener('click', () => logoFileInputDark.click());
+
+            logoFileInputDark.addEventListener('change', async (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const logoPreview = document.getElementById('logo-preview-dark');
+                    showUploadLoading(logoPreview);
+
+                    const imageUrl = await uploadImageToStorage(file, 'logo');
+                    if (imageUrl) {
+                        logoUrlInputDark.value = imageUrl;
+                        this.updateLogoPreview(imageUrl + '?t=' + Date.now(), 'dark');
+                        hideUploadLoading(logoPreview);
+
+                        // Save immediately after upload
+                        dataManager.set('siteSettings.logo.imageUrlDark', imageUrl);
+                        await dataManager.saveData();
+                        this.refreshMinimap();
+                    } else {
+                        hideUploadLoading(logoPreview);
+                    }
+                }
+            });
+        }
+
+        // URL input change for logo dark mode
+        logoUrlInputDark?.addEventListener('change', () => {
+            this.updateLogoPreview(logoUrlInputDark.value, 'dark');
         });
     }
 
-    updateLogoPreview(src) {
-        const logoPreview = document.getElementById('logo-preview');
+    updateLogoPreview(src, mode = 'light') {
+        const logoPreview = document.getElementById(mode === 'dark' ? 'logo-preview-dark' : 'logo-preview-light');
         if (logoPreview && src) {
             logoPreview.innerHTML = createImageElement(src, '로고', 'max-width: 100%; max-height: 100%; object-fit: contain;');
         } else if (logoPreview) {
-            logoPreview.innerHTML = `<span style="color: var(--color-text-muted); font-size: var(--font-xs);">미리보기</span>`;
+            const label = mode === 'dark' ? 'Dark' : 'Light';
+            logoPreview.innerHTML = `<span style="color: ${mode === 'dark' ? '#666' : '#999'}; font-size: 10px;">${label}</span>`;
         }
     }
 
@@ -1212,7 +1255,9 @@ class AdminPanel {
     saveSiteSettings() {
         const logoType = document.getElementById('logo-type')?.value || 'text';
         const logoText = document.getElementById('logo-text')?.value || '';
-        const logoImageUrl = document.getElementById('logo-image-url')?.value || '';
+        const logoTextColor = document.getElementById('logo-text-color')?.value || '#212529';
+        const logoImageUrlLight = document.getElementById('logo-image-url-light')?.value || '';
+        const logoImageUrlDark = document.getElementById('logo-image-url-dark')?.value || '';
         const fontTitle = document.getElementById('font-title')?.value || 'Paperozi';
         const fontContent = document.getElementById('font-content')?.value || 'Paperozi';
         const fontFaceAll = document.getElementById('font-face-all')?.value || '';
@@ -1242,7 +1287,7 @@ class AdminPanel {
             'sm': document.getElementById('font-size-sm')?.value || '0.875rem'
         };
 
-        // Font colors per level
+        // Font colors per level (light mode)
         const fontColors = {
             '5xl': document.getElementById('font-color-5xl')?.value || '#212529',
             '4xl': document.getElementById('font-color-4xl')?.value || '#212529',
@@ -1252,8 +1297,24 @@ class AdminPanel {
             'sm': document.getElementById('font-color-sm')?.value || '#6c757d'
         };
 
+        // Font colors for dark mode
+        const colorsDark = {
+            '5xl': document.getElementById('font-color-5xl-dark')?.value || '#eaeaea',
+            '4xl': document.getElementById('font-color-4xl-dark')?.value || '#eaeaea',
+            '3xl': document.getElementById('font-color-3xl-dark')?.value || '#eaeaea',
+            '2xl': document.getElementById('font-color-2xl-dark')?.value || '#b8b8b8',
+            'base': document.getElementById('font-color-base-dark')?.value || '#b8b8b8',
+            'sm': document.getElementById('font-color-sm-dark')?.value || '#888888'
+        };
+
         dataManager.updateSiteSettings({
-            logo: { type: logoType, text: logoText, imageUrl: logoImageUrl },
+            logo: {
+                type: logoType,
+                text: logoText,
+                textColor: logoTextColor,
+                imageUrlLight: logoImageUrlLight,
+                imageUrlDark: logoImageUrlDark
+            },
             sectionTitles: sectionTitles,
             font: {
                 title: fontTitle,
@@ -1261,6 +1322,7 @@ class AdminPanel {
                 fontFaceAll: fontFaceAll,
                 fontSizes: fontSizes,
                 fontColors: fontColors,
+                colorsDark: colorsDark,
                 colors: {
                     title1: fontColorTitle1,
                     title2: fontColorTitle2,
@@ -1554,19 +1616,35 @@ class AdminPanel {
         // Logo - with null checks
         const logoTypeEl = document.getElementById('logo-type');
         const logoTextEl = document.getElementById('logo-text');
-        const logoImageUrlEl = document.getElementById('logo-image-url');
+        const logoTextColorEl = document.getElementById('logo-text-color');
+        const logoTextColorValueEl = document.getElementById('logo-text-color-value');
+        const logoImageUrlLightEl = document.getElementById('logo-image-url-light');
+        const logoImageUrlDarkEl = document.getElementById('logo-image-url-dark');
 
         if (logoTypeEl) logoTypeEl.value = settings.logo?.type || 'text';
         if (logoTextEl) logoTextEl.value = settings.logo?.text || '';
-        if (logoImageUrlEl) logoImageUrlEl.value = settings.logo?.imageUrl || '';
+        if (logoTextColorEl) logoTextColorEl.value = settings.logo?.textColor || '#212529';
+        if (logoTextColorValueEl) logoTextColorValueEl.value = settings.logo?.textColor || '#212529';
+        if (logoImageUrlLightEl) logoImageUrlLightEl.value = settings.logo?.imageUrlLight || settings.logo?.imageUrl || '';
+        if (logoImageUrlDarkEl) logoImageUrlDarkEl.value = settings.logo?.imageUrlDark || '';
+
+        // Sync logo text color inputs
+        this.setupColorSyncById('logo-text-color', 'logo-text-color-value');
 
         // Show/hide based on type
         const textGroup = document.getElementById('logo-text-group');
+        const textColorGroup = document.getElementById('logo-text-color-group');
         const imageGroup = document.getElementById('logo-image-group');
         if (textGroup && imageGroup && settings.logo?.type === 'image') {
             textGroup.style.display = 'none';
-            imageGroup.style.display = 'block';
-            this.updateLogoPreview(settings.logo?.imageUrl);
+            if (textColorGroup) textColorGroup.style.display = 'none';
+            imageGroup.style.display = 'flex';
+            this.updateLogoPreview(settings.logo?.imageUrlLight || settings.logo?.imageUrl, 'light');
+            this.updateLogoPreview(settings.logo?.imageUrlDark, 'dark');
+        } else {
+            if (textGroup) textGroup.style.display = 'block';
+            if (textColorGroup) textColorGroup.style.display = 'block';
+            if (imageGroup) imageGroup.style.display = 'none';
         }
 
         // Section titles - with null checks
@@ -1675,6 +1753,26 @@ class AdminPanel {
             }
         });
 
+        // Dark mode font colors
+        const fontColorsDark = settings.font?.colorsDark || {};
+        const defaultColorsDark = {
+            '5xl': '#eaeaea',
+            '4xl': '#eaeaea',
+            '3xl': '#eaeaea',
+            '2xl': '#b8b8b8',
+            'base': '#b8b8b8',
+            'sm': '#888888'
+        };
+
+        colorLevels.forEach(level => {
+            const colorElDark = document.getElementById('font-color-' + level + '-dark');
+            const colorValue = fontColorsDark[level] || defaultColorsDark[level];
+
+            if (colorElDark) {
+                colorElDark.value = colorValue;
+            }
+        });
+
         // Also add event listeners for font size inputs to update preview
         colorLevels.forEach(level => {
             const sizeEl = document.getElementById('font-size-' + level);
@@ -1685,6 +1783,22 @@ class AdminPanel {
                 });
             }
         });
+    }
+
+    setupColorSyncById(colorId, textId) {
+        const colorInput = document.getElementById(colorId);
+        const textInput = document.getElementById(textId);
+
+        if (colorInput && textInput) {
+            colorInput.addEventListener('input', () => {
+                textInput.value = colorInput.value;
+            });
+            textInput.addEventListener('input', () => {
+                if (/^#[0-9A-Fa-f]{6}$/.test(textInput.value)) {
+                    colorInput.value = textInput.value;
+                }
+            });
+        }
     }
 
     setupColorSync(baseId) {
@@ -2795,6 +2909,10 @@ class AdminPanel {
                 <label class="form-label">링크 URL</label>
                 <input type="text" class="form-input" id="modal-portfolio-link" value="${existing?.links?.[0]?.url || ''}">
             </div>
+            <div class="form-group">
+                <label class="form-label">사이트 URL (선택)</label>
+                <input type="text" class="form-input" id="modal-portfolio-siteurl" value="${existing?.siteUrl || ''}" placeholder="작품 사이트 주소 (예: https://example.com)">
+            </div>
             <div class="form-actions">
                 <button class="btn btn-primary" id="modal-save">${existing ? '수정' : '추가'}</button>
                 <button class="btn btn-secondary" id="modal-cancel">취소</button>
@@ -2858,6 +2976,7 @@ class AdminPanel {
             const review = document.getElementById('modal-portfolio-review').value.trim();
             const thumbnails = document.getElementById('modal-portfolio-thumbnails').value.split('|||').map(s => s.trim()).filter(s => s);
             const linkUrl = document.getElementById('modal-portfolio-link').value.trim();
+            const siteUrl = document.getElementById('modal-portfolio-siteurl').value.trim();
             const links = linkUrl ? [{ label: '상세보기', url: linkUrl }] : [];
 
             // Collect contributions
@@ -2876,7 +2995,7 @@ class AdminPanel {
                 return;
             }
 
-            const item = { title, subject, target, contributions, review, thumbnails, links };
+            const item = { title, subject, target, contributions, review, thumbnails, links, siteUrl };
 
             if (existing) {
                 dataManager.updatePortfolioItem(editId, { ...item, section: selectedSection });

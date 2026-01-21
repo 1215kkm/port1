@@ -10,8 +10,34 @@
 
     <!-- Main CSS -->
     <link rel="stylesheet" href="css/style.css">
+    <style>
+        /* Hide content until data is loaded to prevent flash of default values */
+        body.loading .main,
+        body.loading .header,
+        body.loading .section-nav {
+            opacity: 0;
+            visibility: hidden;
+        }
+        body.loading::after {
+            content: '로딩 중...';
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 1.2rem;
+            color: var(--color-text-secondary);
+            z-index: 9999;
+        }
+        body:not(.loading) .main,
+        body:not(.loading) .header,
+        body:not(.loading) .section-nav {
+            opacity: 1;
+            visibility: visible;
+            transition: opacity 0.3s ease;
+        }
+    </style>
 </head>
-<body>
+<body class="loading">
     <!-- Header -->
     <header class="header">
         <div class="header-inner">
@@ -110,7 +136,7 @@
                             <div class="profile-image-placeholder">사진</div>
                         </div>
                         <button class="btn btn-primary download-btn" data-action="download-pdf">
-                            이력서다운로드
+                            이력서 다운로드
                         </button>
                     </div>
                 </div>

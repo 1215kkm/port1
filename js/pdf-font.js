@@ -58,26 +58,33 @@ const PDFFontLoader = {
 
     // Load font from CDN (fallback)
     async loadDefaultFont() {
-        try {
-            // Load Noto Sans KR Regular from jsDelivr CDN
-            const response = await fetch('https://cdn.jsdelivr.net/gh/nickshanks/Allsorts@main/tests/fonts/noto/NotoSansKR-Regular.otf');
+        // Font URLs in order of preference
+        const fontUrls = [
+            // Google Fonts direct link
+            'https://fonts.gstatic.com/s/notosanskr/v27/Pby6FmXiEBPT4ITbgNA5CgmOelzI7g.otf',
+            // jsDelivr hosted Noto Sans KR
+            'https://cdn.jsdelivr.net/npm/@aspect-ratio/noto-sans-kr@0.0.7/fonts/NotoSansKR-Regular.otf',
+            // GitHub hosted fallback
+            'https://raw.githubusercontent.com/nickshanks/Allsorts/main/tests/fonts/noto/NotoSansKR-Regular.otf'
+        ];
 
-            if (!response.ok) {
-                // Fallback to another source
-                const fallbackResponse = await fetch('https://fonts.gstatic.com/s/notosanskr/v36/PbyxFmXiEBPT4ITbgNA5Cgms3VYcOA.otf');
-                if (!fallbackResponse.ok) {
-                    throw new Error('Font load failed');
+        for (const url of fontUrls) {
+            try {
+                console.log('Trying to load font from:', url);
+                const response = await fetch(url);
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const base64 = await this.blobToBase64(blob);
+                    console.log('Font loaded successfully from:', url);
+                    return base64;
                 }
-                const blob = await fallbackResponse.blob();
-                return await this.blobToBase64(blob);
-            } else {
-                const blob = await response.blob();
-                return await this.blobToBase64(blob);
+            } catch (error) {
+                console.warn('Failed to load font from:', url, error);
             }
-        } catch (error) {
-            console.error('Failed to load default Korean font:', error);
-            return null;
         }
+
+        console.error('All font sources failed');
+        return null;
     },
 
     // Main load function - always use default Korean font for PDF (woff2 not supported by jsPDF)
