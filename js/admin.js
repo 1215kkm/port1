@@ -1843,16 +1843,39 @@ class AdminPanel {
     }
 
     renderCSSVariables() {
-        const vars = this.data.cssVariables;
+        const vars = this.data.cssVariables || {};
 
-        document.getElementById('css-radius-sm').value = vars.radiusSm || '4px';
-        document.getElementById('css-radius-md').value = vars.radiusMd || '8px';
-        document.getElementById('css-radius-lg').value = vars.radiusLg || '12px';
-        document.getElementById('css-font-base').value = vars.fontBase || '1rem';
-        document.getElementById('css-font-title1').value = vars.fontTitle1 || '2.25rem';
-        document.getElementById('css-font-title2').value = vars.fontTitle2 || '1.5rem';
-        document.getElementById('css-space-section').value = vars.spaceSection || '6rem';
-        document.getElementById('css-space-content').value = vars.spaceContent || '1.5rem';
+        // Border radius settings
+        const radiusSm = document.getElementById('css-radius-sm');
+        const radiusMd = document.getElementById('css-radius-md');
+        const radiusLg = document.getElementById('css-radius-lg');
+
+        if (radiusSm) radiusSm.value = vars.radiusSm || '4px';
+        if (radiusMd) radiusMd.value = vars.radiusMd || '8px';
+        if (radiusLg) radiusLg.value = vars.radiusLg || '12px';
+
+        // Space settings
+        const spaceSection = document.getElementById('css-space-section');
+        const spaceContent = document.getElementById('css-space-content');
+
+        if (spaceSection) spaceSection.value = vars.spaceSection || '6rem';
+        if (spaceContent) spaceContent.value = vars.spaceContent || '1.5rem';
+
+        // Font size settings (new IDs)
+        const fontSizes = this.data.fontSettings?.sizes || {};
+        const fontSizeInputs = {
+            'font-size-5xl': fontSizes['5xl'] || '3rem',
+            'font-size-4xl': fontSizes['4xl'] || '2.25rem',
+            'font-size-3xl': fontSizes['3xl'] || '1.875rem',
+            'font-size-2xl': fontSizes['2xl'] || '1.5rem',
+            'font-size-base': fontSizes['base'] || '1rem',
+            'font-size-sm': fontSizes['sm'] || '0.875rem'
+        };
+
+        Object.entries(fontSizeInputs).forEach(([id, defaultValue]) => {
+            const el = document.getElementById(id);
+            if (el) el.value = defaultValue;
+        });
     }
 
     renderPageSettings() {
