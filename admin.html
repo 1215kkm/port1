@@ -1027,29 +1027,27 @@
                 const adminScript = document.createElement('script');
                 adminScript.src = 'js/admin.js';
                 document.body.appendChild(adminScript);
-
-                // Load owner menu
-                const ownerMenuScript = document.createElement('script');
-                ownerMenuScript.type = 'module';
-                ownerMenuScript.src = 'js/owner-menu.js';
-                document.body.appendChild(ownerMenuScript);
             }
 
-            dataScript.onload = () => {
+            dataScript.onload = async () => {
                 // Wait for dataManager to be ready
                 window.addEventListener('dataManagerReady', loadAdmin);
 
-                // Check if dataManager is already ready
-                if (window.dataManager && window.dataManager.data) {
-                    loadAdmin();
-                }
-
-                // Fallback: load after a short delay if event doesn't fire
-                setTimeout(() => {
-                    if (window.dataManager) {
+                // data.js가 동적 로드되면 DOMContentLoaded가 이미 발생했을 수 있음
+                // 그래서 직접 init을 호출
+                if (window.dataManager) {
+                    try {
+                        await window.dataManager.init();
                         loadAdmin();
+                    } catch (e) {
+                        console.error('Error initializing dataManager:', e);
+                        // Fallback
+                        setTimeout(loadAdmin, 500);
                     }
-                }, 500);
+                } else {
+                    // Fallback
+                    setTimeout(loadAdmin, 500);
+                }
             };
             document.body.appendChild(dataScript);
         }

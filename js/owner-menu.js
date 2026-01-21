@@ -223,6 +223,11 @@
     // 현재 페이지 확인
     const currentPage = window.location.pathname.split('/').pop() || 'index.html';
 
+    // 관리자 페이지에서는 플로팅 메뉴 표시 안함
+    if (currentPage === 'admin.html') {
+        return;
+    }
+
     // 페이지별 설명 정보
     const pageInfo = {
         'intro.html': {
@@ -248,12 +253,6 @@
             desc: '팀 프로젝트로 제작한 작품을<br>추가하고 관리할 수 있습니다.',
             settingsUrl: 'admin.html#panel-team',
             settingsLabel: '팀플 프로젝트 설정하기'
-        },
-        'admin.html': {
-            title: '관리자 설정',
-            desc: '포트폴리오의 모든 내용을<br>이곳에서 편집할 수 있습니다.',
-            settingsUrl: null,
-            settingsLabel: null
         },
         'dashboard.html': {
             title: '대시보드',
@@ -289,24 +288,22 @@
             <span class="owner-menu-label">대시보드</span>
         </a>
 
-        <a href="admin.html" class="owner-menu-item ${currentPage === 'admin.html' ? 'active' : ''}" title="편집">
+        <a href="admin.html" class="owner-menu-item" title="편집">
             <span class="owner-menu-icon">✏️</span>
             <span class="owner-menu-label">편집</span>
         </a>
 
         <div class="owner-menu-divider"></div>
 
-        <a href="portfolio.html" class="owner-menu-item ${currentPage === 'portfolio.html' ? 'active' : ''}" title="포트폴리오">
-            <span class="owner-menu-icon">📄</span>
-            <span class="owner-menu-label">포트폴리오</span>
-        </a>
-
         <a href="intro.html" class="owner-menu-item ${currentPage === 'intro.html' ? 'active' : ''}" title="인트로">
             <span class="owner-menu-icon">🚀</span>
             <span class="owner-menu-label">인트로</span>
         </a>
 
-        <div class="owner-menu-divider"></div>
+        <a href="portfolio.html" class="owner-menu-item ${currentPage === 'portfolio.html' ? 'active' : ''}" title="포트폴리오">
+            <span class="owner-menu-icon">📄</span>
+            <span class="owner-menu-label">포트폴리오</span>
+        </a>
 
         <a href="ai.html" class="owner-menu-item ${currentPage === 'ai.html' ? 'active' : ''}" title="AI 작품">
             <span class="owner-menu-icon">🤖</span>
