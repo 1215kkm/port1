@@ -7,7 +7,8 @@ const IMAGE_UPLOAD_CONFIG = {
     maxFileSize: 5 * 1024 * 1024,      // 5MB - 단일 파일 최대 크기
     warnFileSize: 2 * 1024 * 1024,     // 2MB - 이 이상이면 경고 표시
     compressMaxWidth: 1200,            // 압축 시 최대 너비 (픽셀)
-    compressQuality: 0.8               // 압축 품질 (0.0 ~ 1.0)
+    compressQuality: 0.8,              // 압축 품질 (0.0 ~ 1.0)
+    useBase64Fallback: false           // Firebase 실패 시 base64 사용 여부 (false 권장)
 };
 
 // Helper function to upload image to Firebase Storage
@@ -38,22 +39,48 @@ async function uploadImageToStorage(file, path = 'images') {
             console.log('[Upload] Attempting Firebase Storage upload...');
             const result = await StorageManager.uploadImage(userId, file, path);
             if (result.success && result.url) {
-                console.log('[Upload] Firebase Storage success:', result.url.substring(0, 50) + '...');
+                console.log('[Upload] ✅ Firebase Storage success!');
                 return result.url;
             } else {
-                console.warn('[Upload] Firebase Storage failed:', result.error);
-                console.log('[Upload] Falling back to compressed base64...');
-                return await fileToBase64(file);
+                console.error('[Upload] ❌ Firebase Storage failed:', result.error);
+
+                // Show error to user
+                if (result.code === 'storage/unauthorized') {
+                    alert('Firebase Storage 권한 오류!\n\nFirebase Console → Storage → Rules에서\n권한 설정을 확인해주세요.');
+                    return null;
+                }
+
+                // Use base64 fallback only if enabled
+                if (IMAGE_UPLOAD_CONFIG.useBase64Fallback) {
+                    console.log('[Upload] Using compressed base64 fallback...');
+                    return await fileToBase64(file);
+                } else {
+                    alert(`이미지 업로드 실패: ${result.error}\n\n다시 시도해주세요.`);
+                    return null;
+                }
             }
         } else {
-            // Fallback to base64 for local storage
-            console.log('[Upload] No Firebase available, using compressed base64...');
+            // No Firebase - must use base64
+            if (!StorageManager) {
+                console.warn('[Upload] Firebase Storage not available');
+            }
+            if (!userId) {
+                console.warn('[Upload] Not logged in');
+                alert('이미지 업로드를 위해 로그인이 필요합니다.');
+                return null;
+            }
+            console.log('[Upload] Using compressed base64 (no Firebase)...');
             return await fileToBase64(file);
         }
     } catch (error) {
         console.error('[Upload] Error:', error);
-        console.log('[Upload] Falling back to compressed base64...');
-        return await fileToBase64(file);
+        if (IMAGE_UPLOAD_CONFIG.useBase64Fallback) {
+            console.log('[Upload] Using compressed base64 fallback...');
+            return await fileToBase64(file);
+        } else {
+            alert(`이미지 업로드 중 오류: ${error.message}`);
+            return null;
+        }
     }
 }
 

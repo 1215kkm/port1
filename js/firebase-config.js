@@ -193,18 +193,35 @@ const StorageManager = {
     // Upload image file and return download URL
     async uploadImage(userId, file, path = 'images') {
         try {
+            if (!userId) {
+                console.error('[Storage] No userId provided');
+                return { success: false, error: '로그인이 필요합니다' };
+            }
+
+            if (!file) {
+                console.error('[Storage] No file provided');
+                return { success: false, error: '파일이 없습니다' };
+            }
+
+            console.log(`[Storage] Uploading ${file.name} (${(file.size/1024).toFixed(1)}KB) for user ${userId}`);
+
             // Generate unique filename
             const timestamp = Date.now();
             const safeName = file.name.replace(/[^a-zA-Z0-9.]/g, '_');
             const filePath = `users/${userId}/${path}/${timestamp}_${safeName}`;
 
+            console.log(`[Storage] Target path: ${filePath}`);
+
             const storageRef = ref(storage, filePath);
 
             // Upload file
+            console.log('[Storage] Starting upload...');
             const snapshot = await uploadBytes(storageRef, file);
+            console.log('[Storage] Upload complete, getting URL...');
 
             // Get download URL
             const downloadURL = await getDownloadURL(snapshot.ref);
+            console.log('[Storage] Success! URL:', downloadURL.substring(0, 60) + '...');
 
             return {
                 success: true,
@@ -212,8 +229,19 @@ const StorageManager = {
                 path: filePath
             };
         } catch (error) {
-            console.error('Error uploading image:', error);
-            return { success: false, error: error.message };
+            console.error('[Storage] Upload failed:', error.code, error.message);
+
+            // Provide helpful error messages
+            let userMessage = error.message;
+            if (error.code === 'storage/unauthorized') {
+                userMessage = 'Storage 권한이 없습니다. Firebase Console에서 Storage Rules를 확인하세요.';
+            } else if (error.code === 'storage/canceled') {
+                userMessage = '업로드가 취소되었습니다.';
+            } else if (error.code === 'storage/unknown') {
+                userMessage = '알 수 없는 오류가 발생했습니다. 네트워크를 확인하세요.';
+            }
+
+            return { success: false, error: userMessage, code: error.code };
         }
     },
 
