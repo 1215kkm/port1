@@ -851,6 +851,22 @@
                 transform: translateX(-50%) translateY(0);
             }
         }
+
+        /* Super Admin Button */
+        .super-admin-btn {
+            position: fixed;
+            bottom: 5px;
+            right: 5px;
+            font-size: 9px;
+            color: #333;
+            text-decoration: none;
+            opacity: 0.3;
+            transition: opacity 0.3s;
+            z-index: 1;
+        }
+        .super-admin-btn:hover {
+            opacity: 0.8;
+        }
     </style>
 </head>
 <body>
@@ -1648,10 +1664,16 @@
         </div>
     </div>
 
+    <!-- Super Admin Button (hidden, only for super admin) -->
+    <a href="superadmin.html" class="super-admin-btn" id="super-admin-btn" style="display: none;">슈퍼관리자</a>
+
     <!-- Scripts -->
     <script type="module">
         // Check authentication before loading admin
-        import { AuthManager } from './js/firebase-config.js';
+        import { AuthManager, AnalyticsManager } from './js/firebase-config.js';
+
+        // Super admin emails
+        const SUPER_ADMIN_EMAILS = ['1215kkm@naver.com'];
 
         async function checkAuth() {
             await AuthManager.init();
@@ -1660,6 +1682,20 @@
                 // Redirect to login
                 window.location.href = 'login.html';
                 return;
+            }
+
+            // Check if super admin and show button
+            const user = AuthManager.getUser();
+            if (user && SUPER_ADMIN_EMAILS.includes(user.email)) {
+                const superAdminBtn = document.getElementById('super-admin-btn');
+                if (superAdminBtn) {
+                    superAdminBtn.style.display = 'block';
+                }
+            }
+
+            // Track login
+            if (window.AnalyticsManager) {
+                AnalyticsManager.trackLogin(user.uid);
             }
 
             // User is logged in, load admin scripts

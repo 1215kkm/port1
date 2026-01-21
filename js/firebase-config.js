@@ -3,7 +3,7 @@
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { getFirestore, doc, getDoc, setDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getFirestore, doc, getDoc, setDoc, collection, query, where, getDocs, increment } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
 // Firebase configuration
@@ -271,13 +271,104 @@ const StorageManager = {
     }
 };
 
+// Analytics Manager
+const AnalyticsManager = {
+    SUPER_ADMIN_EMAILS: ['1215kkm@naver.com'],
+
+    // Check if current user is super admin
+    isSuperAdmin() {
+        const user = AuthManager.getUser();
+        return user && this.SUPER_ADMIN_EMAILS.includes(user.email);
+    },
+
+    // Track page visit
+    async trackVisit(page = 'portfolio') {
+        try {
+            const today = new Date().toISOString().split('T')[0];
+            const analyticsRef = doc(db, 'analytics', 'global');
+
+            // Use setDoc with merge to create if doesn't exist
+            await setDoc(analyticsRef, {
+                [`visits.${today}`]: increment(1),
+                lastUpdated: new Date().toISOString()
+            }, { merge: true });
+
+            // Log activity
+            await this.logActivity('visit', `${page} 페이지 방문`);
+
+        } catch (error) {
+            console.error('Error tracking visit:', error);
+        }
+    },
+
+    // Track PDF download
+    async trackPdfDownload(userId) {
+        try {
+            const analyticsRef = doc(db, 'analytics', 'global');
+
+            await setDoc(analyticsRef, {
+                pdfDownloads: increment(1),
+                lastUpdated: new Date().toISOString()
+            }, { merge: true });
+
+            // Log activity
+            await this.logActivity('pdf', `PDF 다운로드 (${userId || 'anonymous'})`);
+
+        } catch (error) {
+            console.error('Error tracking PDF download:', error);
+        }
+    },
+
+    // Log activity
+    async logActivity(type, message, userId = null) {
+        try {
+            const activityRef = doc(collection(db, 'activity_logs'));
+            await setDoc(activityRef, {
+                type,
+                message,
+                userId: userId || AuthManager.getUser()?.uid || 'anonymous',
+                timestamp: new Date().toISOString()
+            });
+        } catch (error) {
+            console.error('Error logging activity:', error);
+        }
+    },
+
+    // Track user login
+    async trackLogin(userId) {
+        try {
+            // Update user's last login
+            const userRef = doc(db, 'users', userId);
+            await setDoc(userRef, {
+                lastLogin: new Date().toISOString()
+            }, { merge: true });
+
+            // Log activity
+            await this.logActivity('login', '로그인', userId);
+
+        } catch (error) {
+            console.error('Error tracking login:', error);
+        }
+    },
+
+    // Track signup
+    async trackSignup(userId, email) {
+        try {
+            await this.logActivity('signup', `신규 가입: ${email}`, userId);
+        } catch (error) {
+            console.error('Error tracking signup:', error);
+        }
+    }
+};
+
 // Export
 window.AuthManager = AuthManager;
 window.FirestoreManager = FirestoreManager;
 window.StorageManager = StorageManager;
+window.AnalyticsManager = AnalyticsManager;
 window.firebaseApp = app;
 window.firebaseAuth = auth;
 window.firebaseDb = db;
 window.firebaseStorage = storage;
 
-export { AuthManager, FirestoreManager, StorageManager, app, auth, db, storage };
+export { AuthManager, FirestoreManager, StorageManager, AnalyticsManager, app, auth, db, storage };

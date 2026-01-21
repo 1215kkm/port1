@@ -257,5 +257,14 @@
     <script src="js/pdf-font.js"></script>
     <script src="js/app.js"></script>
     <script type="module" src="js/owner-menu.js"></script>
+
+    <!-- Analytics Tracking -->
+    <script type="module">
+        import { AnalyticsManager } from './js/firebase-config.js';
+        // Track page visit
+        if (window.AnalyticsManager) {
+            AnalyticsManager.trackVisit('portfolio');
+        }
+    </script>
 </body>
 </html>

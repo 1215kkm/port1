@@ -343,6 +343,12 @@ class PDFExport {
                 // Fallback to basic PDF generation
                 await this.exportPDFBasic();
             }
+
+            // Track PDF download
+            if (window.AnalyticsManager) {
+                const userId = window.getUrlUserId ? window.getUrlUserId() : null;
+                window.AnalyticsManager.trackPdfDownload(userId);
+            }
         } catch (error) {
             console.error('PDF generation error:', error);
             alert('PDF 생성 중 오류가 발생했습니다.');
