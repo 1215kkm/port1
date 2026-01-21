@@ -762,6 +762,9 @@ class PageInitializer {
         this.renderContact();
         this.renderMenu();
 
+        // Apply section and page visibility settings
+        this.applySectionVisibility();
+
         // Listen for data updates
         window.addEventListener('dataUpdated', () => {
             this.data = dataManager.getData();
