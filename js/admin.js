@@ -1819,6 +1819,12 @@ class AdminPanel {
 }
 
 // Initialize Admin Panel
-document.addEventListener('DOMContentLoaded', () => {
+// 동적 로드 시 DOMContentLoaded가 이미 발생했을 수 있으므로 즉시 실행
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+        new AdminPanel();
+    });
+} else {
+    // DOM이 이미 로드됨
     new AdminPanel();
-});
+}
