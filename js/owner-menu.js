@@ -2,6 +2,11 @@
 // 대시보드, 편집, 미리보기, PDF 등 링크 제공
 
 (async function() {
+    // iframe 내에서는 플로팅 메뉴 표시 안함 (관리자 미리보기용)
+    if (window.self !== window.top) {
+        return;
+    }
+
     // 스타일 삽입
     const style = document.createElement('style');
     style.textContent = `

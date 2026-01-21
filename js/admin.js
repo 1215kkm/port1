@@ -825,32 +825,34 @@ class AdminPanel {
             });
         }
 
-        // Click overlay to refresh minimap or navigate to section
-        if (minimapOverlay) {
-            minimapOverlay.addEventListener('click', (e) => {
-                // Get click position relative to overlay
-                const rect = minimapOverlay.getBoundingClientRect();
+        // Click container to navigate to section (overlay is pointer-events: none for scroll)
+        const minimapContainer = document.querySelector('.minimap-frame-container');
+        if (minimapContainer) {
+            minimapContainer.addEventListener('click', (e) => {
+                // Don't trigger on iframe scroll/interaction
+                if (e.target === minimapFrame) return;
+
+                // Get click position relative to container
+                const rect = minimapContainer.getBoundingClientRect();
                 const clickY = e.clientY - rect.top;
                 const totalHeight = rect.height;
                 const ratio = clickY / totalHeight;
 
-                // Map ratio to sections (approximate section positions)
-                // These are rough estimates based on typical portfolio layout
-                let targetSection = null;
-                if (ratio < 0.15) {
-                    targetSection = 'about'; // 자기소개 (hero + profile area)
-                } else if (ratio < 0.25) {
-                    targetSection = 'aitools'; // AI 도구
-                } else if (ratio < 0.35) {
-                    targetSection = 'related'; // 관련경력
-                } else if (ratio < 0.45) {
-                    targetSection = 'evaluation'; // 내평가
-                } else if (ratio < 0.55) {
-                    targetSection = 'video'; // 영상
-                } else if (ratio < 0.85) {
-                    targetSection = 'web-mobile'; // 작품 섹션들
-                } else {
-                    targetSection = 'contact'; // 연락처
+                // Get visible sections based on actual section order from settings
+                const sectionOrder = this.data.sectionSettings?.order || ['about', 'aitools', 'related', 'other', 'evaluation', 'video', 'portfolio', 'contact'];
+                const visibleSections = sectionOrder.filter(section => {
+                    const settings = this.data.sectionSettings || {};
+                    return settings[section] !== false;
+                });
+
+                // Calculate which section based on ratio and visible sections
+                // First 15% is always about (hero area)
+                let targetSection = 'about';
+                if (ratio >= 0.15 && visibleSections.length > 0) {
+                    // Distribute remaining 85% among visible sections
+                    const remainingRatio = (ratio - 0.15) / 0.85;
+                    const sectionIndex = Math.floor(remainingRatio * visibleSections.length);
+                    targetSection = visibleSections[Math.min(sectionIndex, visibleSections.length - 1)] || 'about';
                 }
 
                 // Try to scroll to the section in admin

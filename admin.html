@@ -629,7 +629,7 @@
             border: none;
             transform: scale(0.25);
             transform-origin: top left;
-            pointer-events: none;
+            pointer-events: auto;
             transition: transform 0.15s ease, width 0.15s ease, height 0.15s ease;
         }
 
@@ -637,6 +637,11 @@
             position: absolute;
             inset: 0;
             background: transparent;
+            cursor: pointer;
+            pointer-events: none;
+        }
+
+        .minimap-frame-container {
             cursor: pointer;
         }
 
