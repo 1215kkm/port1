@@ -1344,14 +1344,58 @@ class PageInitializer {
     }
 
     applySectionOrder() {
-        // Note: Section order reordering is currently disabled
-        // The admin's section settings panel controls visibility, not DOM order
-        // The actual page section order is determined by the HTML structure
-        // To enable section reordering, the sectionOrder should contain actual section IDs
-        // like 'about', 'web-mobile', 'popup-banner', 'detail-page', 'contact'
+        const sectionOrder = this.data.sectionOrder || [];
+        if (sectionOrder.length === 0) return;
 
-        // For now, we skip DOM reordering to prevent layout issues
-        return;
+        const mainEl = document.querySelector('.main');
+        if (!mainEl) return;
+
+        // Get all sections
+        const sections = mainEl.querySelectorAll('section[id]');
+        const sectionMap = {};
+
+        sections.forEach(section => {
+            sectionMap[section.id] = section;
+        });
+
+        // Reorder sections based on sectionOrder
+        sectionOrder.forEach(sectionId => {
+            const section = sectionMap[sectionId];
+            if (section && mainEl.contains(section)) {
+                mainEl.appendChild(section);
+            }
+        });
+
+        // Move any remaining sections not in sectionOrder to the end
+        sections.forEach(section => {
+            if (!sectionOrder.includes(section.id) && mainEl.contains(section)) {
+                mainEl.appendChild(section);
+            }
+        });
+
+        // Update section nav dots order
+        this.updateSectionNavOrder(sectionOrder);
+    }
+
+    updateSectionNavOrder(sectionOrder) {
+        const navContainer = document.querySelector('.section-nav');
+        if (!navContainer) return;
+
+        const dots = navContainer.querySelectorAll('.section-nav-dot');
+        const dotMap = {};
+
+        dots.forEach(dot => {
+            const section = dot.dataset.section;
+            if (section) dotMap[section] = dot;
+        });
+
+        // Reorder dots
+        sectionOrder.forEach(sectionId => {
+            const dot = dotMap[sectionId];
+            if (dot && navContainer.contains(dot)) {
+                navContainer.appendChild(dot);
+            }
+        });
     }
 }
 
