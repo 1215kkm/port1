@@ -456,6 +456,13 @@ class AdminPanel {
         document.getElementById('btn-preview-intro')?.addEventListener('click', () => {
             window.open('intro.html?preview=1', '_blank');
         });
+
+        // Reset intro settings
+        document.getElementById('btn-reset-intro')?.addEventListener('click', () => {
+            if (confirm('인트로 설정을 초기화하시겠습니까?\n모든 텍스트, 버튼, 배경 이미지가 삭제됩니다.')) {
+                this.resetIntroSettings();
+            }
+        });
     }
 
     updateIntroEditButton() {
@@ -514,7 +521,7 @@ class AdminPanel {
         if (!container) return;
 
         container.innerHTML = texts.map((text, index) => `
-            <div class="intro-text-item" data-index="${index}">
+            <div class="intro-text-item" data-index="${index}" data-id="${text.id || ''}">`
                 <div class="form-row">
                     <textarea class="form-input" data-field="content" placeholder="텍스트 내용">${text.content || ''}</textarea>
                 </div>
@@ -555,7 +562,7 @@ class AdminPanel {
         if (!container) return;
 
         container.innerHTML = buttons.map((button, index) => `
-            <div class="intro-button-item" data-index="${index}">
+            <div class="intro-button-item" data-index="${index}" data-id="${button.id || ''}">
                 <div class="form-row">
                     <input type="text" class="form-input" data-field="label" placeholder="버튼 텍스트" value="${button.label || ''}">
                     <input type="text" class="form-input" data-field="url" placeholder="링크 URL" value="${button.url || ''}">
@@ -585,8 +592,49 @@ class AdminPanel {
         });
     }
 
+    // Collect current intro text data from form before re-rendering
+    collectCurrentIntroTexts() {
+        const texts = [];
+        document.querySelectorAll('.intro-text-item').forEach(item => {
+            const text = {
+                id: parseInt(item.dataset.id) || Date.now() + Math.random(),
+                content: item.querySelector('[data-field="content"]')?.value || '',
+                fontSize: item.querySelector('[data-field="fontSize"]')?.value || '2rem',
+                color: item.querySelector('[data-field="color"]')?.value || '#ffffff',
+                fontWeight: item.querySelector('[data-field="fontWeight"]')?.value || '700',
+                align: item.querySelector('[data-field="align"]')?.value || 'center',
+                top: item.querySelector('[data-field="top"]')?.value || '50%'
+            };
+            texts.push(text);
+        });
+        return texts;
+    }
+
+    // Collect current intro button data from form before re-rendering
+    collectCurrentIntroButtons() {
+        const buttons = [];
+        document.querySelectorAll('.intro-button-item').forEach(item => {
+            const button = {
+                id: parseInt(item.dataset.id) || Date.now() + Math.random(),
+                label: item.querySelector('[data-field="label"]')?.value || '버튼',
+                url: item.querySelector('[data-field="url"]')?.value || 'portfolio.html',
+                bgColor: item.querySelector('[data-field="bgColor"]')?.value || '#3498db',
+                textColor: item.querySelector('[data-field="textColor"]')?.value || '#ffffff'
+            };
+            buttons.push(button);
+        });
+        return buttons;
+    }
+
     addIntroText() {
+        // First, collect current form data to preserve user's edits
+        const currentTexts = this.collectCurrentIntroTexts();
+        const currentButtons = this.collectCurrentIntroButtons();
+
         const introCustom = this.data.introCustom || { texts: [], buttons: [] };
+        introCustom.texts = currentTexts;
+        introCustom.buttons = currentButtons;
+
         const newText = {
             id: Date.now(),
             content: '',
@@ -596,20 +644,33 @@ class AdminPanel {
             align: 'center',
             top: '50%'
         };
-        introCustom.texts = [...(introCustom.texts || []), newText];
+        introCustom.texts.push(newText);
         this.data.introCustom = introCustom;
         this.renderIntroTexts(introCustom.texts);
     }
 
     deleteIntroText(index) {
+        // First, collect current form data to preserve user's edits
+        const currentTexts = this.collectCurrentIntroTexts();
+        const currentButtons = this.collectCurrentIntroButtons();
+
         const introCustom = this.data.introCustom || { texts: [], buttons: [] };
+        introCustom.texts = currentTexts;
+        introCustom.buttons = currentButtons;
         introCustom.texts.splice(index, 1);
         this.data.introCustom = introCustom;
         this.renderIntroTexts(introCustom.texts);
     }
 
     addIntroButton() {
+        // First, collect current form data to preserve user's edits
+        const currentTexts = this.collectCurrentIntroTexts();
+        const currentButtons = this.collectCurrentIntroButtons();
+
         const introCustom = this.data.introCustom || { texts: [], buttons: [] };
+        introCustom.texts = currentTexts;
+        introCustom.buttons = currentButtons;
+
         const newButton = {
             id: Date.now(),
             label: '버튼',
@@ -617,13 +678,19 @@ class AdminPanel {
             bgColor: '#3498db',
             textColor: '#ffffff'
         };
-        introCustom.buttons = [...(introCustom.buttons || []), newButton];
+        introCustom.buttons.push(newButton);
         this.data.introCustom = introCustom;
         this.renderIntroButtons(introCustom.buttons);
     }
 
     deleteIntroButton(index) {
+        // First, collect current form data to preserve user's edits
+        const currentTexts = this.collectCurrentIntroTexts();
+        const currentButtons = this.collectCurrentIntroButtons();
+
         const introCustom = this.data.introCustom || { texts: [], buttons: [] };
+        introCustom.texts = currentTexts;
+        introCustom.buttons = currentButtons;
         introCustom.buttons.splice(index, 1);
         this.data.introCustom = introCustom;
         this.renderIntroButtons(introCustom.buttons);
@@ -672,6 +739,24 @@ class AdminPanel {
 
         alert('인트로 설정이 저장되었습니다.');
         this.closeIntroEditor();
+    }
+
+    resetIntroSettings() {
+        // Reset to default/empty state
+        const introCustom = {
+            enabled: false,
+            backgroundImage: '',
+            texts: [],
+            buttons: []
+        };
+
+        this.data.introCustom = introCustom;
+        dataManager.set('introCustom', introCustom);
+        dataManager.saveData();
+
+        // Re-render the editor with empty state
+        this.renderIntroEditor();
+        alert('인트로 설정이 초기화되었습니다.');
     }
 
     // =====================

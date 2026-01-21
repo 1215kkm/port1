@@ -181,6 +181,44 @@
             cursor: not-allowed;
         }
 
+        /* 구독 상태 영역 */
+        .owner-menu-subscription {
+            padding: 10px 12px;
+            text-align: center;
+            font-size: 11px;
+        }
+
+        .owner-subscription-loading {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .owner-subscription-status {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .owner-subscription-status.trial {
+            color: #f39c12;
+        }
+
+        .owner-subscription-status.active {
+            color: #2ecc71;
+        }
+
+        .owner-subscription-status.expired {
+            color: #e74c3c;
+        }
+
+        .owner-subscription-days {
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 2px;
+        }
+
+        .owner-subscription-expires {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 10px;
+        }
+
         /* 모바일 대응 */
         @media (max-width: 768px) {
             .owner-menu {
@@ -386,6 +424,12 @@
 
         <div class="owner-menu-divider"></div>
 
+        <div class="owner-menu-subscription" id="owner-subscription-status">
+            <div class="owner-subscription-loading">구독 상태 확인 중...</div>
+        </div>
+
+        <div class="owner-menu-divider"></div>
+
         <div class="owner-menu-coupon">
             <input type="text" id="owner-coupon-input" placeholder="쿠폰 코드" maxlength="20">
             <button id="owner-coupon-btn">적용</button>
@@ -516,4 +560,52 @@
             couponBtn.click();
         }
     });
+
+    // 구독 상태 로드
+    async function loadSubscriptionStatus() {
+        const statusContainer = document.getElementById('owner-subscription-status');
+        if (!statusContainer) return;
+
+        try {
+            const module = await import('./firebase-config.js');
+            const CouponManager = module.CouponManager;
+            const result = await CouponManager.checkSubscription(userId);
+
+            let statusHTML = '';
+
+            if (result.status === 'trial') {
+                const expiresDate = new Date(result.expiresAt);
+                statusHTML = `
+                    <div class="owner-subscription-status trial">무료 체험 중</div>
+                    <div class="owner-subscription-days">(${result.daysLeft}일 남음)</div>
+                    <div class="owner-subscription-expires">만료일: ${expiresDate.toLocaleDateString('ko-KR')}</div>
+                `;
+            } else if (result.status === 'active') {
+                const expiresDate = new Date(result.expiresAt);
+                statusHTML = `
+                    <div class="owner-subscription-status active">구독 중</div>
+                    <div class="owner-subscription-days">(${result.daysLeft}일 남음)</div>
+                    <div class="owner-subscription-expires">만료일: ${expiresDate.toLocaleDateString('ko-KR')}</div>
+                `;
+            } else if (result.status === 'expired') {
+                statusHTML = `
+                    <div class="owner-subscription-status expired">구독 만료됨</div>
+                    <div class="owner-subscription-expires">쿠폰을 입력하여 갱신하세요</div>
+                `;
+            } else {
+                statusHTML = `
+                    <div class="owner-subscription-status expired">구독 없음</div>
+                    <div class="owner-subscription-expires">쿠폰을 입력하여 시작하세요</div>
+                `;
+            }
+
+            statusContainer.innerHTML = statusHTML;
+        } catch (e) {
+            console.error('Failed to load subscription status:', e);
+            statusContainer.innerHTML = '<div class="owner-subscription-loading">상태 확인 실패</div>';
+        }
+    }
+
+    // 구독 상태 로드 실행
+    loadSubscriptionStatus();
 })();

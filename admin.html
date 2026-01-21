@@ -746,21 +746,7 @@
         }
 
         .preview-frame {
-            position: fixed;
-            right: 80px;
-            top: 60px;
-            bottom: 0;
-            width: 400px;
-            border: none;
-            border-left: 1px solid var(--color-border);
-            background: var(--color-bg);
-            display: block;
-            overflow-y: scroll;
-            -webkit-overflow-scrolling: touch;
-        }
-
-        .preview-frame.active {
-            display: block;
+            display: none;
         }
 
         .admin-main.with-preview {
@@ -1792,6 +1778,7 @@
                 </div>
 
                 <div class="intro-editor-actions">
+                    <button class="btn btn-accent" id="btn-reset-intro" style="margin-right: auto;">초기화</button>
                     <button class="btn btn-primary" id="btn-save-intro">저장</button>
                     <button class="btn btn-secondary" id="btn-preview-intro">미리보기</button>
                 </div>
