@@ -1127,10 +1127,12 @@ class PageInitializer {
         if (!container) return;
 
         const aiTools = this.data.aiTools || [];
+        const sectionTitles = this.data.siteSettings?.sectionTitles || {};
+        const aiTitle = sectionTitles.aitools || '사용해본 AI';
 
         // Update title with count
         if (titleEl) {
-            titleEl.textContent = `사용해본 AI (${aiTools.length}가지)`;
+            titleEl.textContent = `${aiTitle} (${aiTools.length}가지)`;
         }
 
         container.innerHTML = aiTools.map((tool, i) => `
@@ -1177,14 +1179,17 @@ class PageInitializer {
     }
 
     renderExperience() {
+        const sectionTitles = this.data.siteSettings?.sectionTitles || {};
+
         // Related experience
         const relatedContainer = document.querySelector('[data-content="related-experience"]');
         if (relatedContainer) {
             const related = this.data.relatedExperience;
             const calculatedTotal = this.calculateTotalExperience(related.items);
+            const relatedTitle = sectionTitles.related || '관련경력';
             relatedContainer.innerHTML = `
                 <h3 class="experience-title">
-                    관련경력
+                    ${relatedTitle}
                     <span class="experience-badge">${calculatedTotal}</span>
                 </h3>
                 <div class="experience-list">
@@ -1207,9 +1212,10 @@ class PageInitializer {
         if (otherContainer) {
             const other = this.data.otherExperience;
             const calculatedTotal = this.calculateTotalExperience(other.items);
+            const otherTitle = sectionTitles.other || '기타경력';
             otherContainer.innerHTML = `
                 <h3 class="experience-title">
-                    타업무경력
+                    ${otherTitle}
                     <span class="experience-badge">${calculatedTotal}</span>
                 </h3>
                 <div class="experience-list">

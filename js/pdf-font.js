@@ -151,7 +151,7 @@ const PDFGenerator = {
         });
 
         // Get font settings from data
-        const fontSettings = data.siteSettings?.font;
+        const fontSettings = data?.siteSettings?.font;
 
         // Try to load custom font or fallback to Korean font
         const fontLoaded = await PDFFontLoader.registerFont(doc, fontSettings);
@@ -163,7 +163,8 @@ const PDFGenerator = {
             console.log('PDF using font:', PDFFontLoader.fontName);
         }
 
-        const profile = data.profile;
+        const profile = data?.profile || {};
+        const sectionTitles = data?.siteSettings?.sectionTitles || {};
         const pageWidth = doc.internal.pageSize.getWidth();
         const margin = 20;
         let y = 20;
@@ -178,7 +179,7 @@ const PDFGenerator = {
 
         // Name
         doc.setFontSize(18);
-        doc.text(profile.name || '', margin, y);
+        doc.text(profile.name || '이름 없음', margin, y);
         y += 10;
 
         doc.setFontSize(11);
@@ -190,13 +191,13 @@ const PDFGenerator = {
         }
 
         // Job roles
-        if (profile.jobRoles && profile.jobRoles.length > 0) {
+        if (profile.jobRoles?.length > 0) {
             doc.text(`가능직무: ${profile.jobRoles.join(', ')}`, margin, y);
             y += 7;
         }
 
         // Skills
-        if (profile.skills && profile.skills.length > 0) {
+        if (profile.skills?.length > 0) {
             const skillsText = `가능스킬: ${profile.skills.slice(0, 10).join(', ')}`;
             const splitSkills = doc.splitTextToSize(skillsText, pageWidth - margin * 2);
             doc.text(splitSkills, margin, y);
@@ -235,10 +236,11 @@ const PDFGenerator = {
         }
 
         // AI Tools section
-        if (data.aiTools && data.aiTools.length > 0) {
+        if (data?.aiTools?.length > 0) {
             y += 5;
             doc.setFontSize(14);
-            doc.text(`사용해본 AI (${data.aiTools.length}가지)`, margin, y);
+            const aiTitle = sectionTitles.aitools || '사용해본 AI';
+            doc.text(`${aiTitle} (${data.aiTools.length}가지)`, margin, y);
             y += 8;
 
             doc.setFontSize(10);
@@ -247,20 +249,21 @@ const PDFGenerator = {
                     doc.addPage();
                     y = 20;
                 }
-                doc.text(`${index + 1}. ${tool.name}: ${tool.description}`, margin, y);
+                doc.text(`${index + 1}. ${tool.name || ''}: ${tool.description || ''}`, margin, y);
                 y += 6;
             });
         }
 
         // Experience sections
         y += 5;
-        if (data.relatedExperience && data.relatedExperience.items.length > 0) {
+        if (data?.relatedExperience?.items?.length > 0) {
             if (y > 250) {
                 doc.addPage();
                 y = 20;
             }
             doc.setFontSize(14);
-            doc.text(`관련경력 (${data.relatedExperience.totalPeriod})`, margin, y);
+            const relatedTitle = sectionTitles.related || '관련경력';
+            doc.text(`${relatedTitle} (${data.relatedExperience.totalPeriod || ''})`, margin, y);
             y += 8;
 
             doc.setFontSize(10);
@@ -269,19 +272,20 @@ const PDFGenerator = {
                     doc.addPage();
                     y = 20;
                 }
-                doc.text(`• ${item.company} (${item.period}) - ${item.duration}`, margin, y);
+                doc.text(`• ${item.company || ''} (${item.period || ''}) - ${item.duration || ''}`, margin, y);
                 y += 6;
             });
         }
 
         y += 5;
-        if (data.otherExperience && data.otherExperience.items.length > 0) {
+        if (data?.otherExperience?.items?.length > 0) {
             if (y > 250) {
                 doc.addPage();
                 y = 20;
             }
             doc.setFontSize(14);
-            doc.text(`기타경력 (${data.otherExperience.totalPeriod})`, margin, y);
+            const otherTitle = sectionTitles.other || '기타경력';
+            doc.text(`${otherTitle} (${data.otherExperience.totalPeriod || ''})`, margin, y);
             y += 8;
 
             doc.setFontSize(10);
@@ -290,20 +294,21 @@ const PDFGenerator = {
                     doc.addPage();
                     y = 20;
                 }
-                doc.text(`• ${item.company} (${item.period}) - ${item.duration}`, margin, y);
+                doc.text(`• ${item.company || ''} (${item.period || ''}) - ${item.duration || ''}`, margin, y);
                 y += 6;
             });
         }
 
         // Self evaluation
-        if (data.evaluation && data.evaluation.text) {
+        if (data?.evaluation?.text) {
             y += 5;
             if (y > 230) {
                 doc.addPage();
                 y = 20;
             }
             doc.setFontSize(14);
-            doc.text('자기평가', margin, y);
+            const evalTitle = sectionTitles.evaluation || '자기평가';
+            doc.text(evalTitle, margin, y);
             y += 8;
 
             doc.setFontSize(10);

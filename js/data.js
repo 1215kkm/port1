@@ -34,6 +34,16 @@ const defaultData = {
             text: 'Portfolio',
             imageUrl: ''
         },
+        sectionTitles: {
+            about: '소개',
+            aitools: '사용해본 AI',
+            related: '관련경력',
+            other: '기타경력',
+            evaluation: '자기평가',
+            video: '영상',
+            portfolio: '포트폴리오',
+            contact: '연락처'
+        },
         font: {
             title: 'Paperozi',
             content: 'Paperozi',

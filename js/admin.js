@@ -1068,6 +1068,18 @@ class AdminPanel {
         const fontColorTitle2 = document.getElementById('font-color-title2-text')?.value || '#212529';
         const fontColorContent = document.getElementById('font-color-content-text')?.value || '#212529';
 
+        // Section titles
+        const sectionTitles = {
+            about: document.getElementById('section-title-about')?.value || '소개',
+            aitools: document.getElementById('section-title-aitools')?.value || '사용해본 AI',
+            related: document.getElementById('section-title-related')?.value || '관련경력',
+            other: document.getElementById('section-title-other')?.value || '기타경력',
+            evaluation: document.getElementById('section-title-evaluation')?.value || '자기평가',
+            video: document.getElementById('section-title-video')?.value || '영상',
+            portfolio: document.getElementById('section-title-portfolio')?.value || '포트폴리오',
+            contact: document.getElementById('section-title-contact')?.value || '연락처'
+        };
+
         // Font sizes
         const fontSizes = {
             '5xl': document.getElementById('font-size-5xl')?.value || '3rem',
@@ -1090,6 +1102,7 @@ class AdminPanel {
 
         dataManager.updateSiteSettings({
             logo: { type: logoType, text: logoText, imageUrl: logoImageUrl },
+            sectionTitles: sectionTitles,
             font: {
                 title: fontTitle,
                 content: fontContent,
@@ -1403,6 +1416,24 @@ class AdminPanel {
             imageGroup.style.display = 'block';
             this.updateLogoPreview(settings.logo?.imageUrl);
         }
+
+        // Section titles - with null checks
+        const sectionTitles = settings.sectionTitles || {};
+        const sectionTitleFields = ['about', 'aitools', 'related', 'other', 'evaluation', 'video', 'portfolio', 'contact'];
+        const defaultTitles = {
+            about: '소개',
+            aitools: '사용해본 AI',
+            related: '관련경력',
+            other: '기타경력',
+            evaluation: '자기평가',
+            video: '영상',
+            portfolio: '포트폴리오',
+            contact: '연락처'
+        };
+        sectionTitleFields.forEach(field => {
+            const el = document.getElementById(`section-title-${field}`);
+            if (el) el.value = sectionTitles[field] || defaultTitles[field];
+        });
 
         // Font - with null checks
         const fontTitleEl = document.getElementById('font-title');
