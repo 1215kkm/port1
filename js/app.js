@@ -868,11 +868,18 @@ class PageInitializer {
         const aiLink = document.querySelector('[data-page-link="ai"]');
         const teamLink = document.querySelector('[data-page-link="team"]');
 
+        console.log('Page settings:', JSON.stringify(pageSettings));
+        console.log('AI link found:', !!aiLink, ', Team link found:', !!teamLink);
+
         if (aiLink) {
-            aiLink.style.display = pageSettings.ai === false ? 'none' : '';
+            const aiDisplay = pageSettings.ai === false ? 'none' : '';
+            aiLink.style.display = aiDisplay;
+            console.log('AI link display set to:', aiDisplay || 'default');
         }
         if (teamLink) {
-            teamLink.style.display = pageSettings.team === false ? 'none' : '';
+            const teamDisplay = pageSettings.team === false ? 'none' : '';
+            teamLink.style.display = teamDisplay;
+            console.log('Team link display set to:', teamDisplay || 'default');
         }
     }
 

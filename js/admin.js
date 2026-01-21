@@ -1914,8 +1914,12 @@ class AdminPanel {
             team: teamToggle ? teamToggle.checked : true
         };
 
+        console.log('Saving pageSettings:', JSON.stringify(pageSettings));
         dataManager.set('pageSettings', pageSettings);
         dataManager.saveData();
+
+        // Refresh minimap to show changes
+        this.refreshMinimap();
 
         // Refresh minimap to show changes
         this.refreshMinimap();
