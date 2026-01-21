@@ -1059,8 +1059,9 @@ class DataManager {
     // Apply Theme
     applyTheme() {
         const currentTheme = this.data.theme.modes.find(m => m.id === this.data.theme.current);
+        const root = document.documentElement;
+
         if (currentTheme && currentTheme.colors) {
-            const root = document.documentElement;
             root.setAttribute('data-theme', this.data.theme.current);
 
             // Apply theme colors
@@ -1075,8 +1076,28 @@ class DataManager {
             if (currentTheme.colors.textMuted) root.style.setProperty('--color-text-muted', currentTheme.colors.textMuted);
             if (currentTheme.colors.border) root.style.setProperty('--color-border', currentTheme.colors.border);
         } else {
-            document.documentElement.setAttribute('data-theme', this.data.theme.current);
+            root.setAttribute('data-theme', this.data.theme.current);
         }
+
+        // Apply per-level font colors based on theme
+        const isDark = this.data.theme.current === 'dark';
+        const font = this.data.siteSettings?.font || {};
+        const fontColors = isDark ? (font.colorsDark || {}) : (font.fontColors || {});
+        const defaultColorsLight = { '5xl': '#212529', '4xl': '#212529', '3xl': '#212529', '2xl': '#495057', 'base': '#495057', 'sm': '#6c757d' };
+        const defaultColorsDark = { '5xl': '#eaeaea', '4xl': '#eaeaea', '3xl': '#eaeaea', '2xl': '#b8b8b8', 'base': '#b8b8b8', 'sm': '#888888' };
+        const defaults = isDark ? defaultColorsDark : defaultColorsLight;
+
+        root.style.setProperty('--color-5xl', fontColors['5xl'] || defaults['5xl']);
+        root.style.setProperty('--color-4xl', fontColors['4xl'] || defaults['4xl']);
+        root.style.setProperty('--color-3xl', fontColors['3xl'] || defaults['3xl']);
+        root.style.setProperty('--color-2xl', fontColors['2xl'] || defaults['2xl']);
+        root.style.setProperty('--color-base', fontColors['base'] || defaults['base']);
+        root.style.setProperty('--color-sm', fontColors['sm'] || defaults['sm']);
+
+        // Apply logo text color based on theme
+        const logo = this.data.siteSettings?.logo || {};
+        const logoTextColor = isDark ? (logo.textColorDark || '#ffffff') : (logo.textColor || '#212529');
+        root.style.setProperty('--logo-text-color', logoTextColor);
     }
 
     // Add Theme Mode

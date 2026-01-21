@@ -1073,14 +1073,27 @@ class PageInitializer {
             document.documentElement.style.setProperty('--color-content', colors.content);
         }
 
-        // Apply per-level font colors
-        const fontColors = font.fontColors || {};
-        if (fontColors['5xl']) document.documentElement.style.setProperty('--color-5xl', fontColors['5xl']);
-        if (fontColors['4xl']) document.documentElement.style.setProperty('--color-4xl', fontColors['4xl']);
-        if (fontColors['3xl']) document.documentElement.style.setProperty('--color-3xl', fontColors['3xl']);
-        if (fontColors['2xl']) document.documentElement.style.setProperty('--color-2xl', fontColors['2xl']);
-        if (fontColors['base']) document.documentElement.style.setProperty('--color-base', fontColors['base']);
-        if (fontColors['sm']) document.documentElement.style.setProperty('--color-sm', fontColors['sm']);
+        // Determine current theme
+        const currentTheme = this.data.theme?.current || 'light';
+        const isDark = currentTheme === 'dark';
+
+        // Apply per-level font colors based on theme
+        const fontColors = isDark ? (font.colorsDark || {}) : (font.fontColors || {});
+        const defaultColorsLight = { '5xl': '#212529', '4xl': '#212529', '3xl': '#212529', '2xl': '#495057', 'base': '#495057', 'sm': '#6c757d' };
+        const defaultColorsDark = { '5xl': '#eaeaea', '4xl': '#eaeaea', '3xl': '#eaeaea', '2xl': '#b8b8b8', 'base': '#b8b8b8', 'sm': '#888888' };
+        const defaults = isDark ? defaultColorsDark : defaultColorsLight;
+
+        document.documentElement.style.setProperty('--color-5xl', fontColors['5xl'] || defaults['5xl']);
+        document.documentElement.style.setProperty('--color-4xl', fontColors['4xl'] || defaults['4xl']);
+        document.documentElement.style.setProperty('--color-3xl', fontColors['3xl'] || defaults['3xl']);
+        document.documentElement.style.setProperty('--color-2xl', fontColors['2xl'] || defaults['2xl']);
+        document.documentElement.style.setProperty('--color-base', fontColors['base'] || defaults['base']);
+        document.documentElement.style.setProperty('--color-sm', fontColors['sm'] || defaults['sm']);
+
+        // Apply logo text color based on theme
+        const logo = settings?.logo || {};
+        const logoTextColor = isDark ? (logo.textColorDark || '#ffffff') : (logo.textColor || '#212529');
+        document.documentElement.style.setProperty('--logo-text-color', logoTextColor);
     }
 
     applyBackgroundSettings() {

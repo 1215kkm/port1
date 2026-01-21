@@ -1535,6 +1535,7 @@ class AdminPanel {
         const logoType = document.getElementById('logo-type')?.value || 'text';
         const logoText = document.getElementById('logo-text')?.value || '';
         const logoTextColor = document.getElementById('logo-text-color')?.value || '#212529';
+        const logoTextColorDark = document.getElementById('logo-text-color-dark')?.value || '#ffffff';
         const logoImageUrlLight = document.getElementById('logo-image-url-light')?.value || '';
         const logoImageUrlDark = document.getElementById('logo-image-url-dark')?.value || '';
         const fontTitle = document.getElementById('font-title')?.value || 'Paperozi';
@@ -1595,6 +1596,7 @@ class AdminPanel {
                 type: logoType,
                 text: logoText,
                 textColor: logoTextColor,
+                textColorDark: logoTextColorDark,
                 imageUrlLight: logoImageUrlLight,
                 imageUrlDark: logoImageUrlDark
             },
@@ -1900,19 +1902,16 @@ class AdminPanel {
         const logoTypeEl = document.getElementById('logo-type');
         const logoTextEl = document.getElementById('logo-text');
         const logoTextColorEl = document.getElementById('logo-text-color');
-        const logoTextColorValueEl = document.getElementById('logo-text-color-value');
+        const logoTextColorDarkEl = document.getElementById('logo-text-color-dark');
         const logoImageUrlLightEl = document.getElementById('logo-image-url-light');
         const logoImageUrlDarkEl = document.getElementById('logo-image-url-dark');
 
         if (logoTypeEl) logoTypeEl.value = settings.logo?.type || 'text';
         if (logoTextEl) logoTextEl.value = settings.logo?.text || '';
         if (logoTextColorEl) logoTextColorEl.value = settings.logo?.textColor || '#212529';
-        if (logoTextColorValueEl) logoTextColorValueEl.value = settings.logo?.textColor || '#212529';
+        if (logoTextColorDarkEl) logoTextColorDarkEl.value = settings.logo?.textColorDark || '#ffffff';
         if (logoImageUrlLightEl) logoImageUrlLightEl.value = settings.logo?.imageUrlLight || settings.logo?.imageUrl || '';
         if (logoImageUrlDarkEl) logoImageUrlDarkEl.value = settings.logo?.imageUrlDark || '';
-
-        // Sync logo text color inputs
-        this.setupColorSyncById('logo-text-color', 'logo-text-color-value');
 
         // Show/hide based on type
         const textGroup = document.getElementById('logo-text-group');
