@@ -277,15 +277,23 @@ class AdminPanel {
     // Page Tabs
     // =====================
     initPageTabs() {
+        const self = this;
+        const menuSection = document.getElementById('menu-management-section');
+
         const updateMenuVisibility = (page) => {
-            const menuSection = document.getElementById('menu-management-section');
+            console.log('updateMenuVisibility called with page:', page);
             if (menuSection) {
-                menuSection.style.display = (page === 'solo' || page === 'skin') ? 'block' : 'none';
+                const shouldShow = (page === 'solo' || page === 'skin');
+                menuSection.style.display = shouldShow ? 'block' : 'none';
+                console.log('Menu section display:', menuSection.style.display);
+            } else {
+                console.log('Menu section not found!');
             }
         };
 
         const switchToPage = (page) => {
-            this.currentPage = page;
+            console.log('switchToPage called with:', page);
+            self.currentPage = page;
 
             document.querySelectorAll('.admin-panel').forEach(panel => {
                 panel.classList.remove('active');
@@ -294,23 +302,29 @@ class AdminPanel {
 
             // Sync minimap with page tab
             if (page === 'solo') {
-                this.switchMinimapPage('portfolio');
+                self.switchMinimapPage('portfolio');
             } else if (page === 'ai') {
-                this.switchMinimapPage('ai');
+                self.switchMinimapPage('ai');
             } else if (page === 'team') {
-                this.switchMinimapPage('team');
+                self.switchMinimapPage('team');
             }
 
             // Show/hide menu management section (only for solo/skin pages)
             updateMenuVisibility(page);
         };
 
-        document.querySelectorAll('.page-tab').forEach(tab => {
-            tab.addEventListener('click', () => {
-                document.querySelectorAll('.page-tab').forEach(t => t.classList.remove('active'));
-                tab.classList.add('active');
+        const tabs = document.querySelectorAll('.page-tab');
+        console.log('Found page-tabs:', tabs.length);
 
-                const page = tab.dataset.page;
+        tabs.forEach(tab => {
+            tab.addEventListener('click', function(e) {
+                e.preventDefault();
+                console.log('Tab clicked:', this.dataset.page);
+
+                document.querySelectorAll('.page-tab').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+
+                const page = this.dataset.page;
                 switchToPage(page);
             });
         });
@@ -318,6 +332,7 @@ class AdminPanel {
         // Initialize menu visibility based on current active tab
         const activeTab = document.querySelector('.page-tab.active');
         if (activeTab) {
+            console.log('Initial active tab:', activeTab.dataset.page);
             updateMenuVisibility(activeTab.dataset.page);
         }
     }
@@ -336,19 +351,26 @@ class AdminPanel {
         const minimap = document.getElementById('site-minimap');
         const adminMain = document.querySelector('.admin-main');
 
-        if (!handle || !minimap) return;
+        console.log('initResizeHandle - handle:', !!handle, 'minimap:', !!minimap);
+
+        if (!handle || !minimap) {
+            console.log('Resize handle or minimap not found!');
+            return;
+        }
 
         let isResizing = false;
         let startX = 0;
         let startWidth = 280;
 
         handle.addEventListener('mousedown', (e) => {
+            console.log('Resize handle mousedown');
             isResizing = true;
             startX = e.clientX;
             startWidth = minimap.offsetWidth;
             handle.classList.add('active');
             document.body.style.cursor = 'col-resize';
             document.body.style.userSelect = 'none';
+            e.preventDefault();
         });
 
         document.addEventListener('mousemove', (e) => {
