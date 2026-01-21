@@ -24,9 +24,41 @@
             z-index: var(--z-fixed);
         }
 
+        .admin-header-left {
+            display: flex;
+            align-items: center;
+            gap: var(--space-lg);
+        }
+
         .admin-header-title {
             font-size: var(--font-xl);
             font-weight: 600;
+        }
+
+        .theme-selector {
+            display: flex;
+            gap: var(--space-xs);
+        }
+
+        .theme-select-btn {
+            padding: 6px 12px;
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-md);
+            background: var(--color-bg-secondary);
+            color: var(--color-text);
+            font-size: var(--font-sm);
+            cursor: pointer;
+            transition: all var(--transition-fast);
+        }
+
+        .theme-select-btn:hover {
+            border-color: var(--color-primary);
+        }
+
+        .theme-select-btn.active {
+            background: var(--color-primary);
+            color: white;
+            border-color: var(--color-primary);
         }
 
         .admin-header-actions {
@@ -60,6 +92,7 @@
         .admin-main {
             flex: 1;
             margin-left: 280px;
+            margin-right: 330px;
             padding: var(--space-xl);
             background: var(--color-bg);
         }
@@ -320,23 +353,23 @@
 
         .floating-theme-panel {
             position: fixed;
-            right: var(--space-lg);
+            right: 8px;
             top: 50%;
             transform: translateY(-50%);
             background: var(--color-bg);
             border: 1px solid var(--color-border);
-            border-radius: var(--radius-lg);
-            padding: var(--space-md);
-            box-shadow: var(--shadow-lg);
+            border-radius: var(--radius-md);
+            padding: 6px;
+            box-shadow: var(--shadow-md);
             z-index: var(--z-fixed);
         }
 
         .floating-theme-btn {
             display: block;
-            width: 40px;
-            height: 40px;
-            border-radius: var(--radius-md);
-            margin-bottom: var(--space-sm);
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+            margin-bottom: 4px;
             border: 2px solid transparent;
             cursor: pointer;
             transition: all var(--transition-fast);
@@ -350,6 +383,78 @@
         .floating-theme-btn.active {
             border-color: var(--color-primary);
             transform: scale(1.1);
+        }
+
+        /* Site Preview Minimap */
+        .site-minimap {
+            position: fixed;
+            right: 40px;
+            top: 70px;
+            bottom: 10px;
+            width: 280px;
+            background: #1a1a2e;
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-lg);
+            z-index: calc(var(--z-fixed) - 1);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .minimap-header {
+            padding: 10px 12px;
+            background: #222;
+            border-bottom: 1px solid #333;
+            font-size: 12px;
+            font-weight: 600;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .minimap-header-icon {
+            font-size: 14px;
+        }
+
+        .minimap-current-section {
+            color: var(--color-primary);
+            font-weight: 500;
+            margin-left: auto;
+            font-size: 11px;
+        }
+
+        .minimap-frame-container {
+            flex: 1;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .minimap-frame {
+            width: 400%;
+            height: 400%;
+            border: none;
+            transform: scale(0.25);
+            transform-origin: top left;
+            pointer-events: none;
+        }
+
+        .minimap-overlay {
+            position: absolute;
+            inset: 0;
+            background: transparent;
+            cursor: pointer;
+        }
+
+        .minimap-section-indicator {
+            position: absolute;
+            left: 0;
+            right: 0;
+            background: rgba(52, 152, 219, 0.3);
+            border: 2px solid var(--color-primary);
+            pointer-events: none;
+            transition: all 0.3s ease;
         }
 
         .preview-frame {
@@ -424,13 +529,23 @@
             scroll-margin-top: 80px;
         }
 
+        @media (max-width: 1400px) {
+            .site-minimap {
+                display: none;
+            }
+
+            .admin-main {
+                margin-right: 50px;
+            }
+        }
+
         @media (max-width: 1200px) {
             .preview-frame {
                 display: none !important;
             }
 
             .admin-main.with-preview {
-                margin-right: 0;
+                margin-right: 50px;
             }
         }
 
@@ -459,7 +574,14 @@
 <body>
     <!-- Admin Header -->
     <header class="admin-header">
-        <h1 class="admin-header-title">포트폴리오 설정</h1>
+        <div class="admin-header-left">
+            <h1 class="admin-header-title" id="admin-title">포트폴리오 설정</h1>
+            <div class="theme-selector">
+                <button class="theme-select-btn active" data-theme-num="1">테마1</button>
+                <button class="theme-select-btn" data-theme-num="2">테마2</button>
+                <button class="theme-select-btn" data-theme-num="3">테마3</button>
+            </div>
+        </div>
         <div class="admin-header-actions">
             <button class="btn btn-primary" id="btn-save-all">모두저장</button>
             <a href="index.html" class="btn btn-secondary" target="_blank">사이트 보기</a>
@@ -981,6 +1103,19 @@
         <!-- Floating Theme Panel -->
         <div class="floating-theme-panel" id="floating-theme-panel">
             <!-- Theme buttons will be rendered dynamically -->
+        </div>
+
+        <!-- Site Preview Minimap -->
+        <div class="site-minimap" id="site-minimap">
+            <div class="minimap-header">
+                <span class="minimap-header-icon">🗺️</span>
+                <span>사이트 미리보기</span>
+                <span class="minimap-current-section" id="minimap-current-section">자기소개</span>
+            </div>
+            <div class="minimap-frame-container">
+                <iframe class="minimap-frame" id="minimap-frame" src="portfolio.html"></iframe>
+                <div class="minimap-overlay" id="minimap-overlay"></div>
+            </div>
         </div>
 
         <!-- Preview Frame -->

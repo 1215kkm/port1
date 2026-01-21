@@ -62,6 +62,15 @@ class AdminPanel {
         dataManager.applyCSSVariables();
         dataManager.applyFont();
 
+        // Set user name in header
+        this.setUserNameInHeader();
+
+        // Initialize theme selector
+        this.initThemeSelector();
+
+        // Initialize minimap
+        this.initMinimap();
+
         // Initialize page tabs
         this.initPageTabs();
 
@@ -95,6 +104,105 @@ class AdminPanel {
             this.data = dataManager.getData();
             this.refreshPreview();
         });
+    }
+
+    // =====================
+    // User Name in Header
+    // =====================
+    setUserNameInHeader() {
+        const titleEl = document.getElementById('admin-title');
+        if (titleEl) {
+            const userName = this.data.profile?.name || '사용자';
+            titleEl.textContent = `${userName}님의 포트폴리오 설정`;
+        }
+    }
+
+    // =====================
+    // Theme Selector (테마1, 테마2, 테마3)
+    // =====================
+    initThemeSelector() {
+        document.querySelectorAll('.theme-select-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const themeNum = parseInt(btn.dataset.themeNum);
+
+                if (themeNum === 1) {
+                    // 현재 테마1 사용 중
+                    document.querySelectorAll('.theme-select-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                } else {
+                    // 테마2, 테마3은 준비 중
+                    alert('준비중입니다.');
+                }
+            });
+        });
+    }
+
+    // =====================
+    // Site Minimap
+    // =====================
+    initMinimap() {
+        const minimapFrame = document.getElementById('minimap-frame');
+        const minimapOverlay = document.getElementById('minimap-overlay');
+        const currentSectionEl = document.getElementById('minimap-current-section');
+
+        if (!minimapFrame) return;
+
+        // Set the portfolio URL with user ID
+        const userId = dataManager.userId;
+        if (userId) {
+            minimapFrame.src = `portfolio.html?u=${userId}`;
+        }
+
+        // Track current section being edited
+        this.currentEditSection = '자기소개';
+
+        // Update section indicator when scrolling in admin
+        const adminMain = document.querySelector('.admin-main');
+        if (adminMain) {
+            adminMain.addEventListener('scroll', () => {
+                this.updateMinimapSection();
+            });
+
+            // Also track on window scroll
+            window.addEventListener('scroll', () => {
+                this.updateMinimapSection();
+            });
+        }
+
+        // Click overlay to refresh minimap
+        if (minimapOverlay) {
+            minimapOverlay.addEventListener('click', () => {
+                this.refreshMinimap();
+            });
+        }
+    }
+
+    updateMinimapSection() {
+        const currentSectionEl = document.getElementById('minimap-current-section');
+        if (!currentSectionEl) return;
+
+        // Find visible section
+        const sections = document.querySelectorAll('.settings-section');
+        let currentSection = '자기소개';
+
+        sections.forEach(section => {
+            const rect = section.getBoundingClientRect();
+            if (rect.top < 200 && rect.bottom > 100) {
+                const title = section.querySelector('.settings-section-title');
+                if (title) {
+                    currentSection = title.textContent;
+                }
+            }
+        });
+
+        currentSectionEl.textContent = currentSection;
+    }
+
+    refreshMinimap() {
+        const minimapFrame = document.getElementById('minimap-frame');
+        if (minimapFrame) {
+            minimapFrame.contentWindow.location.reload();
+        }
     }
 
     // =====================
@@ -252,6 +360,13 @@ class AdminPanel {
         this.saveAllThemes();
 
         dataManager.saveAll();
+
+        // Update header with new name if changed
+        this.setUserNameInHeader();
+
+        // Refresh minimap
+        this.refreshMinimap();
+
         alert('모든 설정이 저장되었습니다.');
     }
 
@@ -476,6 +591,8 @@ class AdminPanel {
         if (frame && frame.classList.contains('active')) {
             frame.contentWindow.location.reload();
         }
+        // Also refresh minimap
+        this.refreshMinimap();
     }
 
     // =====================
