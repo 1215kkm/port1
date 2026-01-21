@@ -80,29 +80,13 @@ const PDFFontLoader = {
         }
     },
 
-    // Main load function - tries custom font first, then fallback
+    // Main load function - always use default Korean font for PDF (woff2 not supported by jsPDF)
     async loadFont(fontSettings) {
         if (this.fontLoaded) return this.fontData;
 
-        // Try to load custom font from settings
-        if (fontSettings?.fontFaceTitle) {
-            const customUrl = this.extractFontUrl(fontSettings.fontFaceTitle, fontSettings.weightTitle || '400');
-            if (customUrl) {
-                console.log('Trying to load custom font:', customUrl);
-                const customFontData = await this.loadFontFromUrl(customUrl);
-                if (customFontData) {
-                    this.fontData = customFontData;
-                    this.fontLoaded = true;
-                    this.customFontName = fontSettings.title || 'CustomFont';
-                    this.fontName = this.customFontName;
-                    console.log('Custom font loaded:', this.fontName);
-                    return this.fontData;
-                }
-            }
-        }
-
-        // Fallback to default font
-        console.log('Loading default Noto Sans KR font');
+        // Always use default Noto Sans KR font for PDF
+        // Custom woff2 fonts are not supported by jsPDF
+        console.log('Loading default Noto Sans KR font for PDF');
         this.fontData = await this.loadDefaultFont();
         this.fontLoaded = !!this.fontData;
         this.fontName = 'NotoSansKR';
@@ -123,19 +107,22 @@ const PDFFontLoader = {
 
     // Register font with jsPDF
     async registerFont(doc, fontSettings) {
-        const fontData = await this.loadFont(fontSettings);
-        if (fontData) {
-            try {
+        try {
+            const fontData = await this.loadFont(fontSettings);
+            if (fontData) {
                 const fileName = `${this.fontName}.otf`;
                 doc.addFileToVFS(fileName, fontData);
                 doc.addFont(fileName, this.fontName, 'normal');
                 doc.setFont(this.fontName);
+                console.log('Font registered successfully:', this.fontName);
                 return true;
-            } catch (error) {
-                console.error('Failed to register font:', error);
-                return false;
             }
+        } catch (error) {
+            console.error('Failed to register font:', error);
         }
+
+        // Font registration failed, use default helvetica
+        console.log('Using default helvetica font');
         return false;
     }
 };

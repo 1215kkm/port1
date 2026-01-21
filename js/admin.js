@@ -861,11 +861,15 @@ class AdminPanel {
         const items = listContainer.querySelectorAll('.section-setting-item[data-section]');
         const sectionOrder = Array.from(items).map(item => item.dataset.section);
 
+        console.log('Saving sectionOrder:', sectionOrder);
         dataManager.set('sectionOrder', sectionOrder);
         dataManager.saveData();
 
-        // Refresh minimap to show changes
-        this.refreshMinimap();
+        // Refresh both minimap and preview to show changes
+        setTimeout(() => {
+            this.refreshMinimap();
+            this.refreshPreview();
+        }, 100);
     }
 
     saveSectionSettings() {
