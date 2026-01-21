@@ -464,6 +464,11 @@ ul, ol {
     gap: var(--space-2xl);
 }
 
+/* When photo is hidden, make info take full width */
+.about-grid.photo-hidden {
+    grid-template-columns: 1fr;
+}
+
 .about-grid-top {
     align-items: start;
 }

@@ -856,11 +856,20 @@ class PageInitializer {
 
         // Also hide the about-profile container if photo is hidden
         const aboutProfileEl = document.querySelector('.about-profile');
+        const aboutGridEl = document.querySelector('.about-grid-top');
+
         if (aboutProfileEl) {
             if (sectionSettings.aboutPhoto === false) {
                 aboutProfileEl.style.display = 'none';
+                // Make the info section take full width
+                if (aboutGridEl) {
+                    aboutGridEl.classList.add('photo-hidden');
+                }
             } else {
                 aboutProfileEl.style.display = '';
+                if (aboutGridEl) {
+                    aboutGridEl.classList.remove('photo-hidden');
+                }
             }
         }
 
