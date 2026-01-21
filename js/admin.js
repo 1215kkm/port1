@@ -2259,13 +2259,14 @@ class AdminPanel {
                             </div>
                         </div>
 
-                        <h3 style="margin-bottom: var(--space-md);">작품 목록</h3>
-                        <div class="portfolio-items-list" data-section="${menu.id}">
+                        <h3 style="margin-bottom: var(--space-md);">작품 목록 <span style="font-size: 11px; color: #888; font-weight: normal;">(드래그로 순서 변경)</span></h3>
+                        <div class="portfolio-items-list sortable-portfolio" data-section="${menu.id}">
                             ${items.map(item => {
                                 const contributions = item.contributions || (item.contribution ? [{ label: '기여도', value: item.contribution }] : []);
                                 const contributionText = contributions.map(c => `${c.label}: ${c.value}%`).join(', ') || '-';
                                 return `
-                                <div class="item-card">
+                                <div class="item-card" data-item-id="${item.id}">
+                                    <span class="drag-handle" style="cursor: grab; margin-right: 8px; color: #888;">⋮⋮</span>
                                     <div class="item-card-content">
                                         <div class="item-card-title">${item.title}</div>
                                         <div class="item-card-desc">${contributionText}</div>
@@ -2315,6 +2316,67 @@ class AdminPanel {
         container.querySelectorAll('[data-action="add-portfolio"]').forEach(btn => {
             btn.addEventListener('click', () => this.showPortfolioModal(btn.dataset.section));
         });
+
+        // Initialize drag reorder for portfolio items
+        this.initPortfolioDragReorder();
+    }
+
+    initPortfolioDragReorder() {
+        const lists = document.querySelectorAll('.sortable-portfolio');
+
+        lists.forEach(list => {
+            const sectionId = list.dataset.section;
+            let draggedItem = null;
+
+            list.querySelectorAll('.item-card').forEach(item => {
+                item.draggable = true;
+
+                item.addEventListener('dragstart', (e) => {
+                    draggedItem = item;
+                    item.classList.add('dragging');
+                    e.dataTransfer.effectAllowed = 'move';
+                });
+
+                item.addEventListener('dragend', () => {
+                    item.classList.remove('dragging');
+                    draggedItem = null;
+                    this.savePortfolioOrder(sectionId, list);
+                });
+
+                item.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    const afterElement = this.getPortfolioDragAfterElement(list, e.clientY);
+                    if (afterElement == null) {
+                        list.appendChild(draggedItem);
+                    } else {
+                        list.insertBefore(draggedItem, afterElement);
+                    }
+                });
+            });
+        });
+    }
+
+    getPortfolioDragAfterElement(container, y) {
+        const draggableElements = [...container.querySelectorAll('.item-card:not(.dragging)')];
+
+        return draggableElements.reduce((closest, child) => {
+            const box = child.getBoundingClientRect();
+            const offset = y - box.top - box.height / 2;
+            if (offset < 0 && offset > closest.offset) {
+                return { offset: offset, element: child };
+            } else {
+                return closest;
+            }
+        }, { offset: Number.NEGATIVE_INFINITY }).element;
+    }
+
+    savePortfolioOrder(sectionId, container) {
+        const items = container.querySelectorAll('.item-card');
+        const newOrder = Array.from(items).map(item => parseInt(item.dataset.itemId));
+
+        // Reorder portfolio items in dataManager
+        dataManager.reorderPortfolioItems(sectionId, newOrder);
+        this.data = dataManager.getData();
     }
 
     renderPortfolioAI() {

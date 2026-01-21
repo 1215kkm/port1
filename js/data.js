@@ -936,6 +936,41 @@ class DataManager {
         this.saveData();
     }
 
+    // Reorder Portfolio Items within a section
+    reorderPortfolioItems(sectionId, newOrder) {
+        // Get items for this section
+        const sectionItems = this.data.portfolioSolo.items.filter(i => i.section === sectionId);
+        const otherItems = this.data.portfolioSolo.items.filter(i => i.section !== sectionId);
+
+        // Reorder section items based on newOrder (array of item IDs)
+        const reorderedSectionItems = newOrder
+            .map(id => sectionItems.find(item => item.id === id))
+            .filter(Boolean);
+
+        // Rebuild items array maintaining relative positions
+        const result = [];
+        let sectionInserted = false;
+
+        this.data.portfolioSolo.items.forEach(item => {
+            if (item.section === sectionId) {
+                if (!sectionInserted) {
+                    result.push(...reorderedSectionItems);
+                    sectionInserted = true;
+                }
+            } else {
+                result.push(item);
+            }
+        });
+
+        // If section items were at the end or not found, add them
+        if (!sectionInserted) {
+            result.push(...reorderedSectionItems);
+        }
+
+        this.data.portfolioSolo.items = result;
+        this.saveData();
+    }
+
     // Get Portfolio Items by Section
     getPortfolioItemsBySection(sectionId) {
         return this.data.portfolioSolo.items.filter(i => i.section === sectionId);

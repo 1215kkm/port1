@@ -165,6 +165,19 @@
             border-color: var(--color-primary);
         }
 
+        .item-card.dragging {
+            opacity: 0.5;
+            background: rgba(100, 100, 100, 0.3);
+        }
+
+        .item-card {
+            cursor: grab;
+        }
+
+        .item-card:active {
+            cursor: grabbing;
+        }
+
         .sort-handle {
             color: #888;
             cursor: grab;
@@ -741,8 +754,9 @@
             border: none;
             border-left: 1px solid var(--color-border);
             background: var(--color-bg);
-            display: none;
-            overflow: auto;
+            display: block;
+            overflow-y: scroll;
+            -webkit-overflow-scrolling: touch;
         }
 
         .preview-frame.active {
@@ -890,7 +904,6 @@
         <div class="admin-header-actions">
             <button class="btn btn-primary" id="btn-save-all">모두저장</button>
             <a href="index.html" class="btn btn-secondary" target="_blank">사이트 보기</a>
-            <button class="btn btn-secondary" id="btn-preview">미리보기</button>
             <button class="btn btn-secondary" id="btn-export">데이터 내보내기</button>
             <button class="btn btn-secondary" id="btn-import">데이터 불러오기</button>
             <input type="file" id="import-file" accept=".json" style="display: none;">
