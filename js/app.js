@@ -1131,7 +1131,21 @@ class PageInitializer {
                     z-index: -1;
                     pointer-events: none;
                 }
+                /* 배경 이미지가 설정되면 섹션 배경을 투명하게 */
+                #about,
+                .about-section,
+                .portfolio-section,
+                #contact {
+                    background: transparent !important;
+                    background-color: transparent !important;
+                }
             `;
+        } else {
+            // body 배경이 없으면 스타일 제거
+            const existingStyle = document.getElementById('custom-background-style');
+            if (existingStyle) {
+                existingStyle.remove();
+            }
         }
 
         // Apply section backgrounds
