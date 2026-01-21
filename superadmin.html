@@ -178,9 +178,25 @@
             font-weight: 500;
         }
 
-        .status-badge.active {
+        .status-badge.active,
+        .status-badge.status-success {
             background: rgba(39, 174, 96, 0.2);
             color: #27ae60;
+        }
+
+        .status-badge.status-info {
+            background: rgba(52, 152, 219, 0.2);
+            color: #3498db;
+        }
+
+        .status-badge.status-expired {
+            background: rgba(231, 76, 60, 0.2);
+            color: #e74c3c;
+        }
+
+        .status-badge.status-warning {
+            background: rgba(241, 196, 15, 0.2);
+            color: #f1c40f;
         }
 
         .status-badge.inactive {
@@ -439,6 +455,20 @@
                         <div class="stat-card">
                             <div class="stat-card-label">총 회원 수</div>
                             <div class="stat-card-value" id="stat-members">-</div>
+                        </div>
+                    </div>
+
+                    <!-- Coupon Management -->
+                    <div class="dashboard-section">
+                        <div class="section-header">
+                            <h2 class="section-title">🎟️ 쿠폰 관리</h2>
+                            <button class="section-action" onclick="showCreateCouponModal()">+ 쿠폰 생성</button>
+                        </div>
+                        <div id="coupon-list">
+                            <div class="loading">
+                                <div class="loading-spinner"></div>
+                                <p>쿠폰 목록 로딩 중...</p>
+                            </div>
                         </div>
                     </div>
 
@@ -713,8 +743,190 @@
             loadMembers();
         };
 
+        // ========== Coupon Management Functions ==========
+
+        async function loadCoupons() {
+            try {
+                const { CouponManager } = await import('./js/firebase-config.js');
+                const coupons = await CouponManager.getAllCoupons();
+                renderCouponList(coupons);
+            } catch (error) {
+                console.error('Error loading coupons:', error);
+                document.getElementById('coupon-list').innerHTML = '<p style="color: #e74c3c;">쿠폰 목록을 불러오는데 실패했습니다.</p>';
+            }
+        }
+
+        function renderCouponList(coupons) {
+            if (coupons.length === 0) {
+                document.getElementById('coupon-list').innerHTML = '<p style="color: #888;">생성된 쿠폰이 없습니다.</p>';
+                return;
+            }
+
+            const html = `
+                <table class="member-table">
+                    <thead>
+                        <tr>
+                            <th>쿠폰 코드</th>
+                            <th>기간</th>
+                            <th>유형</th>
+                            <th>사용</th>
+                            <th>생성일</th>
+                            <th>상태</th>
+                            <th>액션</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${coupons.map(c => `
+                            <tr style="${!c.active ? 'opacity: 0.5;' : ''}">
+                                <td>
+                                    <code style="background: #16213e; padding: 4px 8px; border-radius: 4px; font-size: 14px; cursor: pointer;" onclick="copyCouponCode('${c.code}')">${c.code}</code>
+                                </td>
+                                <td><span style="color: #3498db; font-weight: 600;">${c.months}개월</span></td>
+                                <td>
+                                    <span class="status-badge ${c.type === 'single' ? 'status-info' : 'status-success'}">${c.type === 'single' ? '1인용' : '다인용'}</span>
+                                </td>
+                                <td>${c.usedCount}${c.maxUses ? '/' + c.maxUses : ''}</td>
+                                <td>${formatDate(c.createdAt)}</td>
+                                <td>
+                                    <span class="status-badge ${c.active ? 'status-success' : 'status-expired'}">${c.active ? '활성' : '비활성'}</span>
+                                </td>
+                                <td>
+                                    ${c.active ? `<button class="preview-btn" style="background: #e74c3c;" onclick="deactivateCoupon('${c.code}')">비활성화</button>` : ''}
+                                    <button class="preview-btn" style="background: #333;" onclick="deleteCoupon('${c.code}')">삭제</button>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+
+            document.getElementById('coupon-list').innerHTML = html;
+        }
+
+        window.showCreateCouponModal = function() {
+            const modal = document.getElementById('preview-modal');
+            const title = document.getElementById('preview-modal-title');
+
+            title.textContent = '새 쿠폰 생성';
+
+            document.querySelector('.preview-modal-frame').innerHTML = `
+                <div style="padding: 30px; background: #1a1a2e; height: 100%; color: #fff;">
+                    <div style="max-width: 400px; margin: 0 auto;">
+                        <div style="margin-bottom: 20px;">
+                            <label style="display: block; margin-bottom: 8px; color: #888;">기간 선택</label>
+                            <select id="coupon-months" style="width: 100%; padding: 12px; background: #16213e; border: 1px solid #333; border-radius: 8px; color: #fff; font-size: 16px;">
+                                <option value="1">1개월</option>
+                                <option value="2">2개월</option>
+                                <option value="3" selected>3개월</option>
+                                <option value="6">6개월</option>
+                                <option value="12">12개월</option>
+                            </select>
+                        </div>
+                        <div style="margin-bottom: 20px;">
+                            <label style="display: block; margin-bottom: 8px; color: #888;">쿠폰 유형</label>
+                            <select id="coupon-type" style="width: 100%; padding: 12px; background: #16213e; border: 1px solid #333; border-radius: 8px; color: #fff; font-size: 16px;" onchange="toggleMaxUses()">
+                                <option value="single">1인용 (1회 사용)</option>
+                                <option value="multi">다인용 (여러 명 사용 가능)</option>
+                            </select>
+                        </div>
+                        <div id="max-uses-group" style="margin-bottom: 20px; display: none;">
+                            <label style="display: block; margin-bottom: 8px; color: #888;">최대 사용 횟수 (빈칸 = 무제한)</label>
+                            <input type="number" id="coupon-max-uses" min="1" placeholder="무제한" style="width: 100%; padding: 12px; background: #16213e; border: 1px solid #333; border-radius: 8px; color: #fff; font-size: 16px;">
+                        </div>
+                        <button onclick="createCoupon()" style="width: 100%; padding: 14px; background: #3498db; border: none; border-radius: 8px; color: #fff; font-size: 16px; cursor: pointer; font-weight: 600;">쿠폰 생성</button>
+                        <button onclick="closePreview()" style="width: 100%; padding: 14px; background: #333; border: none; border-radius: 8px; color: #fff; font-size: 16px; cursor: pointer; margin-top: 10px;">취소</button>
+                    </div>
+                </div>
+            `;
+
+            modal.classList.add('active');
+        };
+
+        window.toggleMaxUses = function() {
+            const type = document.getElementById('coupon-type').value;
+            const group = document.getElementById('max-uses-group');
+            group.style.display = type === 'multi' ? 'block' : 'none';
+        };
+
+        window.createCoupon = async function() {
+            const months = document.getElementById('coupon-months').value;
+            const type = document.getElementById('coupon-type').value;
+            const maxUsesInput = document.getElementById('coupon-max-uses');
+            const maxUses = maxUsesInput && maxUsesInput.value ? parseInt(maxUsesInput.value) : null;
+
+            try {
+                const { CouponManager } = await import('./js/firebase-config.js');
+                const result = await CouponManager.createCoupon({
+                    months,
+                    type,
+                    maxUses,
+                    createdBy: currentUser.uid
+                });
+
+                if (result.success) {
+                    alert(`쿠폰이 생성되었습니다!\n\n코드: ${result.coupon.code}\n기간: ${months}개월\n유형: ${type === 'single' ? '1인용' : '다인용'}`);
+                    closePreview();
+
+                    // Restore iframe in modal
+                    document.querySelector('.preview-modal-frame').innerHTML = '<iframe id="preview-frame" src=""></iframe>';
+
+                    loadCoupons();
+                } else {
+                    alert('쿠폰 생성 실패: ' + result.error);
+                }
+            } catch (error) {
+                console.error('Error creating coupon:', error);
+                alert('쿠폰 생성 중 오류가 발생했습니다.');
+            }
+        };
+
+        window.copyCouponCode = function(code) {
+            navigator.clipboard.writeText(code).then(() => {
+                alert('쿠폰 코드가 복사되었습니다: ' + code);
+            });
+        };
+
+        window.deactivateCoupon = async function(code) {
+            if (!confirm(`쿠폰 "${code}"를 비활성화하시겠습니까?`)) return;
+
+            try {
+                const { CouponManager } = await import('./js/firebase-config.js');
+                const result = await CouponManager.deactivateCoupon(code);
+                if (result.success) {
+                    loadCoupons();
+                } else {
+                    alert('비활성화 실패: ' + result.error);
+                }
+            } catch (error) {
+                console.error('Error deactivating coupon:', error);
+            }
+        };
+
+        window.deleteCoupon = async function(code) {
+            if (!confirm(`쿠폰 "${code}"를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.`)) return;
+
+            try {
+                const { CouponManager } = await import('./js/firebase-config.js');
+                const result = await CouponManager.deleteCoupon(code);
+                if (result.success) {
+                    loadCoupons();
+                } else {
+                    alert('삭제 실패: ' + result.error);
+                }
+            } catch (error) {
+                console.error('Error deleting coupon:', error);
+            }
+        };
+
         // Initialize
         init();
+
+        // Load coupons after init
+        setTimeout(() => {
+            if (document.getElementById('coupon-list')) {
+                loadCoupons();
+            }
+        }, 500);
     </script>
 </body>
 </html>

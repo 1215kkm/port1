@@ -245,6 +245,154 @@ class AdminPanel {
             this.data = dataManager.getData();
             this.refreshPreview();
         });
+
+        // Check subscription status
+        this.checkSubscriptionStatus();
+    }
+
+    // =====================
+    // Subscription Status
+    // =====================
+    async checkSubscriptionStatus() {
+        const statusEl = document.getElementById('subscription-status');
+        if (!statusEl) return;
+
+        try {
+            const user = window.AuthManager?.getUser();
+            if (!user) {
+                statusEl.innerHTML = `
+                    <div style="text-align: center; padding: 8px;">
+                        <span style="color: #888; font-size: 12px;">로그인이 필요합니다</span>
+                    </div>
+                `;
+                return;
+            }
+
+            const subscription = await window.CouponManager?.checkSubscription(user.uid);
+
+            if (!subscription) {
+                statusEl.innerHTML = this.renderSubscriptionUI({ status: 'trial', canUse: true, daysLeft: 90 });
+                return;
+            }
+
+            statusEl.innerHTML = this.renderSubscriptionUI(subscription);
+
+        } catch (error) {
+            console.error('Error checking subscription:', error);
+            statusEl.innerHTML = `
+                <div style="text-align: center; padding: 8px;">
+                    <span style="color: #e74c3c; font-size: 12px;">상태 확인 실패</span>
+                </div>
+            `;
+        }
+    }
+
+    renderSubscriptionUI(subscription) {
+        const { status, canUse, daysLeft, expiresAt, plan } = subscription;
+
+        let statusIcon, statusText, statusColor, actionButton;
+
+        switch (status) {
+            case 'trial':
+                statusIcon = '🎁';
+                statusText = `무료 체험 중 (${daysLeft}일 남음)`;
+                statusColor = '#27ae60';
+                actionButton = `<button onclick="adminPanel.showCouponModal()" style="width: 100%; padding: 8px; background: #3498db; border: none; border-radius: 6px; color: white; font-size: 12px; cursor: pointer; margin-top: 8px;">쿠폰 입력</button>`;
+                break;
+            case 'active':
+                statusIcon = '✅';
+                statusText = `구독 중 (${daysLeft}일 남음)`;
+                statusColor = '#27ae60';
+                actionButton = '';
+                break;
+            case 'expired':
+                statusIcon = '⚠️';
+                statusText = '구독 만료';
+                statusColor = '#e74c3c';
+                actionButton = `<button onclick="adminPanel.showCouponModal()" style="width: 100%; padding: 8px; background: #e74c3c; border: none; border-radius: 6px; color: white; font-size: 12px; cursor: pointer; margin-top: 8px;">쿠폰 입력 / 결제</button>`;
+                break;
+            default:
+                statusIcon = '❓';
+                statusText = '상태 확인 필요';
+                statusColor = '#888';
+                actionButton = `<button onclick="adminPanel.showCouponModal()" style="width: 100%; padding: 8px; background: #3498db; border: none; border-radius: 6px; color: white; font-size: 12px; cursor: pointer; margin-top: 8px;">쿠폰 입력</button>`;
+        }
+
+        return `
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                <span style="font-size: 16px;">${statusIcon}</span>
+                <span style="font-size: 12px; color: ${statusColor}; font-weight: 600;">${statusText}</span>
+            </div>
+            ${expiresAt ? `<div style="font-size: 11px; color: #666;">만료일: ${new Date(expiresAt).toLocaleDateString('ko-KR')}</div>` : ''}
+            ${actionButton}
+        `;
+    }
+
+    showCouponModal() {
+        const modalHtml = `
+            <div id="coupon-modal" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 10000;">
+                <div style="background: #1a1a2e; border-radius: 16px; padding: 32px; max-width: 400px; width: 90%; border: 1px solid #333;">
+                    <h3 style="margin: 0 0 24px; color: #fff; font-size: 18px; text-align: center;">🎟️ 쿠폰 입력</h3>
+
+                    <div style="margin-bottom: 16px;">
+                        <input type="text" id="coupon-code-input" placeholder="쿠폰 코드를 입력하세요" style="width: 100%; padding: 14px; background: #16213e; border: 1px solid #333; border-radius: 8px; color: #fff; font-size: 16px; text-transform: uppercase; text-align: center; letter-spacing: 2px;">
+                    </div>
+
+                    <button onclick="adminPanel.applyCoupon()" style="width: 100%; padding: 14px; background: #3498db; border: none; border-radius: 8px; color: #fff; font-size: 16px; cursor: pointer; font-weight: 600; margin-bottom: 12px;">쿠폰 적용</button>
+
+                    <div style="text-align: center; color: #666; font-size: 13px; margin-bottom: 16px;">
+                        <span>쿠폰이 없으신가요?</span>
+                    </div>
+
+                    <button onclick="adminPanel.showPaymentInfo()" style="width: 100%; padding: 14px; background: #27ae60; border: none; border-radius: 8px; color: #fff; font-size: 14px; cursor: pointer; margin-bottom: 12px;">💳 결제하기 (준비 중)</button>
+
+                    <button onclick="adminPanel.closeCouponModal()" style="width: 100%; padding: 12px; background: #333; border: none; border-radius: 8px; color: #888; font-size: 14px; cursor: pointer;">닫기</button>
+                </div>
+            </div>
+        `;
+
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+        document.getElementById('coupon-code-input').focus();
+    }
+
+    closeCouponModal() {
+        const modal = document.getElementById('coupon-modal');
+        if (modal) modal.remove();
+    }
+
+    async applyCoupon() {
+        const input = document.getElementById('coupon-code-input');
+        const code = input?.value?.trim();
+
+        if (!code) {
+            alert('쿠폰 코드를 입력해주세요.');
+            return;
+        }
+
+        const user = window.AuthManager?.getUser();
+        if (!user) {
+            alert('로그인이 필요합니다.');
+            return;
+        }
+
+        try {
+            const result = await window.CouponManager?.applyCoupon(code, user.uid);
+
+            if (result?.success) {
+                alert(`쿠폰이 적용되었습니다!\n\n기간: ${result.months}개월\n만료일: ${new Date(result.expiresAt).toLocaleDateString('ko-KR')}`);
+                this.closeCouponModal();
+                this.checkSubscriptionStatus();
+            } else {
+                alert(result?.error || '쿠폰 적용에 실패했습니다.');
+            }
+        } catch (error) {
+            console.error('Error applying coupon:', error);
+            alert('쿠폰 적용 중 오류가 발생했습니다.');
+        }
+    }
+
+    showPaymentInfo() {
+        alert('결제 기능은 현재 준비 중입니다.\n\n문의: 1215kkm@naver.com');
     }
 
     // =====================

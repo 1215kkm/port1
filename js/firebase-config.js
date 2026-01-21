@@ -3,7 +3,7 @@
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { getFirestore, doc, getDoc, setDoc, collection, query, where, getDocs, increment } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getFirestore, doc, getDoc, setDoc, collection, query, where, getDocs, increment, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
 // Firebase configuration
@@ -389,14 +389,211 @@ const AnalyticsManager = {
     }
 };
 
+// Coupon Manager
+const CouponManager = {
+    // Generate random coupon code
+    generateCode(length = 10) {
+        const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+        let code = '';
+        for (let i = 0; i < length; i++) {
+            code += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        return code;
+    },
+
+    // Create new coupon
+    async createCoupon(options) {
+        const { months, type, maxUses, createdBy } = options;
+        const code = this.generateCode();
+
+        const couponData = {
+            code,
+            months: parseInt(months),
+            type: type, // 'single' or 'multi'
+            maxUses: type === 'single' ? 1 : (maxUses || null),
+            usedCount: 0,
+            usedBy: [],
+            createdAt: new Date().toISOString(),
+            createdBy: createdBy,
+            active: true
+        };
+
+        try {
+            await setDoc(doc(db, 'coupons', code), couponData);
+            return { success: true, coupon: couponData };
+        } catch (error) {
+            console.error('Error creating coupon:', error);
+            return { success: false, error: error.message };
+        }
+    },
+
+    // Get all coupons
+    async getAllCoupons() {
+        try {
+            const couponsSnap = await getDocs(collection(db, 'coupons'));
+            const coupons = [];
+            couponsSnap.forEach(doc => {
+                coupons.push({ id: doc.id, ...doc.data() });
+            });
+            return coupons.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        } catch (error) {
+            console.error('Error getting coupons:', error);
+            return [];
+        }
+    },
+
+    // Validate and apply coupon
+    async applyCoupon(code, userId) {
+        try {
+            const couponRef = doc(db, 'coupons', code.toUpperCase());
+            const couponSnap = await getDoc(couponRef);
+
+            if (!couponSnap.exists()) {
+                return { success: false, error: '존재하지 않는 쿠폰입니다.' };
+            }
+
+            const coupon = couponSnap.data();
+
+            if (!coupon.active) {
+                return { success: false, error: '비활성화된 쿠폰입니다.' };
+            }
+
+            if (coupon.type === 'single' && coupon.usedCount >= 1) {
+                return { success: false, error: '이미 사용된 쿠폰입니다.' };
+            }
+
+            if (coupon.maxUses && coupon.usedCount >= coupon.maxUses) {
+                return { success: false, error: '쿠폰 사용 횟수를 초과했습니다.' };
+            }
+
+            if (coupon.usedBy.includes(userId)) {
+                return { success: false, error: '이미 이 쿠폰을 사용했습니다.' };
+            }
+
+            // Calculate expiry date
+            const now = new Date();
+            const expiresAt = new Date(now);
+            expiresAt.setMonth(expiresAt.getMonth() + coupon.months);
+
+            // Update coupon usage
+            await setDoc(couponRef, {
+                ...coupon,
+                usedCount: coupon.usedCount + 1,
+                usedBy: [...coupon.usedBy, userId]
+            });
+
+            // Update user subscription
+            const userRef = doc(db, 'users', userId);
+            const userSnap = await getDoc(userRef);
+            const userData = userSnap.exists() ? userSnap.data() : {};
+
+            await setDoc(userRef, {
+                ...userData,
+                subscription: {
+                    status: 'active',
+                    plan: 'coupon',
+                    couponCode: code.toUpperCase(),
+                    months: coupon.months,
+                    startedAt: now.toISOString(),
+                    expiresAt: expiresAt.toISOString()
+                }
+            }, { merge: true });
+
+            return {
+                success: true,
+                months: coupon.months,
+                expiresAt: expiresAt.toISOString()
+            };
+        } catch (error) {
+            console.error('Error applying coupon:', error);
+            return { success: false, error: error.message };
+        }
+    },
+
+    // Check user subscription status
+    async checkSubscription(userId) {
+        try {
+            const userRef = doc(db, 'users', userId);
+            const userSnap = await getDoc(userRef);
+
+            if (!userSnap.exists()) {
+                return { status: 'none', canUse: false };
+            }
+
+            const userData = userSnap.data();
+            const subscription = userData.subscription;
+
+            // No subscription - check if in trial period
+            if (!subscription) {
+                // Trial: 3 months from account creation
+                const createdAt = new Date(userData.createdAt);
+                const trialEnd = new Date(createdAt);
+                trialEnd.setMonth(trialEnd.getMonth() + 3);
+
+                if (new Date() < trialEnd) {
+                    return {
+                        status: 'trial',
+                        canUse: true,
+                        expiresAt: trialEnd.toISOString(),
+                        daysLeft: Math.ceil((trialEnd - new Date()) / (1000 * 60 * 60 * 24))
+                    };
+                } else {
+                    return { status: 'expired', canUse: false };
+                }
+            }
+
+            // Check subscription expiry
+            const expiresAt = new Date(subscription.expiresAt);
+            if (new Date() > expiresAt) {
+                return { status: 'expired', canUse: false, expiredAt: subscription.expiresAt };
+            }
+
+            return {
+                status: subscription.status,
+                canUse: true,
+                plan: subscription.plan,
+                expiresAt: subscription.expiresAt,
+                daysLeft: Math.ceil((expiresAt - new Date()) / (1000 * 60 * 60 * 24))
+            };
+        } catch (error) {
+            console.error('Error checking subscription:', error);
+            return { status: 'error', canUse: false };
+        }
+    },
+
+    // Deactivate coupon
+    async deactivateCoupon(code) {
+        try {
+            const couponRef = doc(db, 'coupons', code);
+            await setDoc(couponRef, { active: false }, { merge: true });
+            return { success: true };
+        } catch (error) {
+            console.error('Error deactivating coupon:', error);
+            return { success: false, error: error.message };
+        }
+    },
+
+    // Delete coupon
+    async deleteCoupon(code) {
+        try {
+            await deleteDoc(doc(db, 'coupons', code));
+            return { success: true };
+        } catch (error) {
+            console.error('Error deleting coupon:', error);
+            return { success: false, error: error.message };
+        }
+    }
+};
+
 // Export
 window.AuthManager = AuthManager;
 window.FirestoreManager = FirestoreManager;
 window.StorageManager = StorageManager;
 window.AnalyticsManager = AnalyticsManager;
+window.CouponManager = CouponManager;
 window.firebaseApp = app;
 window.firebaseAuth = auth;
 window.firebaseDb = db;
 window.firebaseStorage = storage;
 
-export { AuthManager, FirestoreManager, StorageManager, AnalyticsManager, app, auth, db, storage };
+export { AuthManager, FirestoreManager, StorageManager, AnalyticsManager, CouponManager, app, auth, db, storage };
