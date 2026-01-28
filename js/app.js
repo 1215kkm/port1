@@ -1425,6 +1425,7 @@ class PageInitializer {
                             </div>
                             <span class="experience-item-period">${item.period}</span>
                             <span class="experience-item-duration">${item.duration}</span>
+                            ${item.description ? `<div class="experience-item-description">${item.description}</div>` : ''}
                         </div>
                     `).join('')}
                 </div>
@@ -1451,6 +1452,7 @@ class PageInitializer {
                             </div>
                             <span class="experience-item-period">${item.period}</span>
                             <span class="experience-item-duration">${item.duration}</span>
+                            ${item.description ? `<div class="experience-item-description">${item.description}</div>` : ''}
                         </div>
                     `).join('')}
                 </div>

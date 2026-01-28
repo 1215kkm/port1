@@ -2246,6 +2246,7 @@ class AdminPanel {
                 <div class="item-card-content">
                     <div class="item-card-title">${item.company}</div>
                     <div class="item-card-desc">${item.period} | ${item.duration}</div>
+                    ${item.description ? `<div class="item-card-desc" style="margin-top:4px;white-space:pre-line;color:#aaa;font-size:0.85em;">${item.description}</div>` : ''}
                 </div>
                 <div class="item-card-actions">
                     <button class="btn-icon btn-icon-edit" data-action="edit-${type}" data-id="${item.id}">✏️</button>
@@ -3232,6 +3233,10 @@ class AdminPanel {
                 <label class="form-label">근무 기간 (예: 1년)</label>
                 <input type="text" class="form-input" id="modal-exp-duration" value="${existing?.duration || ''}">
             </div>
+            <div class="form-group">
+                <label class="form-label">상세업무</label>
+                <textarea class="form-input" id="modal-exp-description" rows="4" placeholder="담당했던 상세 업무를 입력하세요">${existing?.description || ''}</textarea>
+            </div>
             <div class="form-actions">
                 <button class="btn btn-primary" id="modal-save">${existing ? '수정' : '추가'}</button>
                 <button class="btn btn-secondary" id="modal-cancel">취소</button>
@@ -3244,6 +3249,7 @@ class AdminPanel {
             const company = document.getElementById('modal-exp-company').value.trim();
             const period = document.getElementById('modal-exp-period').value.trim();
             const duration = document.getElementById('modal-exp-duration').value.trim();
+            const description = document.getElementById('modal-exp-description').value.trim();
 
             if (!company) {
                 alert('회사명을 입력해주세요.');
@@ -3251,9 +3257,9 @@ class AdminPanel {
             }
 
             if (existing) {
-                dataManager.updateExperience(type, editId, { company, period, duration });
+                dataManager.updateExperience(type, editId, { company, period, duration, description });
             } else {
-                dataManager.addExperience(type, { company, period, duration });
+                dataManager.addExperience(type, { company, period, duration, description });
             }
 
             this.data = dataManager.getData();

@@ -733,6 +733,16 @@ ul, ol {
     color: var(--color-primary);
 }
 
+.experience-item-description {
+    grid-column: 1 / -1;
+    font-size: var(--font-sm);
+    color: var(--color-text-secondary);
+    white-space: pre-line;
+    padding-top: var(--space-sm);
+    border-top: 1px solid var(--color-border);
+    line-height: 1.5;
+}
+
 /* Self Evaluation Section */
 .evaluation-grid {
     display: grid;
