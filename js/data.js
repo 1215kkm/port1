@@ -1220,11 +1220,11 @@ class DataManager {
     }
 
     // Import data from JSON
-    importData(jsonString) {
+    async importData(jsonString) {
         try {
             const imported = JSON.parse(jsonString);
             this.data = this.deepMerge(defaultData, imported);
-            this.saveData();
+            await this.saveData();
             this.applyTheme();
             this.applyCSSVariables();
             this.applyFont();

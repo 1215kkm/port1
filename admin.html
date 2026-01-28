@@ -53,6 +53,11 @@
             padding: 4px 10px;
         }
 
+        /* Site view button labels */
+        .short-label {
+            display: none;
+        }
+
         /* Preset Buttons */
         .preset-group {
             display: flex;
@@ -932,11 +937,16 @@
             }
 
             .admin-header {
-                padding: 0 var(--space-md);
+                padding: 0 var(--space-sm);
+                gap: var(--space-xs);
             }
 
             .admin-header-title {
-                font-size: var(--font-md);
+                display: none;
+            }
+
+            .admin-header-actions {
+                gap: 4px;
             }
 
             .admin-header-actions .btn {
@@ -947,6 +957,14 @@
             .btn-preset {
                 padding: 6px 8px;
                 font-size: var(--font-xs);
+            }
+
+            .full-label {
+                display: none;
+            }
+
+            .short-label {
+                display: inline;
             }
 
             .admin-sidebar {
@@ -1033,10 +1051,9 @@
             <div class="preset-group">
                 <button class="btn btn-preset" data-preset="1" title="프리셋 1">P1</button>
                 <button class="btn btn-preset" data-preset="2" title="프리셋 2">P2</button>
-                <button class="btn btn-preset" data-preset="3" title="프리셋 3">P3</button>
             </div>
-            <button class="btn btn-primary" id="btn-save-all">모두저장</button>
-            <a href="index.html" class="btn btn-secondary" target="_blank">사이트 보기</a>
+            <button class="btn btn-primary" id="btn-save-all">저장&게시</button>
+            <a href="index.html" class="btn btn-secondary" id="btn-site-view" target="_blank"><span class="full-label">사이트 보기</span><span class="short-label">보기</span></a>
             <button class="btn btn-accent" id="btn-reset">초기화</button>
         </div>
     </header>

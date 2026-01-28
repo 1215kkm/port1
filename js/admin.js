@@ -766,8 +766,7 @@ class AdminPanel {
         const titleEl = document.getElementById('admin-title');
         if (titleEl) {
             const userName = this.data.profile?.name || '사용자';
-            const isMobile = window.innerWidth <= 768;
-            titleEl.textContent = isMobile ? '설정' : `${userName}님의 포트폴리오 설정`;
+            titleEl.textContent = `${userName}님의 포트폴리오 설정`;
         }
     }
 
@@ -841,12 +840,13 @@ class AdminPanel {
             overlay.classList.remove('active');
         });
 
-        newLoad.addEventListener('click', () => {
+        newLoad.addEventListener('click', async () => {
             if (!hasData) return;
             if (!confirm(`프리셋 ${presetNum}의 데이터를 불러오시겠습니까? 현재 데이터가 덮어쓰기됩니다.`)) return;
             const stored = localStorage.getItem(key);
             if (stored) {
-                const success = dataManager.importData(stored);
+                this.showToast('불러오는 중...', 'info');
+                const success = await dataManager.importData(stored);
                 if (success) {
                     this.showToast(`프리셋 ${presetNum}을 불러왔습니다. 새로고침합니다.`, 'success');
                     setTimeout(() => location.reload(), 500);
@@ -895,11 +895,6 @@ class AdminPanel {
         });
 
         backdrop?.addEventListener('click', closeSidebar);
-
-        // Update title on resize
-        window.addEventListener('resize', () => {
-            this.setUserNameInHeader();
-        });
     }
 
     // =====================
