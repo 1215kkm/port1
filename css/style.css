@@ -908,32 +908,33 @@ ul, ol {
     overflow: hidden;
     box-sizing: border-box;
     align-self: stretch;
+    position: relative;
 }
 
 .portfolio-single .portfolio-item .portfolio-thumbnail img {
-    max-width: 380px;
+    position: absolute;
+    top: 0;
+    left: 0;
     width: 100%;
     height: 100%;
     object-fit: cover;
-    aspect-ratio: auto;
     display: block;
 }
 
 .portfolio-single .portfolio-item .portfolio-thumbnail .portfolio-slideshow {
-    max-width: 380px;
+    position: absolute;
+    top: 0;
+    left: 0;
     width: 100%;
     height: 100%;
-    aspect-ratio: auto;
     overflow: hidden;
 }
 
 .portfolio-single .portfolio-item .portfolio-thumbnail .portfolio-slideshow .portfolio-slide {
     position: relative;
-    max-width: 380px;
     width: 100%;
     height: 100%;
     object-fit: cover;
-    aspect-ratio: auto;
     display: block;
 }
 
