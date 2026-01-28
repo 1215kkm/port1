@@ -159,8 +159,8 @@ class RadarChart {
         this.animatedValues = [...startValues];
         this.draw();
 
-        // Animate slowly to actual values (1.5 seconds)
-        const duration = 1500;
+        // Animate slowly to actual values (3 seconds)
+        const duration = 3000;
         const startTime = performance.now();
         const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3);
 
