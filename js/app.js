@@ -733,7 +733,7 @@ class PortfolioRenderer {
         // Initialize Swiper if available
         if (window.Swiper) {
             new Swiper(this.container.querySelector('.swiper'), {
-                slidesPerView: 'auto',
+                slidesPerView: 3.2,
                 spaceBetween: 24,
                 navigation: {
                     nextEl: '.swiper-button-next',

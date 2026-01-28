@@ -2814,10 +2814,10 @@ class AdminPanel {
                                         <div class="item-card-title">${item.title}</div>
                                         <div class="item-card-desc">${contributionText}</div>
                                     </div>
-                                    <div class="item-card-thumb" style="width: 48px; height: 48px; min-width: 48px; border-radius: 6px; overflow: hidden; background: var(--color-bg-secondary); border: 1px solid var(--color-border); margin-left: 10px; display: flex; align-items: center; justify-content: center;">
+                                    <div class="item-card-thumbs" style="display: flex; gap: 4px; margin-left: 10px; align-items: center; flex-shrink: 0;">
                                         ${item.thumbnails?.length > 0
-                                            ? createImageElement(item.thumbnails[0], item.title, 'width: 100%; height: 100%; object-fit: cover;')
-                                            : '<span style="color: #bbb; font-size: 18px;">🖼</span>'}
+                                            ? item.thumbnails.map(thumb => `<div style="width: 48px; height: 48px; min-width: 48px; border-radius: 6px; overflow: hidden; background: var(--color-bg-secondary); border: 1px solid var(--color-border); display: flex; align-items: center; justify-content: center;">${createImageElement(thumb, item.title, 'width: 100%; height: 100%; object-fit: cover;')}</div>`).join('')
+                                            : '<div style="width: 48px; height: 48px; min-width: 48px; border-radius: 6px; overflow: hidden; background: var(--color-bg-secondary); border: 1px solid var(--color-border); display: flex; align-items: center; justify-content: center;"><span style="color: #bbb; font-size: 18px;">🖼</span></div>'}
                                     </div>
                                     <div class="item-card-actions">
                                         <button class="btn-icon btn-icon-edit" data-action="edit-portfolio" data-id="${item.id}">✏️</button>
