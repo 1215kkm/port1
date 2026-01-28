@@ -257,7 +257,8 @@
     <!-- Footer -->
     <footer class="footer">
         <div class="container">
-            <p>&copy; 2025 Portfolio. All rights reserved.</p>
+            <p>&copy; <span id="footer-year"></span> Portfolio. All rights reserved.</p>
+            <script>document.getElementById('footer-year').textContent = new Date().getFullYear();</script>
         </div>
     </footer>
 
