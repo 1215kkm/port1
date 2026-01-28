@@ -240,6 +240,7 @@ class AdminPanel {
         this.initImageUpload();
         this.initBackgroundUpload();
         this.initIntroEditor();
+        this.initIntroPanelEditor();
 
         // Listen for data updates
         window.addEventListener('dataUpdated', () => {
@@ -466,10 +467,11 @@ class AdminPanel {
     }
 
     updateIntroEditButton() {
-        const introBtn = document.getElementById('btn-edit-intro');
+        // Show/hide the sidebar intro tab based on page settings
+        const introTab = document.getElementById('page-tab-intro');
         const pageSettings = this.data.pageSettings || {};
-        if (introBtn) {
-            introBtn.style.display = pageSettings.intro !== false ? 'block' : 'none';
+        if (introTab) {
+            introTab.style.display = pageSettings.intro !== false ? 'block' : 'none';
         }
     }
 
@@ -756,7 +758,309 @@ class AdminPanel {
 
         // Re-render the editor with empty state
         this.renderIntroEditor();
+        // Also re-render panel if visible
+        if (document.getElementById('panel-intro')?.classList.contains('active')) {
+            this.renderIntroPanelEditor();
+        }
         alert('인트로 설정이 초기화되었습니다.');
+    }
+
+    // =====================
+    // Intro Panel Editor (in admin-main)
+    // =====================
+    initIntroPanelEditor() {
+        // Background image upload
+        const bgFileInput = document.getElementById('intro-panel-bg-file');
+        const bgUploadBtn = document.getElementById('btn-intro-panel-bg-upload');
+        const bgUrlInput = document.getElementById('intro-panel-bg-image');
+
+        bgUploadBtn?.addEventListener('click', () => bgFileInput?.click());
+        bgFileInput?.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const previewEl = document.getElementById('intro-panel-bg-preview');
+                showUploadLoading(previewEl);
+                const imageUrl = await uploadImageToStorage(file, 'intro');
+                if (imageUrl) {
+                    bgUrlInput.value = imageUrl;
+                    this.updateIntroPanelBgPreview(imageUrl);
+                }
+                hideUploadLoading(previewEl);
+            }
+        });
+
+        bgUrlInput?.addEventListener('change', () => {
+            this.updateIntroPanelBgPreview(bgUrlInput.value);
+        });
+
+        // Add text button
+        document.getElementById('btn-add-intro-panel-text')?.addEventListener('click', () => {
+            this.addIntroPanelText();
+        });
+
+        // Add button
+        document.getElementById('btn-add-intro-panel-button')?.addEventListener('click', () => {
+            this.addIntroPanelButton();
+        });
+
+        // Save
+        document.getElementById('btn-save-intro-panel')?.addEventListener('click', () => {
+            this.saveIntroPanelSettings();
+        });
+
+        // Preview
+        document.getElementById('btn-preview-intro-panel')?.addEventListener('click', () => {
+            window.open('intro.html?preview=1', '_blank');
+        });
+
+        // Reset
+        document.getElementById('btn-reset-intro-panel')?.addEventListener('click', () => {
+            if (confirm('인트로 설정을 초기화하시겠습니까?\n모든 텍스트, 버튼, 배경 이미지가 삭제됩니다.')) {
+                this.resetIntroSettings();
+            }
+        });
+    }
+
+    renderIntroPanelEditor() {
+        const introCustom = this.data.introCustom || { texts: [], buttons: [] };
+
+        // Background image
+        const bgInput = document.getElementById('intro-panel-bg-image');
+        if (bgInput) {
+            bgInput.value = introCustom.backgroundImage || '';
+            this.updateIntroPanelBgPreview(introCustom.backgroundImage);
+        }
+
+        // Texts
+        this.renderIntroPanelTexts(introCustom.texts || []);
+
+        // Buttons
+        this.renderIntroPanelButtons(introCustom.buttons || []);
+    }
+
+    updateIntroPanelBgPreview(imageUrl) {
+        const preview = document.getElementById('intro-panel-bg-preview');
+        if (preview) {
+            if (imageUrl) {
+                preview.innerHTML = createImageElement(imageUrl, '배경', 'width: 100%; height: 100%; object-fit: cover;');
+            } else {
+                preview.innerHTML = '<span style="color: #888; font-size: 11px;">미리보기</span>';
+            }
+        }
+    }
+
+    renderIntroPanelTexts(texts) {
+        const container = document.getElementById('intro-panel-texts-container');
+        if (!container) return;
+
+        container.innerHTML = texts.map((text, index) => `
+            <div class="intro-text-item intro-panel-text-item" data-index="${index}" data-id="${text.id || ''}">
+                <div class="form-row" style="display: flex; gap: 8px; margin-bottom: 8px;">
+                    <textarea class="form-input" data-field="content" placeholder="텍스트 내용">${text.content || ''}</textarea>
+                </div>
+                <div class="form-row" style="display: flex; gap: 8px; margin-bottom: 8px;">
+                    <input type="text" class="form-input" data-field="fontSize" placeholder="크기 (예: 2rem)" value="${text.fontSize || '2rem'}">
+                    <input type="color" data-field="color" value="${text.color || '#ffffff'}" style="width: 40px; height: 36px; border: none; cursor: pointer;">
+                    <select class="form-select" data-field="fontWeight">
+                        <option value="400" ${text.fontWeight === '400' ? 'selected' : ''}>기본</option>
+                        <option value="600" ${text.fontWeight === '600' ? 'selected' : ''}>중간굵기</option>
+                        <option value="700" ${text.fontWeight === '700' || !text.fontWeight ? 'selected' : ''}>굵게</option>
+                    </select>
+                </div>
+                <div class="form-row" style="display: flex; gap: 8px; margin-bottom: 8px;">
+                    <select class="form-select" data-field="align">
+                        <option value="left" ${text.align === 'left' ? 'selected' : ''}>왼쪽</option>
+                        <option value="center" ${text.align === 'center' || !text.align ? 'selected' : ''}>가운데</option>
+                        <option value="right" ${text.align === 'right' ? 'selected' : ''}>오른쪽</option>
+                    </select>
+                    <input type="text" class="form-input" data-field="top" placeholder="위치 Y (예: 40%)" value="${text.top || '50%'}">
+                </div>
+                <div style="display: flex; justify-content: flex-end; gap: 8px;">
+                    <button class="btn btn-accent btn-sm" data-action="delete-intro-panel-text" data-index="${index}">삭제</button>
+                </div>
+            </div>
+        `).join('');
+
+        container.querySelectorAll('[data-action="delete-intro-panel-text"]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const idx = parseInt(btn.dataset.index);
+                this.deleteIntroPanelText(idx);
+            });
+        });
+    }
+
+    renderIntroPanelButtons(buttons) {
+        const container = document.getElementById('intro-panel-buttons-container');
+        if (!container) return;
+
+        container.innerHTML = buttons.map((button, index) => `
+            <div class="intro-button-item intro-panel-button-item" data-index="${index}" data-id="${button.id || ''}">
+                <div class="form-row" style="display: flex; gap: 8px; margin-bottom: 8px;">
+                    <input type="text" class="form-input" data-field="label" placeholder="버튼 텍스트" value="${button.label || ''}">
+                    <input type="text" class="form-input" data-field="url" placeholder="링크 URL" value="${button.url || ''}">
+                </div>
+                <div class="form-row" style="display: flex; gap: 8px; margin-bottom: 8px;">
+                    <div style="display: flex; align-items: center; gap: 6px; flex: 1;">
+                        <span style="font-size: 11px; color: var(--color-text-secondary);">배경:</span>
+                        <input type="color" data-field="bgColor" value="${button.bgColor || '#3498db'}" style="width: 30px; height: 30px; border: none; cursor: pointer;">
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 6px; flex: 1;">
+                        <span style="font-size: 11px; color: var(--color-text-secondary);">글자:</span>
+                        <input type="color" data-field="textColor" value="${button.textColor || '#ffffff'}" style="width: 30px; height: 30px; border: none; cursor: pointer;">
+                    </div>
+                </div>
+                <div style="display: flex; justify-content: flex-end; gap: 8px;">
+                    <button class="btn btn-accent btn-sm" data-action="delete-intro-panel-button" data-index="${index}">삭제</button>
+                </div>
+            </div>
+        `).join('');
+
+        container.querySelectorAll('[data-action="delete-intro-panel-button"]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const idx = parseInt(btn.dataset.index);
+                this.deleteIntroPanelButton(idx);
+            });
+        });
+    }
+
+    collectCurrentIntroPanelTexts() {
+        const texts = [];
+        document.querySelectorAll('.intro-panel-text-item').forEach(item => {
+            const text = {
+                id: parseInt(item.dataset.id) || Date.now() + Math.random(),
+                content: item.querySelector('[data-field="content"]')?.value || '',
+                fontSize: item.querySelector('[data-field="fontSize"]')?.value || '2rem',
+                color: item.querySelector('[data-field="color"]')?.value || '#ffffff',
+                fontWeight: item.querySelector('[data-field="fontWeight"]')?.value || '700',
+                align: item.querySelector('[data-field="align"]')?.value || 'center',
+                top: item.querySelector('[data-field="top"]')?.value || '50%'
+            };
+            texts.push(text);
+        });
+        return texts;
+    }
+
+    collectCurrentIntroPanelButtons() {
+        const buttons = [];
+        document.querySelectorAll('.intro-panel-button-item').forEach(item => {
+            const button = {
+                id: parseInt(item.dataset.id) || Date.now() + Math.random(),
+                label: item.querySelector('[data-field="label"]')?.value || '버튼',
+                url: item.querySelector('[data-field="url"]')?.value || 'portfolio.html',
+                bgColor: item.querySelector('[data-field="bgColor"]')?.value || '#3498db',
+                textColor: item.querySelector('[data-field="textColor"]')?.value || '#ffffff'
+            };
+            buttons.push(button);
+        });
+        return buttons;
+    }
+
+    addIntroPanelText() {
+        const currentTexts = this.collectCurrentIntroPanelTexts();
+        const currentButtons = this.collectCurrentIntroPanelButtons();
+
+        const introCustom = this.data.introCustom || { texts: [], buttons: [] };
+        introCustom.texts = currentTexts;
+        introCustom.buttons = currentButtons;
+
+        introCustom.texts.push({
+            id: Date.now(),
+            content: '',
+            fontSize: '2rem',
+            color: '#ffffff',
+            fontWeight: '700',
+            align: 'center',
+            top: '50%'
+        });
+        this.data.introCustom = introCustom;
+        this.renderIntroPanelTexts(introCustom.texts);
+    }
+
+    deleteIntroPanelText(index) {
+        const currentTexts = this.collectCurrentIntroPanelTexts();
+        const currentButtons = this.collectCurrentIntroPanelButtons();
+
+        const introCustom = this.data.introCustom || { texts: [], buttons: [] };
+        introCustom.texts = currentTexts;
+        introCustom.buttons = currentButtons;
+        introCustom.texts.splice(index, 1);
+        this.data.introCustom = introCustom;
+        this.renderIntroPanelTexts(introCustom.texts);
+    }
+
+    addIntroPanelButton() {
+        const currentTexts = this.collectCurrentIntroPanelTexts();
+        const currentButtons = this.collectCurrentIntroPanelButtons();
+
+        const introCustom = this.data.introCustom || { texts: [], buttons: [] };
+        introCustom.texts = currentTexts;
+        introCustom.buttons = currentButtons;
+
+        introCustom.buttons.push({
+            id: Date.now(),
+            label: '버튼',
+            url: 'portfolio.html',
+            bgColor: '#3498db',
+            textColor: '#ffffff'
+        });
+        this.data.introCustom = introCustom;
+        this.renderIntroPanelButtons(introCustom.buttons);
+    }
+
+    deleteIntroPanelButton(index) {
+        const currentTexts = this.collectCurrentIntroPanelTexts();
+        const currentButtons = this.collectCurrentIntroPanelButtons();
+
+        const introCustom = this.data.introCustom || { texts: [], buttons: [] };
+        introCustom.texts = currentTexts;
+        introCustom.buttons = currentButtons;
+        introCustom.buttons.splice(index, 1);
+        this.data.introCustom = introCustom;
+        this.renderIntroPanelButtons(introCustom.buttons);
+    }
+
+    saveIntroPanelSettings() {
+        const introCustom = {
+            enabled: true,
+            backgroundImage: document.getElementById('intro-panel-bg-image')?.value || '',
+            texts: [],
+            buttons: []
+        };
+
+        document.querySelectorAll('.intro-panel-text-item').forEach(item => {
+            const text = {
+                id: Date.now() + Math.random(),
+                content: item.querySelector('[data-field="content"]')?.value || '',
+                fontSize: item.querySelector('[data-field="fontSize"]')?.value || '2rem',
+                color: item.querySelector('[data-field="color"]')?.value || '#ffffff',
+                fontWeight: item.querySelector('[data-field="fontWeight"]')?.value || '700',
+                align: item.querySelector('[data-field="align"]')?.value || 'center',
+                top: item.querySelector('[data-field="top"]')?.value || '50%'
+            };
+            if (text.content) {
+                introCustom.texts.push(text);
+            }
+        });
+
+        document.querySelectorAll('.intro-panel-button-item').forEach(item => {
+            const button = {
+                id: Date.now() + Math.random(),
+                label: item.querySelector('[data-field="label"]')?.value || '',
+                url: item.querySelector('[data-field="url"]')?.value || '',
+                bgColor: item.querySelector('[data-field="bgColor"]')?.value || '#3498db',
+                textColor: item.querySelector('[data-field="textColor"]')?.value || '#ffffff'
+            };
+            if (button.label) {
+                introCustom.buttons.push(button);
+            }
+        });
+
+        dataManager.set('introCustom', introCustom);
+        dataManager.saveData();
+        this.data = dataManager.getData();
+
+        alert('인트로 설정이 저장되었습니다.');
+        this.refreshMinimap();
     }
 
     // =====================
@@ -1003,7 +1307,8 @@ class AdminPanel {
         const headerText = {
             'portfolio': '혼자제작',
             'ai': 'AI활용',
-            'team': '팀플'
+            'team': '팀플',
+            'intro': '인트로'
         };
         const currentSectionEl = document.getElementById('minimap-current-section');
         if (currentSectionEl) {
@@ -1169,6 +1474,9 @@ class AdminPanel {
                 self.switchMinimapPage('ai');
             } else if (page === 'team') {
                 self.switchMinimapPage('team');
+            } else if (page === 'intro') {
+                self.switchMinimapPage('intro');
+                self.renderIntroPanelEditor();
             }
 
             // Show/hide menu management section (only for solo/skin pages)
@@ -2477,14 +2785,14 @@ class AdminPanel {
                                 return `
                                 <div class="item-card" data-item-id="${item.id}">
                                     <span class="drag-handle" style="cursor: grab; margin-right: 8px; color: #888;">⋮⋮</span>
-                                    <div class="item-card-thumb" style="width: 48px; height: 48px; min-width: 48px; border-radius: 6px; overflow: hidden; background: var(--color-bg-secondary); border: 1px solid var(--color-border); margin-right: 10px; display: flex; align-items: center; justify-content: center;">
-                                        ${item.thumbnails?.length > 0
-                                            ? createImageElement(item.thumbnails[0], item.title, 'width: 100%; height: 100%; object-fit: cover;')
-                                            : '<span style="color: #bbb; font-size: 18px;">🖼</span>'}
-                                    </div>
                                     <div class="item-card-content">
                                         <div class="item-card-title">${item.title}</div>
                                         <div class="item-card-desc">${contributionText}</div>
+                                    </div>
+                                    <div class="item-card-thumb" style="width: 48px; height: 48px; min-width: 48px; border-radius: 6px; overflow: hidden; background: var(--color-bg-secondary); border: 1px solid var(--color-border); margin-left: 10px; display: flex; align-items: center; justify-content: center;">
+                                        ${item.thumbnails?.length > 0
+                                            ? createImageElement(item.thumbnails[0], item.title, 'width: 100%; height: 100%; object-fit: cover;')
+                                            : '<span style="color: #bbb; font-size: 18px;">🖼</span>'}
                                     </div>
                                     <div class="item-card-actions">
                                         <button class="btn-icon btn-icon-edit" data-action="edit-portfolio" data-id="${item.id}">✏️</button>
@@ -3476,12 +3784,12 @@ class AdminPanel {
                 <input type="hidden" id="modal-portfolio-thumbnails" value="${(existing?.thumbnails || []).join('|||')}">
             </div>
             <div class="form-group">
-                <label class="form-label">링크 URL</label>
-                <input type="text" class="form-input" id="modal-portfolio-link" value="${existing?.links?.[0]?.url || ''}">
+                <label class="form-label">사이트 방문하기</label>
+                <input type="text" class="form-input" id="modal-portfolio-siteurl" value="${existing?.siteUrl || ''}" placeholder="작품 사이트 주소 (예: https://example.com)">
             </div>
             <div class="form-group">
-                <label class="form-label">사이트 URL (선택)</label>
-                <input type="text" class="form-input" id="modal-portfolio-siteurl" value="${existing?.siteUrl || ''}" placeholder="작품 사이트 주소 (예: https://example.com)">
+                <label class="form-label">링크바로가기 url</label>
+                <input type="text" class="form-input" id="modal-portfolio-link" value="${existing?.links?.[0]?.url || ''}">
             </div>
 
             <hr style="border: none; border-top: 1px solid var(--color-border); margin: var(--space-lg) 0;">
@@ -3628,7 +3936,7 @@ class AdminPanel {
             const thumbnails = document.getElementById('modal-portfolio-thumbnails').value.split('|||').map(s => s.trim()).filter(s => s);
             const linkUrl = document.getElementById('modal-portfolio-link').value.trim();
             const siteUrl = document.getElementById('modal-portfolio-siteurl').value.trim();
-            const links = linkUrl ? [{ label: '링크 바로가기', url: linkUrl }] : [];
+            const links = linkUrl ? [{ label: '링크바로가기', url: linkUrl }] : [];
 
             // Collect contributions
             const contributionsContainer = document.getElementById('contributions-container');

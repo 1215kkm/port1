@@ -108,6 +108,19 @@
             justify-content: center;
         }
 
+        /* Hide default content until JS decides to show it (prevents flash) */
+        .intro-page > .intro-header,
+        .intro-page > .intro-grid {
+            opacity: 0;
+            visibility: hidden;
+        }
+        .intro-page.ready > .intro-header,
+        .intro-page.ready > .intro-grid {
+            opacity: 1;
+            visibility: visible;
+            transition: opacity 0.3s ease;
+        }
+
         @media (max-width: 768px) {
             .intro-grid {
                 grid-template-columns: 1fr;
@@ -283,6 +296,9 @@
                 const introCustom = data.introCustom || {};
                 if (introCustom.enabled && (introCustom.texts?.length > 0 || introCustom.buttons?.length > 0 || introCustom.backgroundImage)) {
                     renderCustomIntro(introCustom);
+                } else {
+                    // No custom intro - show default content
+                    document.querySelector('.intro-page')?.classList.add('ready');
                 }
             };
 
