@@ -247,18 +247,9 @@
             border: 1px solid #444;
             border-radius: var(--radius-md);
             margin-bottom: var(--space-sm);
-            cursor: grab;
+            cursor: default;
             transition: all var(--transition-fast);
             color: #fff;
-        }
-
-        .sort-item:active {
-            cursor: grabbing;
-        }
-
-        .sort-item.dragging {
-            opacity: 0.5;
-            background: #555;
         }
 
         .sort-item:hover {
@@ -1116,7 +1107,7 @@
             </div>
 
             <div class="sidebar-section" id="menu-management-section">
-                <h3 class="sidebar-title">메뉴 관리 (드래그로 순서변경)</h3>
+                <h3 class="sidebar-title">메뉴 관리</h3>
                 <div id="menu-list">
                     <!-- Menu items will be rendered here -->
                 </div>

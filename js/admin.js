@@ -1233,7 +1233,7 @@ class AdminPanel {
         // Portfolio menu sections (from menu management)
         const menuSections = (this.data.menuItems || [])
             .filter(m => m.isPortfolio)
-            .map(m => ({ id: m.id, label: m.label }));
+            .map(m => ({ id: m.id, label: m.label, isMenu: true }));
 
         // Non-portfolio fixed section: contact
         const contactSection = { id: 'contact', label: '연락처' };
@@ -1261,11 +1261,12 @@ class AdminPanel {
                 isChecked = sectionSettings[section.id] !== false;
             }
 
+            const menuStyle = section.isMenu ? ' style="color: #E78711;"' : '';
             html += `
-                <div class="section-setting-item" data-section="${section.id}">
+                <div class="section-setting-item" data-section="${section.id}"${section.isMenu ? ' data-is-menu="true"' : ''}>
                     <span class="drag-handle">⋮⋮</span>
                     <input type="checkbox" id="section-${section.id}" ${isChecked ? 'checked' : ''}>
-                    <label for="section-${section.id}">${section.label}</label>
+                    <label for="section-${section.id}"${menuStyle}>${section.label}</label>
                 </div>
             `;
 
@@ -1359,7 +1360,22 @@ class AdminPanel {
 
         console.log('Saving sectionOrder:', sectionOrder);
         dataManager.set('sectionOrder', sectionOrder);
+
+        // Also reorder menuItems to match the new sectionOrder
+        const orderedMenuItems = sectionOrder
+            .map(id => this.data.menuItems.find(m => m.id === id))
+            .filter(Boolean);
+        // Append any menuItems not in sectionOrder
+        this.data.menuItems.forEach(m => {
+            if (!orderedMenuItems.includes(m)) orderedMenuItems.push(m);
+        });
+        dataManager.set('menuItems', orderedMenuItems);
+        this.data = dataManager.getData();
+
         await dataManager.saveData();
+
+        // Re-render left menu list to reflect new order
+        this.renderMenuList();
 
         // Auto-refresh minimap/preview
         setTimeout(() => {
@@ -1963,61 +1979,7 @@ class AdminPanel {
     // Drag and Drop
     // =====================
     initDragAndDrop() {
-        const container = document.getElementById('menu-list');
-        if (!container) return;
-
-        let draggedItem = null;
-
-        container.addEventListener('dragstart', (e) => {
-            if (e.target.classList.contains('sort-item')) {
-                draggedItem = e.target;
-                e.target.classList.add('dragging');
-            }
-        });
-
-        container.addEventListener('dragend', (e) => {
-            if (e.target.classList.contains('sort-item')) {
-                e.target.classList.remove('dragging');
-                this.saveMenuOrder();
-            }
-        });
-
-        container.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            const afterElement = this.getDragAfterElement(container, e.clientY);
-            if (draggedItem) {
-                if (afterElement == null) {
-                    container.appendChild(draggedItem);
-                } else {
-                    container.insertBefore(draggedItem, afterElement);
-                }
-            }
-        });
-    }
-
-    getDragAfterElement(container, y) {
-        const draggableElements = [...container.querySelectorAll('.sort-item:not(.dragging)')];
-
-        return draggableElements.reduce((closest, child) => {
-            const box = child.getBoundingClientRect();
-            const offset = y - box.top - box.height / 2;
-            if (offset < 0 && offset > closest.offset) {
-                return { offset: offset, element: child };
-            } else {
-                return closest;
-            }
-        }, { offset: Number.NEGATIVE_INFINITY }).element;
-    }
-
-    saveMenuOrder() {
-        const container = document.getElementById('menu-list');
-        const items = container.querySelectorAll('.sort-item');
-        const newOrder = Array.from(items).map(item => item.dataset.section);
-        dataManager.reorderSections(newOrder);
-        // Also reorder menuItems
-        const orderedMenuItems = newOrder.map(id => this.data.menuItems.find(m => m.id === id)).filter(Boolean);
-        dataManager.set('menuItems', orderedMenuItems);
-        this.data = dataManager.getData();
+        // Drag reorder disabled for left menu - use section settings panel (right) instead
     }
 
     // =====================
@@ -2100,8 +2062,7 @@ class AdminPanel {
         });
 
         container.innerHTML = orderedItems.map(item => `
-            <div class="sort-item" draggable="true" data-section="${item.id}">
-                <span class="sort-handle">☰</span>
+            <div class="sort-item" data-section="${item.id}">
                 <span class="section-link" data-target="${item.id}">${item.label}</span>
                 <div class="item-card-actions" style="margin-left: auto;">
                     <button class="btn-icon btn-icon-edit" data-action="edit-menu" data-id="${item.id}" style="background: #444; border-color: #555;">✏️</button>
