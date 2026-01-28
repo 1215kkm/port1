@@ -1211,17 +1211,6 @@ class AdminPanel {
     initSectionCheckboxes() {
         // Build section list dynamically
         this.renderSectionSettingsList();
-
-        // Update preview button - saves settings and refreshes minimap/preview
-        document.getElementById('btn-update-preview')?.addEventListener('click', async () => {
-            this.saveSectionSettings();
-            await this.saveSectionOrder();
-            this.showToast('섹션 설정이 업데이트되었습니다.', 'success');
-            setTimeout(() => {
-                this.refreshMinimap();
-                this.refreshPreview();
-            }, 300);
-        });
     }
 
     // Build the section settings list dynamically based on current menu items
@@ -1371,9 +1360,15 @@ class AdminPanel {
         console.log('Saving sectionOrder:', sectionOrder);
         dataManager.set('sectionOrder', sectionOrder);
         await dataManager.saveData();
+
+        // Auto-refresh minimap/preview
+        setTimeout(() => {
+            this.refreshMinimap();
+            this.refreshPreview();
+        }, 300);
     }
 
-    saveSectionSettings() {
+    async saveSectionSettings() {
         const listContainer = document.getElementById('section-settings-list');
         if (!listContainer) return;
 
@@ -1401,7 +1396,13 @@ class AdminPanel {
 
         console.log('Saving sectionSettings:', JSON.stringify(sectionSettings));
         dataManager.set('sectionSettings', sectionSettings);
-        dataManager.saveData();
+        await dataManager.saveData();
+
+        // Auto-refresh minimap/preview
+        setTimeout(() => {
+            this.refreshMinimap();
+            this.refreshPreview();
+        }, 300);
     }
 
     // Called when menu items are added/deleted to refresh the section settings list
