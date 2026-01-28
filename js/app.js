@@ -154,35 +154,14 @@ class RadarChart {
         this.hasAnimated = true;
 
         const targetValues = this.data.map(d => d.value);
+        // Start from random values (one time only)
         const startValues = this.data.map(() => Math.random() * 100);
+        this.animatedValues = [...startValues];
+        this.draw();
 
-        // Phase 1: Random shuffle animation (500ms)
-        const shuffleDuration = 500;
-        const shuffleStartTime = performance.now();
-
-        const shuffleAnimation = (currentTime) => {
-            const elapsed = currentTime - shuffleStartTime;
-            const progress = Math.min(elapsed / shuffleDuration, 1);
-
-            // Random values during shuffle phase
-            this.animatedValues = this.data.map(() => Math.random() * 100);
-            this.draw();
-
-            if (progress < 1) {
-                requestAnimationFrame(shuffleAnimation);
-            } else {
-                // Phase 2: Ease to actual values (800ms)
-                this.easeToValues(startValues, targetValues);
-            }
-        };
-
-        requestAnimationFrame(shuffleAnimation);
-    }
-
-    easeToValues(startValues, targetValues) {
-        const duration = 800;
+        // Animate slowly to actual values (1.5 seconds)
+        const duration = 1500;
         const startTime = performance.now();
-
         const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3);
 
         const animate = (currentTime) => {
