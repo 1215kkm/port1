@@ -417,8 +417,12 @@
             await AuthManager.init();
 
             if (AuthManager.isLoggedIn()) {
-                // Redirect to dashboard
-                window.location.href = 'dashboard.html';
+                // 로그인 상태에서도 소개페이지 유지 (대시보드 바로가기 버튼 표시)
+                const loginBtns = document.querySelectorAll('a[href="login.html"]');
+                loginBtns.forEach(btn => {
+                    btn.href = 'dashboard.html';
+                    btn.textContent = '대시보드';
+                });
             }
         }
 

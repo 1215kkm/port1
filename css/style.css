@@ -766,6 +766,7 @@ ul, ol {
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
 }
 
 .radar-chart {
@@ -895,16 +896,17 @@ ul, ol {
 
 .portfolio-slider .swiper-slide {
     width: auto;
-    max-width: 400px;
+    max-width: 260px;
 }
 
 .portfolio-slider .portfolio-item {
-    max-width: 400px;
+    max-width: 260px;
 }
 
 .portfolio-slider .portfolio-thumbnail img {
-    max-width: 400px;
-    height: auto;
+    max-width: 260px;
+    height: 180px;
+    object-fit: cover;
 }
 
 /* Portfolio Item */
@@ -1965,7 +1967,7 @@ ul, ol {
 }
 
 .swiper-slide {
-    width: 350px;
+    width: 260px;
 }
 
 .swiper-button-prev,

@@ -233,9 +233,11 @@
                 right: 0;
                 transform: none;
                 flex-direction: row;
+                flex-wrap: wrap;
                 justify-content: center;
                 border-radius: 12px 12px 0 0;
-                padding: 8px 16px;
+                padding: 6px 8px;
+                gap: 0;
             }
 
             .owner-menu.collapsed {
@@ -256,8 +258,10 @@
             }
 
             .owner-menu-item {
-                padding: 8px 12px;
+                padding: 6px 8px;
                 min-width: auto;
+                width: 25%;
+                box-sizing: border-box;
             }
 
             .owner-menu-icon {
@@ -269,13 +273,28 @@
             }
 
             .owner-menu-divider {
-                width: 1px;
-                height: 40px;
-                margin: 0 4px;
+                display: none;
             }
 
             .owner-menu-info {
                 display: none;
+            }
+
+            .owner-menu-subscription {
+                width: 50%;
+                box-sizing: border-box;
+            }
+
+            .owner-menu-coupon {
+                width: 50%;
+                box-sizing: border-box;
+                flex-direction: row;
+                padding: 4px 8px;
+            }
+
+            .owner-menu-coupon input {
+                flex: 1;
+                min-width: 0;
             }
         }
     `;
@@ -419,6 +438,11 @@
             <span class="owner-menu-icon">🔗</span>
             <span class="owner-menu-label">URL복사</span>
         </button>
+
+        <a href="admin.html" class="owner-menu-item" title="스킨설정">
+            <span class="owner-menu-icon">⚙️</span>
+            <span class="owner-menu-label">설정</span>
+        </a>
 
         <div class="owner-menu-divider"></div>
 

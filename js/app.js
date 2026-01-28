@@ -650,9 +650,14 @@ class PortfolioRenderer {
         const siteButtonHTML = item.siteUrl ? `<a href="${item.siteUrl}" target="_blank" class="btn btn-secondary">사이트 방문</a>` : '';
 
         // Detail button (links to detail page if available)
-        const detailButtonHTML = item.detailImages?.length > 0 || item.detailDescriptions?.length > 0
-            ? `<button class="btn btn-outline" onclick="window.showPortfolioDetail && window.showPortfolioDetail('${item.id || ''}')">상세보기</button>`
-            : '';
+        const hasDetailContent = item.detailImages?.length > 0 || item.detailDescriptions?.length > 0;
+        const hasThumbnailOnly = !hasDetailContent && item.thumbnail && !item.siteUrl && (!item.links || item.links.length === 0);
+        let detailButtonHTML = '';
+        if (hasDetailContent) {
+            detailButtonHTML = `<button class="btn btn-outline" onclick="window.showPortfolioDetail && window.showPortfolioDetail('${item.id || ''}')">상세보기</button>`;
+        } else if (hasThumbnailOnly) {
+            detailButtonHTML = `<button class="btn btn-outline" onclick="window.showImageModal && window.showImageModal('${item.thumbnail}', '${(item.title || '').replace(/'/g, "\\'")}')">상세보기</button>`;
+        }
 
         return `
             <article class="portfolio-item" data-item-id="${item.id || ''}">
@@ -1560,6 +1565,22 @@ class PageInitializer {
             `<a href="#${item.id}" class="nav-link">${item.label}</a>`
         ).join('');
 
+        // 동적 생성된 네비 링크에 스크롤 이벤트 바인딩
+        menuContainer.querySelectorAll('a[href^="#"]').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const targetId = link.getAttribute('href').slice(1);
+                const section = document.getElementById(targetId);
+                if (section) {
+                    const headerHeight = document.querySelector('.header')?.offsetHeight || 70;
+                    window.scrollTo({
+                        top: section.offsetTop - headerHeight,
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+
         // Apply section order to DOM
         this.applySectionOrder();
     }
@@ -1644,6 +1665,25 @@ window.RadarChart = RadarChart;
 window.Calendar = Calendar;
 window.PortfolioRenderer = PortfolioRenderer;
 window.PageInitializer = PageInitializer;
+
+// Image Modal - 링크없는 작품의 썸네일 이미지를 실제 크기로 표시
+window.showImageModal = function(imageUrl, title) {
+    const modal = document.createElement('div');
+    modal.style.cssText = 'position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.9);cursor:pointer;';
+    modal.innerHTML = `
+        <div style="position:absolute;top:20px;right:20px;color:#fff;font-size:32px;cursor:pointer;z-index:1;">✕</div>
+        ${title ? `<div style="position:absolute;top:20px;left:20px;color:#fff;font-size:16px;">${title}</div>` : ''}
+        <img src="${imageUrl}" alt="${title || ''}" style="max-width:90vw;max-height:90vh;object-fit:contain;border-radius:8px;">
+    `;
+    document.body.appendChild(modal);
+    document.body.style.overflow = 'hidden';
+
+    const close = () => { modal.remove(); document.body.style.overflow = ''; };
+    modal.addEventListener('click', close);
+    document.addEventListener('keydown', function handler(e) {
+        if (e.key === 'Escape') { close(); document.removeEventListener('keydown', handler); }
+    });
+};
 
 // Portfolio Detail Modal
 window.showPortfolioDetail = function(itemId) {

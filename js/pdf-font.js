@@ -60,11 +60,12 @@ const PDFFontLoader = {
     async loadDefaultFont() {
         // Font URLs in order of preference - using TTF format for better jsPDF compatibility
         const fontUrls = [
-            // Nanum Gothic from raw.githubusercontent (reliable)
-            'https://raw.githubusercontent.com/nickshanks/Allsorts/main/tests/fonts/noto/NotoSansKR-Regular.ttf',
-            // Google Fonts Noto Sans KR OTF
+            // NanumGothic TTF from reliable CDNs
+            'https://cdn.jsdelivr.net/gh/prantlf/node-google-fonts-install@master/fonts/NanumGothic-Regular.ttf',
+            'https://cdn.jsdelivr.net/npm/@aspect-build/rules_js/fonts/NanumGothic-Regular.ttf',
+            // Noto Sans KR from Google Fonts (static TTF)
             'https://fonts.gstatic.com/s/notosanskr/v36/PbyxFmXiEBPT4ITbgNA5Cgms3VYcOA-vvnIzzuoyeLTq8H4hfeE.otf',
-            // Backup: Nanum Gothic
+            // Malgun Gothic alternative
             'https://cdn.jsdelivr.net/gh/nickshanks/Allsorts@main/tests/fonts/nanum/NanumGothic-Regular.ttf'
         ];
 
@@ -100,14 +101,49 @@ const PDFFontLoader = {
         return btoa(binary);
     },
 
+    // Google Fonts CSS에서 TTF/OTF URL 추출
+    async loadFontFromGoogleFonts() {
+        try {
+            // User-Agent를 변경하면 Google Fonts가 ttf를 제공
+            const cssUrl = 'https://fonts.googleapis.com/css2?family=Noto+Sans+KR&display=swap';
+            const response = await fetch(cssUrl, {
+                headers: { 'User-Agent': 'Mozilla/4.0 (compatible; MSIE 8.0)' }
+            });
+            if (!response.ok) throw new Error('Google Fonts CSS fetch failed');
+            const css = await response.text();
+
+            // URL 추출
+            const urlMatch = css.match(/url\(([^)]+)\)/);
+            if (urlMatch) {
+                const fontUrl = urlMatch[1].replace(/['"]/g, '');
+                console.log('Found Google Fonts URL:', fontUrl);
+                const fontResp = await fetch(fontUrl);
+                if (fontResp.ok) {
+                    const arrayBuffer = await fontResp.arrayBuffer();
+                    return this.arrayBufferToBase64(arrayBuffer);
+                }
+            }
+        } catch (e) {
+            console.warn('Google Fonts approach failed:', e.message);
+        }
+        return null;
+    },
+
     // Main load function - always use default Korean font for PDF (woff2 not supported by jsPDF)
     async loadFont(fontSettings) {
         if (this.fontLoaded) return this.fontData;
 
-        // Always use default Noto Sans KR font for PDF
-        // Custom woff2 fonts are not supported by jsPDF
-        console.log('Loading default Noto Sans KR font for PDF');
+        console.log('Loading Korean font for PDF...');
+
+        // 1차: CDN에서 직접 폰트 로드
         this.fontData = await this.loadDefaultFont();
+
+        // 2차: Google Fonts에서 폰트 로드
+        if (!this.fontData) {
+            console.log('Trying Google Fonts...');
+            this.fontData = await this.loadFontFromGoogleFonts();
+        }
+
         this.fontLoaded = !!this.fontData;
         this.fontName = 'NotoSansKR';
         return this.fontData;
@@ -338,8 +374,10 @@ const PDFGenerator = {
             doc.text(evalText, margin, y);
         }
 
-        // Save
-        doc.save(`${profile.name || 'resume'}_이력서.pdf`);
+        // PDF를 새 탭에서 보기
+        const pdfBlob = doc.output('blob');
+        const pdfUrl = URL.createObjectURL(pdfBlob);
+        window.open(pdfUrl, '_blank');
     }
 };
 
