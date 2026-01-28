@@ -870,6 +870,11 @@ ul, ol {
     gap: var(--space-xl);
 }
 
+.portfolio-grid .portfolio-item {
+    display: flex;
+    flex-direction: column;
+}
+
 /* In grid/masonry/slider mode, show thumbnail on top (before content) */
 .portfolio-grid .portfolio-item .portfolio-thumbnail,
 .portfolio-masonry .portfolio-item .portfolio-thumbnail,
@@ -927,6 +932,72 @@ ul, ol {
 
 .portfolio-single .portfolio-item .portfolio-content {
     padding-top: var(--space-xl);
+}
+
+/* Single mode - landscape thumbnail (width > height) */
+.portfolio-single .portfolio-item.thumb-landscape .portfolio-thumbnail {
+    max-width: 840px;
+    padding: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+}
+
+.portfolio-single .portfolio-item.thumb-landscape .portfolio-thumbnail img {
+    max-width: 820px;
+    width: 100%;
+    height: auto;
+    object-fit: contain;
+    aspect-ratio: auto;
+}
+
+.portfolio-single .portfolio-item.thumb-landscape .portfolio-thumbnail .portfolio-slideshow {
+    max-width: 820px;
+    width: 100%;
+    aspect-ratio: auto;
+    overflow: visible;
+}
+
+.portfolio-single .portfolio-item.thumb-landscape .portfolio-thumbnail .portfolio-slideshow .portfolio-slide {
+    max-width: 820px;
+    width: 100%;
+    height: auto;
+    object-fit: contain;
+    aspect-ratio: auto;
+}
+
+/* Single mode - portrait/square thumbnail (height >= width) */
+.portfolio-single .portfolio-item.thumb-portrait .portfolio-thumbnail {
+    max-height: 250px;
+    padding: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    overflow: hidden;
+}
+
+.portfolio-single .portfolio-item.thumb-portrait .portfolio-thumbnail img {
+    max-height: 230px;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    aspect-ratio: auto;
+}
+
+.portfolio-single .portfolio-item.thumb-portrait .portfolio-thumbnail .portfolio-slideshow {
+    max-height: 230px;
+    overflow: hidden;
+    aspect-ratio: auto;
+}
+
+.portfolio-single .portfolio-item.thumb-portrait .portfolio-thumbnail .portfolio-slideshow .portfolio-slide {
+    max-height: 230px;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    aspect-ratio: auto;
 }
 
 /* Portfolio Masonry Layout */

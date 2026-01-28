@@ -702,6 +702,7 @@ class PortfolioRenderer {
     renderSingle() {
         this.container.innerHTML = this.items.map(item => this.createItemHTML(item)).join('');
         this.initSlideshows();
+        this.adjustSingleThumbnails();
     }
 
     renderGrid() {
@@ -762,6 +763,33 @@ class PortfolioRenderer {
                 current.classList.remove('active');
                 next.classList.add('active');
             }, 2000);
+        });
+    }
+
+    adjustSingleThumbnails() {
+        if (this.displayMode !== 'single') return;
+
+        const items = this.container.querySelectorAll('.portfolio-item');
+        items.forEach(item => {
+            const img = item.querySelector('.portfolio-thumbnail img');
+            if (!img) return;
+
+            const checkOrientation = () => {
+                const w = img.naturalWidth;
+                const h = img.naturalHeight;
+                if (w > h) {
+                    item.classList.add('thumb-landscape');
+                } else {
+                    // portrait or square
+                    item.classList.add('thumb-portrait');
+                }
+            };
+
+            if (img.complete && img.naturalWidth > 0) {
+                checkOrientation();
+            } else {
+                img.addEventListener('load', checkOrientation);
+            }
         });
     }
 
