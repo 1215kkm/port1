@@ -11,6 +11,10 @@
     <!-- Main CSS -->
     <link rel="stylesheet" href="css/style.css">
     <style>
+        /* Keep Korean words from breaking mid-word */
+        body {
+            word-break: keep-all;
+        }
         /* Hide content until data is loaded to prevent flash of default values */
         body.loading .main,
         body.loading .header,
