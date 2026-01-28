@@ -1951,44 +1951,6 @@ class AdminPanel {
             </div>
         `).join('');
 
-        // Click to inline edit menu label
-        container.querySelectorAll('.section-link').forEach(link => {
-            link.style.cursor = 'text';
-            link.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const menuId = link.dataset.target;
-                const currentLabel = link.textContent;
-
-                // 이미 편집 중이면 무시
-                if (link.querySelector('input')) return;
-
-                const input = document.createElement('input');
-                input.type = 'text';
-                input.value = currentLabel;
-                input.style.cssText = 'background:#222;color:#fff;border:1px solid #3498db;border-radius:4px;padding:2px 6px;font-size:inherit;width:100%;outline:none;';
-                link.textContent = '';
-                link.appendChild(input);
-                input.focus();
-                input.select();
-
-                const save = () => {
-                    const newLabel = input.value.trim();
-                    if (newLabel && newLabel !== currentLabel) {
-                        dataManager.updateMenuItem(menuId, { label: newLabel });
-                        this.data = dataManager.getData();
-                    }
-                    link.textContent = newLabel || currentLabel;
-                    this.refreshMinimap();
-                };
-
-                input.addEventListener('blur', save);
-                input.addEventListener('keydown', (ev) => {
-                    if (ev.key === 'Enter') { ev.preventDefault(); input.blur(); }
-                    if (ev.key === 'Escape') { link.textContent = currentLabel; }
-                });
-            });
-        });
-
         container.querySelectorAll('[data-action="edit-menu"]').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
