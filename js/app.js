@@ -662,11 +662,19 @@ class PortfolioRenderer {
             detailButtonHTML = `<button class="btn btn-outline" onclick="window.showImageModal && window.showImageModal('${item.thumbnail}', '${(item.title || '').replace(/'/g, "\\'")}')">상세보기</button>`;
         }
 
+        // Build thumbnail slideshow HTML (show one at a time, auto-rotate)
+        let slideshowHTML;
+        if (thumbnails.length > 1) {
+            const slides = thumbnails.map((t, idx) =>
+                `<img src="${addCacheBuster(t)}" alt="${item.title}" class="portfolio-slide ${idx === 0 ? 'active' : ''}" data-slide-index="${idx}">`
+            ).join('');
+            slideshowHTML = `<div class="portfolio-slideshow" data-slide-count="${thumbnails.length}">${slides}</div>`;
+        } else {
+            slideshowHTML = thumbnailHTML;
+        }
+
         return `
             <article class="portfolio-item" data-item-id="${item.id || ''}">
-                <div class="portfolio-thumbnail">
-                    ${thumbnailHTML}
-                </div>
                 <div class="portfolio-content">
                     <h3 class="portfolio-title">${item.title}</h3>
                     <div class="portfolio-meta">
@@ -683,20 +691,26 @@ class PortfolioRenderer {
                         ${linksHTML}
                     </div>
                 </div>
+                <div class="portfolio-thumbnail">
+                    ${slideshowHTML}
+                </div>
             </article>
         `;
     }
 
     renderSingle() {
         this.container.innerHTML = this.items.map(item => this.createItemHTML(item)).join('');
+        this.initSlideshows();
     }
 
     renderGrid() {
         this.container.innerHTML = this.items.map(item => this.createItemHTML(item)).join('');
+        this.initSlideshows();
     }
 
     renderMasonry() {
         this.container.innerHTML = this.items.map(item => this.createItemHTML(item)).join('');
+        this.initSlideshows();
     }
 
     renderSlider() {
@@ -729,6 +743,25 @@ class PortfolioRenderer {
                 },
             });
         }
+        this.initSlideshows();
+    }
+
+    initSlideshows() {
+        const slideshows = this.container.querySelectorAll('.portfolio-slideshow');
+        slideshows.forEach(slideshow => {
+            const slides = slideshow.querySelectorAll('.portfolio-slide');
+            if (slides.length <= 1) return;
+
+            let currentIndex = 0;
+            setInterval(() => {
+                const current = slides[currentIndex];
+                currentIndex = (currentIndex + 1) % slides.length;
+                const next = slides[currentIndex];
+
+                current.classList.remove('active');
+                next.classList.add('active');
+            }, 2000);
+        });
     }
 
     setDisplayMode(mode) {
@@ -1725,8 +1758,8 @@ window.showPortfolioDetail = function(itemId) {
     const data = window.dataManager?.getData();
     if (!data) return;
 
-    // Find the portfolio item
-    const item = data.portfolioSolo?.items?.find(i => i.id === itemId);
+    // Find the portfolio item (use == for loose comparison since ID may be number or string)
+    const item = data.portfolioSolo?.items?.find(i => String(i.id) === String(itemId));
     if (!item) {
         console.warn('Portfolio item not found:', itemId);
         return;
