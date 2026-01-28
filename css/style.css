@@ -775,13 +775,14 @@ ul, ol {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
 }
 
 .radar-chart {
     width: 100%;
     max-width: 350px;
     aspect-ratio: 1;
+    margin: auto 0;
 }
 
 /* Video Section */
