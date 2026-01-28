@@ -1221,25 +1221,24 @@ class AdminPanel {
         const sectionSettings = this.data.sectionSettings || {};
         const sectionOrder = this.data.sectionOrder || [];
 
-        // Fixed sections (non-portfolio)
+        // Fixed sections (non-menu)
         const fixedSections = [
-            { id: 'about', label: '자기소개', hasSub: true },
             { id: 'aitools', label: 'AI도구' },
             { id: 'experience', label: '경력' },
             { id: 'evaluation', label: '내평가' },
             { id: 'video', label: '영상' },
         ];
 
-        // Portfolio menu sections (from menu management)
-        const menuSections = (this.data.menuItems || [])
-            .filter(m => m.isPortfolio)
-            .map(m => ({ id: m.id, label: m.label, isMenu: true }));
-
-        // Non-portfolio fixed section: contact
-        const contactSection = { id: 'contact', label: '연락처' };
+        // Menu sections (from menu management) - all menu items including about, contact
+        const menuItems = this.data.menuItems || [];
+        const menuSections = menuItems.map(m => {
+            const section = { id: m.id, label: m.label, isMenu: true };
+            if (m.id === 'about') section.hasSub = true;
+            return section;
+        });
 
         // All sections combined
-        const allSections = [...fixedSections, ...menuSections, contactSection];
+        const allSections = [...menuSections, ...fixedSections];
 
         // Sort by sectionOrder if available
         allSections.sort((a, b) => {
@@ -2063,7 +2062,7 @@ class AdminPanel {
 
         container.innerHTML = orderedItems.map(item => `
             <div class="sort-item" data-section="${item.id}">
-                <span class="section-link" data-target="${item.id}">${item.label}</span>
+                <span class="section-link" data-target="${item.id}" style="color: #E78711;">${item.label}</span>
                 <div class="item-card-actions" style="margin-left: auto;">
                     <button class="btn-icon btn-icon-edit" data-action="edit-menu" data-id="${item.id}" style="background: #444; border-color: #555;">✏️</button>
                     ${item.id !== 'about' && item.id !== 'contact' ? `
