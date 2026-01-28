@@ -652,15 +652,15 @@ class PortfolioRenderer {
         const reviewHTML = item.review ? item.review.replace(/\n/g, '<br>') : '';
 
         // Site visit button
-        const siteButtonHTML = item.siteUrl ? `<a href="${item.siteUrl}" target="_blank" class="btn btn-secondary">사이트 방문하기</a>` : '';
+        const siteButtonHTML = item.siteUrl ? `<a href="${item.siteUrl}" target="_blank" class="btn btn-secondary">사이트보기</a>` : '';
 
         const hasLinks = item.links && item.links.length > 0 && item.links.some(l => l.url && l.url !== '#');
         const hasThumbnailOnly = !hasDetailContent && thumbnails.length > 0 && !item.siteUrl && !hasLinks;
         let detailButtonHTML = '';
         if (hasDetailContent) {
-            detailButtonHTML = `<button class="btn btn-outline" onclick="window.showPortfolioDetail && window.showPortfolioDetail('${item.id || ''}')">상세보기</button>`;
+            detailButtonHTML = `<button class="btn btn-outline" onclick="window.showPortfolioDetail && window.showPortfolioDetail('${item.id || ''}')">상세설명</button>`;
         } else if (hasThumbnailOnly) {
-            detailButtonHTML = `<button class="btn btn-outline" onclick="window.showImageModal && window.showImageModal('${addCacheBuster(thumbnails[0])}', '${(item.title || '').replace(/'/g, "\\'")}')">상세보기</button>`;
+            detailButtonHTML = `<button class="btn btn-outline" onclick="window.showImageModal && window.showImageModal('${addCacheBuster(thumbnails[0])}', '${(item.title || '').replace(/'/g, "\\'")}')">상세설명</button>`;
         }
 
         // Build thumbnail slideshow HTML (show one at a time, auto-rotate)

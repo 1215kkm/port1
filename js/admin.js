@@ -3818,11 +3818,11 @@ class AdminPanel {
                 <input type="hidden" id="modal-portfolio-thumbnails" value="${(existing?.thumbnails || []).join('|||')}">
             </div>
             <div class="form-group">
-                <label class="form-label">사이트 방문하기</label>
+                <label class="form-label">사이트보기</label>
                 <input type="text" class="form-input" id="modal-portfolio-siteurl" value="${existing?.siteUrl || ''}" placeholder="작품 사이트 주소 (예: https://example.com)">
             </div>
             <div class="form-group">
-                <label class="form-label">링크바로가기 url</label>
+                <label class="form-label">참고보기 url</label>
                 <input type="text" class="form-input" id="modal-portfolio-link" value="${existing?.links?.[0]?.url || ''}">
             </div>
 
@@ -3970,7 +3970,7 @@ class AdminPanel {
             const thumbnails = document.getElementById('modal-portfolio-thumbnails').value.split('|||').map(s => s.trim()).filter(s => s);
             const linkUrl = document.getElementById('modal-portfolio-link').value.trim();
             const siteUrl = document.getElementById('modal-portfolio-siteurl').value.trim();
-            const links = linkUrl ? [{ label: '링크바로가기', url: linkUrl }] : [];
+            const links = linkUrl ? [{ label: '참고보기', url: linkUrl }] : [];
 
             // Collect contributions
             const contributionsContainer = document.getElementById('contributions-container');
