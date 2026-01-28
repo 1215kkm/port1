@@ -1786,17 +1786,24 @@ window.PageInitializer = PageInitializer;
 // Image Modal - 링크없는 작품의 썸네일 이미지를 실제 크기로 표시
 window.showImageModal = function(imageUrl, title) {
     const modal = document.createElement('div');
-    modal.style.cssText = 'position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.9);cursor:pointer;';
+    modal.style.cssText = 'position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.9);overflow:auto;';
     modal.innerHTML = `
-        <div style="position:absolute;top:20px;right:20px;color:#fff;font-size:32px;cursor:pointer;z-index:1;">✕</div>
-        ${title ? `<div style="position:absolute;top:20px;left:20px;color:#fff;font-size:16px;">${title}</div>` : ''}
-        <img src="${imageUrl}" alt="${title || ''}" style="max-width:90vw;max-height:90vh;object-fit:contain;border-radius:8px;">
+        <div style="position:sticky;top:0;display:flex;justify-content:space-between;align-items:center;padding:16px 24px;z-index:1;">
+            ${title ? `<div style="color:#fff;font-size:16px;">${title}</div>` : '<div></div>'}
+            <div style="color:#fff;font-size:32px;cursor:pointer;line-height:1;" class="image-modal-close">✕</div>
+        </div>
+        <div style="display:flex;justify-content:center;padding:0 20px 40px;">
+            <img src="${imageUrl}" alt="${title || ''}" style="display:block;">
+        </div>
     `;
     document.body.appendChild(modal);
     document.body.style.overflow = 'hidden';
 
     const close = () => { modal.remove(); document.body.style.overflow = ''; };
-    modal.addEventListener('click', close);
+    modal.querySelector('.image-modal-close').addEventListener('click', close);
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) close();
+    });
     document.addEventListener('keydown', function handler(e) {
         if (e.key === 'Escape') { close(); document.removeEventListener('keydown', handler); }
     });
@@ -1826,37 +1833,64 @@ window.showPortfolioDetail = function(itemId) {
     // Create modal
     const modal = document.createElement('div');
     modal.className = 'portfolio-detail-modal';
-    modal.innerHTML = `
-        <div class="portfolio-detail-backdrop"></div>
-        <div class="portfolio-detail-content">
-            <button class="portfolio-detail-close">&times;</button>
-            <div class="portfolio-detail-body">
-                <div class="portfolio-detail-left">
-                    <div class="portfolio-detail-thumbnails">
-                        ${(item.detailImages || []).map((url, i) => `
-                            <div class="portfolio-detail-thumb ${i === 0 ? 'active' : ''}" data-index="${i}">
-                                <img src="${url}" alt="썸네일 ${i + 1}">
-                            </div>
-                        `).join('')}
+
+    if (hasDetailDescriptions) {
+        // Full layout: thumbnails + main image + descriptions panel
+        modal.innerHTML = `
+            <div class="portfolio-detail-backdrop"></div>
+            <div class="portfolio-detail-content">
+                <button class="portfolio-detail-close">&times;</button>
+                <div class="portfolio-detail-body">
+                    <div class="portfolio-detail-left">
+                        <div class="portfolio-detail-thumbnails">
+                            ${(item.detailImages || []).map((url, i) => `
+                                <div class="portfolio-detail-thumb ${i === 0 ? 'active' : ''}" data-index="${i}">
+                                    <img src="${url}" alt="썸네일 ${i + 1}">
+                                </div>
+                            `).join('')}
+                        </div>
+                        <div class="portfolio-detail-main-image">
+                            ${item.detailImages?.[0] ? `<img src="${item.detailImages[0]}" alt="상세 이미지">` : '<div class="no-image">이미지 없음</div>'}
+                        </div>
                     </div>
-                    <div class="portfolio-detail-main-image">
-                        ${item.detailImages?.[0] ? `<img src="${item.detailImages[0]}" alt="상세 이미지">` : '<div class="no-image">이미지 없음</div>'}
-                    </div>
-                </div>
-                <div class="portfolio-detail-right">
-                    <h2 class="portfolio-detail-title">${item.title || '작품 상세'}</h2>
-                    <div class="portfolio-detail-descriptions">
-                        ${(item.detailDescriptions || []).map(d => `
-                            <div class="portfolio-detail-desc-item">
-                                <h4>${d.title || ''}</h4>
-                                <p>${(d.description || '').replace(/\n/g, '<br>')}</p>
-                            </div>
-                        `).join('')}
+                    <div class="portfolio-detail-right">
+                        <h2 class="portfolio-detail-title">${item.title || '작품 상세'}</h2>
+                        <div class="portfolio-detail-descriptions">
+                            ${(item.detailDescriptions || []).map(d => `
+                                <div class="portfolio-detail-desc-item">
+                                    <h4>${d.title || ''}</h4>
+                                    <p>${(d.description || '').replace(/\n/g, '<br>')}</p>
+                                </div>
+                            `).join('')}
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-    `;
+        `;
+    } else {
+        // Image-only layout: thumbnails + actual-size image with scroll
+        modal.innerHTML = `
+            <div class="portfolio-detail-backdrop"></div>
+            <div class="portfolio-detail-content portfolio-detail-image-only">
+                <button class="portfolio-detail-close">&times;</button>
+                <h2 class="portfolio-detail-title" style="padding:24px 32px 0;margin:0;">${item.title || '작품 상세'}</h2>
+                <div class="portfolio-detail-body" style="height:auto;max-height:none;">
+                    <div class="portfolio-detail-left" style="flex:none;width:auto;">
+                        <div class="portfolio-detail-thumbnails">
+                            ${(item.detailImages || []).map((url, i) => `
+                                <div class="portfolio-detail-thumb ${i === 0 ? 'active' : ''}" data-index="${i}">
+                                    <img src="${url}" alt="썸네일 ${i + 1}">
+                                </div>
+                            `).join('')}
+                        </div>
+                        <div class="portfolio-detail-main-image" style="align-items:flex-start;overflow:auto;">
+                            ${item.detailImages?.[0] ? `<img src="${item.detailImages[0]}" alt="상세 이미지" style="max-width:none;width:auto;">` : '<div class="no-image">이미지 없음</div>'}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
 
     // Add styles
     const style = document.createElement('style');
@@ -1961,10 +1995,15 @@ window.showPortfolioDetail = function(itemId) {
             align-items: flex-start;
         }
         .portfolio-detail-main-image img {
-            width: 100%;
+            max-width: 100%;
             height: auto;
             object-fit: contain;
             border-radius: 8px;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        .portfolio-detail-main-image img:hover {
+            opacity: 0.85;
         }
         .portfolio-detail-main-image .no-image {
             color: #666;
@@ -2005,6 +2044,18 @@ window.showPortfolioDetail = function(itemId) {
             line-height: 1.6;
             color: var(--color-text-secondary, #666);
             margin: 0;
+        }
+        .portfolio-detail-image-only {
+            max-height: 90vh;
+            overflow: auto;
+        }
+        .portfolio-detail-image-only .portfolio-detail-main-image img {
+            max-width: none;
+            width: auto;
+            cursor: default;
+        }
+        .portfolio-detail-image-only .portfolio-detail-main-image img:hover {
+            opacity: 1;
         }
         @media (max-width: 768px) {
             .portfolio-detail-body {
@@ -2073,4 +2124,29 @@ window.showPortfolioDetail = function(itemId) {
             }
         });
     });
+
+    // Click main image to open actual-size zoom modal (only when descriptions exist)
+    if (mainImage && hasDetailDescriptions) {
+        mainImage.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const zoomModal = document.createElement('div');
+            zoomModal.style.cssText = 'position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,0.95);overflow:auto;cursor:pointer;';
+            zoomModal.innerHTML = `
+                <div style="position:sticky;top:0;text-align:right;padding:16px 24px;z-index:1;">
+                    <span style="color:#fff;font-size:32px;cursor:pointer;line-height:1;">✕</span>
+                </div>
+                <div style="display:flex;justify-content:center;padding:0 20px 40px;">
+                    <img src="${mainImage.src}" alt="원본 이미지" style="display:block;">
+                </div>
+            `;
+            document.body.appendChild(zoomModal);
+            const closeZoom = () => { zoomModal.remove(); };
+            zoomModal.addEventListener('click', closeZoom);
+            zoomModal.querySelector('img').addEventListener('click', (ev) => ev.stopPropagation());
+            const handleZoomEsc = (ev) => {
+                if (ev.key === 'Escape') { closeZoom(); document.removeEventListener('keydown', handleZoomEsc); }
+            };
+            document.addEventListener('keydown', handleZoomEsc);
+        });
+    }
 };
