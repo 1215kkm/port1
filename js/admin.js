@@ -1214,65 +1214,100 @@ class AdminPanel {
     // Section Checkboxes
     // =====================
     initSectionCheckboxes() {
-        const sectionIds = ['about', 'aitools', 'related', 'other', 'evaluation', 'video', 'portfolio', 'contact'];
+        // Build section list dynamically
+        this.renderSectionSettingsList();
 
-        // Load saved settings
-        const sectionSettings = this.data.sectionSettings || {};
-        const sectionOrder = this.data.sectionOrder || sectionIds;
-
-        // Reorder the list items based on sectionOrder
-        this.renderSectionOrder(sectionOrder);
-
-        sectionIds.forEach(id => {
-            const checkbox = document.getElementById(`section-${id}`);
-            if (checkbox) {
-                // Set initial value
-                checkbox.checked = sectionSettings[id] !== false;
-
-                // Add change listener
-                checkbox.addEventListener('change', () => {
-                    this.saveSectionSettings();
-                });
-            }
+        // Update preview button - saves settings and refreshes minimap/preview
+        document.getElementById('btn-update-preview')?.addEventListener('click', async () => {
+            this.saveSectionSettings();
+            await this.saveSectionOrder();
+            this.showToast('섹션 설정이 업데이트되었습니다.', 'success');
+            setTimeout(() => {
+                this.refreshMinimap();
+                this.refreshPreview();
+            }, 300);
         });
-
-        // Photo checkbox for about section
-        const photoCheckbox = document.getElementById('section-about-photo');
-        if (photoCheckbox) {
-            photoCheckbox.checked = sectionSettings.aboutPhoto !== false;
-            photoCheckbox.addEventListener('change', () => {
-                this.saveSectionSettings();
-            });
-        }
-
-        // Initialize drag-to-reorder
-        this.initSectionDragReorder();
     }
 
-    renderSectionOrder(sectionOrder) {
+    // Build the section settings list dynamically based on current menu items
+    renderSectionSettingsList() {
         const listContainer = document.getElementById('section-settings-list');
         if (!listContainer) return;
 
-        const items = Array.from(listContainer.querySelectorAll('.section-setting-item[data-section]'));
-        const photoSub = listContainer.querySelector('.section-setting-sub');
+        const sectionSettings = this.data.sectionSettings || {};
+        const sectionOrder = this.data.sectionOrder || [];
 
-        // Sort items based on sectionOrder
-        items.sort((a, b) => {
-            const aSection = a.dataset.section;
-            const bSection = b.dataset.section;
-            const aIndex = sectionOrder.indexOf(aSection);
-            const bIndex = sectionOrder.indexOf(bSection);
-            return aIndex - bIndex;
+        // Fixed sections (non-portfolio)
+        const fixedSections = [
+            { id: 'about', label: '자기소개', hasSub: true },
+            { id: 'aitools', label: 'AI도구' },
+            { id: 'experience', label: '경력' },
+            { id: 'evaluation', label: '내평가' },
+            { id: 'video', label: '영상' },
+        ];
+
+        // Portfolio menu sections (from menu management)
+        const menuSections = (this.data.menuItems || [])
+            .filter(m => m.isPortfolio)
+            .map(m => ({ id: m.id, label: m.label }));
+
+        // Non-portfolio fixed section: contact
+        const contactSection = { id: 'contact', label: '연락처' };
+
+        // All sections combined
+        const allSections = [...fixedSections, ...menuSections, contactSection];
+
+        // Sort by sectionOrder if available
+        allSections.sort((a, b) => {
+            const aIdx = sectionOrder.indexOf(a.id);
+            const bIdx = sectionOrder.indexOf(b.id);
+            const aPos = aIdx >= 0 ? aIdx : 9999;
+            const bPos = bIdx >= 0 ? bIdx : 9999;
+            return aPos - bPos;
         });
 
-        // Clear and re-append in order
-        items.forEach(item => {
-            listContainer.appendChild(item);
-            // Keep photo sub-item after about
-            if (item.dataset.section === 'about' && photoSub) {
-                listContainer.appendChild(photoSub);
+        // Build HTML
+        let html = '';
+        allSections.forEach(section => {
+            // For "experience", check both related+other for backward compat
+            let isChecked;
+            if (section.id === 'experience') {
+                isChecked = sectionSettings.experience !== false && sectionSettings.related !== false;
+            } else {
+                isChecked = sectionSettings[section.id] !== false;
+            }
+
+            html += `
+                <div class="section-setting-item" data-section="${section.id}">
+                    <span class="drag-handle">⋮⋮</span>
+                    <input type="checkbox" id="section-${section.id}" ${isChecked ? 'checked' : ''}>
+                    <label for="section-${section.id}">${section.label}</label>
+                </div>
+            `;
+
+            // Sub-item for about (photo toggle)
+            if (section.hasSub) {
+                const photoChecked = sectionSettings.aboutPhoto !== false;
+                html += `
+                    <div class="section-setting-sub">
+                        <input type="checkbox" id="section-about-photo" ${photoChecked ? 'checked' : ''}>
+                        <label for="section-about-photo">사진표시</label>
+                    </div>
+                `;
             }
         });
+
+        listContainer.innerHTML = html;
+
+        // Bind change listeners
+        listContainer.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+            cb.addEventListener('change', () => {
+                this.saveSectionSettings();
+            });
+        });
+
+        // Initialize drag-to-reorder
+        this.initSectionDragReorder();
     }
 
     initSectionDragReorder() {
@@ -1313,7 +1348,6 @@ class AdminPanel {
                         listContainer.insertBefore(draggedItem, item);
                     } else {
                         const nextItem = item.nextElementSibling;
-                        // Skip the photo sub-item
                         if (nextItem && nextItem.classList.contains('section-setting-sub')) {
                             listContainer.insertBefore(draggedItem, nextItem.nextElementSibling);
                         } else {
@@ -1342,25 +1376,25 @@ class AdminPanel {
         console.log('Saving sectionOrder:', sectionOrder);
         dataManager.set('sectionOrder', sectionOrder);
         await dataManager.saveData();
-
-        // Firestore 저장 완료 후 미리보기 새로고침
-        setTimeout(() => {
-            this.refreshMinimap();
-            this.refreshPreview();
-        }, 300);
     }
 
     saveSectionSettings() {
-        const sectionIds = ['about', 'aitools', 'related', 'other', 'evaluation', 'video', 'portfolio', 'contact'];
-        const sectionSettings = {};
+        const listContainer = document.getElementById('section-settings-list');
+        if (!listContainer) return;
 
-        sectionIds.forEach(id => {
-            const checkbox = document.getElementById(`section-${id}`);
+        const sectionSettings = {};
+        const items = listContainer.querySelectorAll('.section-setting-item[data-section]');
+
+        items.forEach(item => {
+            const id = item.dataset.section;
+            const checkbox = item.querySelector('input[type="checkbox"]');
             if (checkbox) {
                 sectionSettings[id] = checkbox.checked;
-                console.log(`Section ${id}: ${checkbox.checked}`);
-            } else {
-                console.warn(`Checkbox not found: section-${id}`);
+                // For merged "experience", also set related and other
+                if (id === 'experience') {
+                    sectionSettings.related = checkbox.checked;
+                    sectionSettings.other = checkbox.checked;
+                }
             }
         });
 
@@ -1368,21 +1402,16 @@ class AdminPanel {
         const photoCheckbox = document.getElementById('section-about-photo');
         if (photoCheckbox) {
             sectionSettings.aboutPhoto = photoCheckbox.checked;
-            console.log(`Section aboutPhoto: ${photoCheckbox.checked}`);
         }
 
         console.log('Saving sectionSettings:', JSON.stringify(sectionSettings));
         dataManager.set('sectionSettings', sectionSettings);
-        dataManager.saveData().then(() => {
-            // Verify the save
-            const savedData = dataManager.getData();
-            console.log('After save, sectionSettings in dataManager:', JSON.stringify(savedData.sectionSettings));
-        });
+        dataManager.saveData();
+    }
 
-        // Refresh minimap to show changes (with slight delay to ensure save completes)
-        setTimeout(() => {
-            this.refreshMinimap();
-        }, 100);
+    // Called when menu items are added/deleted to refresh the section settings list
+    refreshSectionSettings() {
+        this.renderSectionSettingsList();
     }
 
     // =====================
@@ -2102,6 +2131,7 @@ class AdminPanel {
                     this.data = dataManager.getData();
                     this.renderMenuList();
                     this.renderPortfolioSections();
+                    this.refreshSectionSettings();
                 }
             });
         });
@@ -3303,6 +3333,7 @@ class AdminPanel {
             this.data = dataManager.getData();
             this.renderMenuList();
             this.renderPortfolioSections();
+            this.refreshSectionSettings();
             this.closeModal();
         });
 

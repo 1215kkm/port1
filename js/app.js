@@ -845,25 +845,34 @@ class PageInitializer {
 
         console.log('applySectionVisibility called with settings:', JSON.stringify(sectionSettings));
 
-        // Apply visibility to sections with specific selectors
-        // Note: 'about' controls the entire #about section
-        // Other keys control sub-sections within about
+        // Fixed section map
         const sectionMap = {
             'about': '#about',
             'aitools': '[data-section="aitools"]',
+            'experience': '[data-section="experience"]',
             'related': '[data-section="related"]',
             'other': '[data-section="other"]',
             'evaluation': '[data-section="evaluation"]',
             'video': '[data-section="video"]',
-            'portfolio': '.portfolio-section',
             'contact': '#contact'
         };
 
+        // Add per-menu portfolio sections dynamically
+        const menuItems = this.data.menuItems || [];
+        menuItems.filter(m => m.isPortfolio).forEach(m => {
+            sectionMap[m.id] = `#${m.id}`;
+        });
+
         Object.entries(sectionMap).forEach(([key, selector]) => {
             const elements = document.querySelectorAll(selector);
-            const isHidden = sectionSettings[key] === false;
+            let isHidden = sectionSettings[key] === false;
 
-            console.log(`Section ${key}: found ${elements.length} elements, isHidden=${isHidden}`);
+            // "experience" merged key controls both related and other
+            if (key === 'related' || key === 'other') {
+                if (sectionSettings.experience === false) {
+                    isHidden = true;
+                }
+            }
 
             elements.forEach(el => {
                 if (isHidden) {
@@ -1594,16 +1603,37 @@ class PageInitializer {
         const mainEl = document.querySelector('.main');
         if (!mainEl) return;
 
-        // Get all sections
-        const sections = mainEl.querySelectorAll('section[id]');
+        // Get all top-level sections in main
+        const sections = mainEl.querySelectorAll(':scope > section[id]');
         const sectionMap = {};
 
         sections.forEach(section => {
             sectionMap[section.id] = section;
         });
 
-        // Reorder sections based on sectionOrder
+        // Also handle sub-sections within #about that can be reordered
+        const aboutFullWidth = document.querySelector('.about-full-width');
+        if (aboutFullWidth) {
+            const subSectionMap = {};
+            const subSections = aboutFullWidth.querySelectorAll(':scope > [data-section]');
+            subSections.forEach(el => {
+                subSectionMap[el.dataset.section] = el;
+            });
+
+            // Reorder sub-sections within about based on sectionOrder
+            sectionOrder.forEach(sectionId => {
+                const el = subSectionMap[sectionId];
+                if (el && aboutFullWidth.contains(el)) {
+                    aboutFullWidth.appendChild(el);
+                }
+            });
+        }
+
+        // Reorder top-level sections based on sectionOrder
         sectionOrder.forEach(sectionId => {
+            // Skip sub-sections that live inside #about
+            if (['aitools', 'experience', 'related', 'other', 'evaluation', 'video'].includes(sectionId)) return;
+
             const section = sectionMap[sectionId];
             if (section && mainEl.contains(section)) {
                 mainEl.appendChild(section);

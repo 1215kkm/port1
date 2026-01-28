@@ -243,11 +243,11 @@ const defaultData = {
     sectionSettings: {
         about: true,
         aitools: true,
+        experience: true,
         related: true,
         other: true,
         evaluation: true,
         video: true,
-        portfolio: true,
         contact: true,
         aboutPhoto: true
     },
