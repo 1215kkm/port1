@@ -886,7 +886,7 @@ ul, ol {
 
 .portfolio-single .portfolio-item {
     display: grid;
-    grid-template-columns: 400px 1fr;
+    grid-template-columns: 1fr 1fr;
     gap: var(--space-xl);
     background: var(--color-bg);
     border-radius: var(--radius-lg);
@@ -897,6 +897,32 @@ ul, ol {
 
 .portfolio-single .portfolio-item .portfolio-thumbnail {
     order: -1;
+}
+
+.portfolio-single .portfolio-item .portfolio-thumbnail img {
+    aspect-ratio: auto;
+    object-fit: contain;
+    width: 100%;
+    height: auto;
+}
+
+.portfolio-single .portfolio-item .portfolio-thumbnail .portfolio-slideshow {
+    aspect-ratio: auto;
+    overflow: visible;
+}
+
+.portfolio-single .portfolio-item .portfolio-thumbnail .portfolio-slideshow .portfolio-slide {
+    position: relative;
+    width: 100%;
+    height: auto;
+    object-fit: contain;
+    aspect-ratio: auto;
+}
+
+.portfolio-single .portfolio-item .portfolio-thumbnail .portfolio-slideshow .portfolio-slide:not(.active) {
+    position: absolute;
+    top: 0;
+    left: 0;
 }
 
 .portfolio-single .portfolio-item .portfolio-content {

@@ -65,6 +65,7 @@
         }
 
         .btn-preset {
+            position: relative;
             padding: 6px 10px;
             border: 1px solid var(--color-border);
             border-radius: var(--radius-md);
@@ -86,6 +87,19 @@
             border-color: var(--color-primary);
             background: rgba(52, 152, 219, 0.2);
             color: var(--color-primary);
+        }
+
+        /* Active preset indicator - red dot */
+        .btn-preset.active-preset::after {
+            content: '';
+            position: absolute;
+            top: -3px;
+            right: -3px;
+            width: 8px;
+            height: 8px;
+            background: #e74c3c;
+            border-radius: 50%;
+            box-shadow: 0 0 3px rgba(231, 76, 60, 0.6);
         }
 
         /* Theme Modal */

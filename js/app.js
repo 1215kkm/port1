@@ -861,8 +861,9 @@ class PageInitializer {
         this.renderEvaluation();
         this.renderVideo();
         this.renderContact();
-        this.renderMenu();
+        // 동적 섹션을 먼저 생성한 후 메뉴/순서 적용
         this.createDynamicSections();
+        this.renderMenu();
         this.initPortfolios();
         this.applySectionVisibility();
         this.applySectionTitles();
@@ -1051,8 +1052,8 @@ class PageInitializer {
         const menuItems = this.data.menuItems || [];
 
         menuItems.forEach(menu => {
-            // 섹션이 이미 존재하는지 확인
-            const existingSection = document.getElementById(menu.id);
+            // 섹션이 이미 존재하는지 확인 (getElementById 사용 - CSS 셀렉터 이슈 방지)
+            let existingSection = document.getElementById(menu.id);
 
             if (!existingSection && menu.visible !== false) {
                 // 포트폴리오 섹션인 경우 새 섹션 생성
@@ -1077,7 +1078,19 @@ class PageInitializer {
                         mainEl.appendChild(newSection);
                     }
 
+                    existingSection = newSection;
                     console.log(`Created dynamic section: ${menu.id}`);
+                }
+            }
+
+            // 메뉴에 있는 포트폴리오 섹션은 확실히 보이도록 설정
+            if (existingSection && menu.isPortfolio && menu.visible !== false) {
+                existingSection.style.display = '';
+                existingSection.removeAttribute('data-hidden');
+                // 섹션 제목도 최신 label로 업데이트
+                const titleEl = existingSection.querySelector('.section-title');
+                if (titleEl && !this.data.siteSettings?.sectionTitles?.[menu.id.replace(/-/g, '')]) {
+                    titleEl.textContent = menu.label;
                 }
             }
 
@@ -1121,6 +1134,9 @@ class PageInitializer {
             const menuItem = menuItems.find(m => m.id === section.id);
             if (!menuItem) {
                 section.style.display = 'none';
+            } else if (menuItem.visible !== false) {
+                // 메뉴에 있는 섹션은 확실히 보이도록 (이전에 숨겨졌을 수 있으므로)
+                section.style.display = '';
             }
         });
 
@@ -1145,11 +1161,15 @@ class PageInitializer {
         // Initialize section portfolios based on menu items with isPortfolio flag
         const portfolioMenus = this.data.menuItems.filter(m => m.isPortfolio);
         portfolioMenus.forEach(menu => {
-            const container = document.querySelector(`#${menu.id} .portfolio-container`);
+            // getElementById 사용 - CSS 셀렉터 특수문자 이슈 방지
+            const section = document.getElementById(menu.id);
+            const container = section?.querySelector('.portfolio-container');
             if (container) {
                 const items = this.data.portfolioSolo.items.filter(i => i.section === menu.id);
                 const displayMode = this.data.sectionDisplayModes?.[menu.id] || 'grid';
                 new PortfolioRenderer(container, items, displayMode).render();
+            } else {
+                console.warn(`Portfolio container not found for section: ${menu.id}`);
             }
         });
     }
@@ -1904,15 +1924,17 @@ window.showPortfolioDetail = function(itemId) {
         }
         .portfolio-detail-main-image {
             flex: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            overflow-y: auto;
+            overflow-x: hidden;
             padding: 20px;
             min-width: 0;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
         }
         .portfolio-detail-main-image img {
-            max-width: 100%;
-            max-height: 100%;
+            width: 100%;
+            height: auto;
             object-fit: contain;
             border-radius: 8px;
         }

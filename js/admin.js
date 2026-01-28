@@ -1103,11 +1103,14 @@ class AdminPanel {
     }
 
     updatePresetButtonStates() {
+        const activePreset = localStorage.getItem('portfolio_active_preset') || '';
         document.querySelectorAll('.btn-preset').forEach(btn => {
             const presetNum = btn.dataset.preset;
             const key = `portfolio_preset_${presetNum}`;
             const hasData = localStorage.getItem(key) !== null;
             btn.classList.toggle('has-data', hasData);
+            // 현재 활성 프리셋 표시 (빨간 동그라미)
+            btn.classList.toggle('active-preset', presetNum === activePreset);
         });
     }
 
@@ -1137,8 +1140,17 @@ class AdminPanel {
         loadBtn.parentNode.replaceChild(newLoad, loadBtn);
         deleteBtn.parentNode.replaceChild(newDelete, deleteBtn);
 
-        newSave.addEventListener('click', () => {
+        newSave.addEventListener('click', async () => {
+            // 저장 전에 현재 폼 데이터를 모두 수집하여 dataManager에 반영
+            try {
+                this.collectAllFormData();
+                await dataManager.saveData();
+            } catch (e) {
+                console.warn('Pre-save before preset failed:', e);
+            }
+
             localStorage.setItem(key, JSON.stringify(dataManager.getData()));
+            localStorage.setItem('portfolio_active_preset', presetNum);
             this.showToast(`프리셋 ${presetNum}에 저장되었습니다.`, 'success');
             this.updatePresetButtonStates();
             overlay.classList.remove('active');
@@ -1152,6 +1164,7 @@ class AdminPanel {
                 this.showToast('불러오는 중...', 'info');
                 const success = await dataManager.importData(stored);
                 if (success) {
+                    localStorage.setItem('portfolio_active_preset', presetNum);
                     this.showToast(`프리셋 ${presetNum}을 불러왔습니다. 새로고침합니다.`, 'success');
                     setTimeout(() => location.reload(), 500);
                 } else {
@@ -1165,6 +1178,10 @@ class AdminPanel {
             if (!hasData) return;
             if (!confirm(`프리셋 ${presetNum}의 데이터를 삭제하시겠습니까?`)) return;
             localStorage.removeItem(key);
+            // 삭제된 프리셋이 활성 프리셋이면 표시 제거
+            if (localStorage.getItem('portfolio_active_preset') === presetNum) {
+                localStorage.removeItem('portfolio_active_preset');
+            }
             this.showToast(`프리셋 ${presetNum}이 삭제되었습니다.`, 'success');
             this.updatePresetButtonStates();
             overlay.classList.remove('active');
@@ -2036,20 +2053,28 @@ class AdminPanel {
     // =====================
     // Save All
     // =====================
+    // 모든 폼 데이터를 dataManager에 수집 (프리셋 저장 등에서도 재사용)
+    collectAllFormData() {
+        this.saveSiteSettings();
+        this.saveProfile();
+        this.saveEvaluation();
+        this.saveVideo();
+        this.saveContact();
+        this.saveEmojiIcons();
+        this.saveCSSVariables();
+        this.saveAllThemes();
+        this.savePageSettings();
+        this.saveBackgroundSettings(true); // silent mode
+        this.saveSectionSettings(); // 섹션 표시/숨김 체크박스 상태
+    }
+
     async saveAll() {
         // Show saving indicator
         this.showToast('저장 중...', 'info');
 
         try {
             // Collect all form data and save
-            this.saveSiteSettings();
-            this.saveProfile();
-            this.saveEvaluation();
-            this.saveVideo();
-            this.saveContact();
-            this.saveEmojiIcons();
-            this.saveCSSVariables();
-            this.saveAllThemes();
+            this.collectAllFormData();
 
             // Save to Firebase/localStorage
             await dataManager.saveData();
@@ -3508,7 +3533,7 @@ class AdminPanel {
         });
     }
 
-    saveBackgroundSettings() {
+    saveBackgroundSettings(silent = false) {
         const bgSettings = {
             body: {
                 image: document.getElementById('bg-body-image')?.value || '',
@@ -3534,7 +3559,9 @@ class AdminPanel {
         // Refresh minimap to show changes
         this.refreshMinimap();
 
-        alert('배경 설정이 저장되었습니다.');
+        if (!silent) {
+            alert('배경 설정이 저장되었습니다.');
+        }
     }
 
     renderFloatingThemePanel() {
