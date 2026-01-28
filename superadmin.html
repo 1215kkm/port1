@@ -585,7 +585,7 @@
                     members.push({
                         id: userDoc.id,
                         email: userData.email || '-',
-                        name: portfolioData?.profile?.name || userData.displayName || '이름 없음',
+                        name: userData.displayName || portfolioData?.profile?.name || '이름 없음',
                         createdAt: userData.createdAt || null,
                         lastLogin: userData.lastLogin || null,
                         updatedAt: portfolioData?.updatedAt || null,
