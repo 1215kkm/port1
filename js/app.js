@@ -124,7 +124,86 @@ class RadarChart {
         this.centerY = canvas.height / 2;
         this.radius = Math.min(this.centerX, this.centerY) - 50;
 
+        // Animation state
+        this.animatedValues = data.map(() => 0);
+        this.isAnimating = false;
+        this.hasAnimated = false;
+
+        // Setup intersection observer for scroll animation
+        this.setupScrollObserver();
+
+        // Initial draw with zero values
         this.draw();
+    }
+
+    setupScrollObserver() {
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting && !this.hasAnimated) {
+                    this.animateIn();
+                }
+            });
+        }, { threshold: 0.3 });
+
+        observer.observe(this.canvas);
+    }
+
+    animateIn() {
+        if (this.isAnimating) return;
+        this.isAnimating = true;
+        this.hasAnimated = true;
+
+        const targetValues = this.data.map(d => d.value);
+        const startValues = this.data.map(() => Math.random() * 100);
+
+        // Phase 1: Random shuffle animation (500ms)
+        const shuffleDuration = 500;
+        const shuffleStartTime = performance.now();
+
+        const shuffleAnimation = (currentTime) => {
+            const elapsed = currentTime - shuffleStartTime;
+            const progress = Math.min(elapsed / shuffleDuration, 1);
+
+            // Random values during shuffle phase
+            this.animatedValues = this.data.map(() => Math.random() * 100);
+            this.draw();
+
+            if (progress < 1) {
+                requestAnimationFrame(shuffleAnimation);
+            } else {
+                // Phase 2: Ease to actual values (800ms)
+                this.easeToValues(startValues, targetValues);
+            }
+        };
+
+        requestAnimationFrame(shuffleAnimation);
+    }
+
+    easeToValues(startValues, targetValues) {
+        const duration = 800;
+        const startTime = performance.now();
+
+        const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3);
+
+        const animate = (currentTime) => {
+            const elapsed = currentTime - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            const easedProgress = easeOutCubic(progress);
+
+            this.animatedValues = startValues.map((start, i) => {
+                return start + (targetValues[i] - start) * easedProgress;
+            });
+
+            this.draw();
+
+            if (progress < 1) {
+                requestAnimationFrame(animate);
+            } else {
+                this.isAnimating = false;
+            }
+        };
+
+        requestAnimationFrame(animate);
     }
 
     draw() {
@@ -193,7 +272,8 @@ class RadarChart {
         for (let i = 0; i <= sides; i++) {
             const index = i % sides;
             const angle = (angleStep * index) - (Math.PI / 2);
-            const value = this.data[index].value / 100;
+            // Use animated values if available, otherwise use actual values
+            const value = (this.animatedValues[index] ?? this.data[index].value) / 100;
             const pointRadius = this.radius * value;
             const x = this.centerX + Math.cos(angle) * pointRadius;
             const y = this.centerY + Math.sin(angle) * pointRadius;
@@ -212,7 +292,8 @@ class RadarChart {
         // Draw data points
         for (let i = 0; i < sides; i++) {
             const angle = (angleStep * i) - (Math.PI / 2);
-            const value = this.data[i].value / 100;
+            // Use animated values if available, otherwise use actual values
+            const value = (this.animatedValues[i] ?? this.data[i].value) / 100;
             const pointRadius = this.radius * value;
             const x = this.centerX + Math.cos(angle) * pointRadius;
             const y = this.centerY + Math.sin(angle) * pointRadius;
@@ -259,6 +340,17 @@ class RadarChart {
 
     update(newData) {
         this.data = newData;
+        // If already animated, update animated values to match new data
+        if (this.hasAnimated) {
+            this.animatedValues = newData.map(d => d.value);
+        }
+        this.draw();
+    }
+
+    // Allow re-triggering animation (e.g., when data changes significantly)
+    resetAnimation() {
+        this.hasAnimated = false;
+        this.animatedValues = this.data.map(() => 0);
         this.draw();
     }
 }
