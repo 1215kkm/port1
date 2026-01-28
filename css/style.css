@@ -278,7 +278,7 @@ ul, ol {
     align-items: center;
     justify-content: center;
     gap: var(--space-sm);
-    padding: var(--space-sm) var(--space-lg);
+    padding: var(--space-sm) var(--space-md);
     font-size: var(--font-sm);
     font-weight: 500;
     border-radius: var(--radius-md);
