@@ -318,7 +318,11 @@
                 // Create custom content container
                 const customContent = document.createElement('div');
                 customContent.className = 'intro-custom-content';
-                customContent.style.cssText = 'position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px;';
+                if (introCustom.showDefaultCards === false) {
+                    customContent.style.cssText = 'position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px;';
+                } else {
+                    customContent.style.cssText = 'display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 40px 0; width: 100%;';
+                }
 
                 // Render texts
                 introCustom.texts?.forEach(text => {
@@ -372,10 +376,16 @@
                     customContent.appendChild(buttonsContainer);
                 }
 
-                // Hide default content and show custom
+                // Show/hide default content based on settings
                 introPage.style.position = 'relative';
-                introPage.querySelector('.intro-header')?.style && (introPage.querySelector('.intro-header').style.display = 'none');
-                introPage.querySelector('.intro-grid')?.style && (introPage.querySelector('.intro-grid').style.display = 'none');
+                if (introCustom.showDefaultCards === false) {
+                    // Hide default cards
+                    introPage.querySelector('.intro-header')?.style && (introPage.querySelector('.intro-header').style.display = 'none');
+                    introPage.querySelector('.intro-grid')?.style && (introPage.querySelector('.intro-grid').style.display = 'none');
+                } else {
+                    // Show default cards alongside custom content
+                    introPage.classList.add('ready');
+                }
                 introPage.appendChild(customContent);
             }
 

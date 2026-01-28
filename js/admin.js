@@ -831,6 +831,12 @@ class AdminPanel {
             this.updateIntroPanelBgPreview(introCustom.backgroundImage);
         }
 
+        // Show default cards toggle
+        const showDefaultCardsCheckbox = document.getElementById('intro-panel-show-default-cards');
+        if (showDefaultCardsCheckbox) {
+            showDefaultCardsCheckbox.checked = introCustom.showDefaultCards !== false;
+        }
+
         // Texts
         this.renderIntroPanelTexts(introCustom.texts || []);
 
@@ -1023,6 +1029,7 @@ class AdminPanel {
         const introCustom = {
             enabled: true,
             backgroundImage: document.getElementById('intro-panel-bg-image')?.value || '',
+            showDefaultCards: document.getElementById('intro-panel-show-default-cards')?.checked !== false,
             texts: [],
             buttons: []
         };

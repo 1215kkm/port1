@@ -271,6 +271,7 @@ const defaultData = {
     introCustom: {
         enabled: false, // true면 커스텀 인트로 사용
         backgroundImage: '',
+        showDefaultCards: true, // 기본 카드(혼자제작/AI활용/팀플) 표시 여부
         texts: [
             // 예시: { id: 1, content: '환영합니다', fontSize: '3rem', color: '#ffffff', align: 'center', fontWeight: '700', top: '40%', left: '50%' }
         ],
