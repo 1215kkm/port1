@@ -766,7 +766,8 @@ class AdminPanel {
         const titleEl = document.getElementById('admin-title');
         if (titleEl) {
             const userName = this.data.profile?.name || '사용자';
-            titleEl.textContent = `${userName}님의 포트폴리오 설정`;
+            const isMobile = window.innerWidth <= 768;
+            titleEl.textContent = isMobile ? '설정' : `${userName}님의 포트폴리오 설정`;
         }
     }
 
@@ -774,19 +775,130 @@ class AdminPanel {
     // Theme Selector (테마1, 테마2, 테마3)
     // =====================
     initThemeSelector() {
-        document.querySelectorAll('.theme-select-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const themeNum = parseInt(btn.dataset.themeNum);
+        // Theme selection is now handled via the theme modal in initEventListeners
+    }
 
-                if (themeNum === 1) {
-                    // 현재 테마1 사용 중
-                    document.querySelectorAll('.theme-select-btn').forEach(b => b.classList.remove('active'));
-                    btn.classList.add('active');
-                } else {
-                    // 테마2, 테마3은 준비 중
-                    alert('준비중입니다.');
-                }
+    // =====================
+    // Preset Save/Load
+    // =====================
+    initPresetButtons() {
+        this.updatePresetButtonStates();
+
+        document.querySelectorAll('.btn-preset').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const presetNum = btn.dataset.preset;
+                this.openPresetModal(presetNum);
             });
+        });
+
+        document.getElementById('preset-modal-close')?.addEventListener('click', () => {
+            document.getElementById('preset-modal-overlay')?.classList.remove('active');
+        });
+        document.getElementById('preset-modal-overlay')?.addEventListener('click', (e) => {
+            if (e.target === e.currentTarget) e.currentTarget.classList.remove('active');
+        });
+    }
+
+    updatePresetButtonStates() {
+        document.querySelectorAll('.btn-preset').forEach(btn => {
+            const presetNum = btn.dataset.preset;
+            const key = `portfolio_preset_${presetNum}`;
+            const hasData = localStorage.getItem(key) !== null;
+            btn.classList.toggle('has-data', hasData);
+        });
+    }
+
+    openPresetModal(presetNum) {
+        const overlay = document.getElementById('preset-modal-overlay');
+        const title = document.getElementById('preset-modal-title');
+        const desc = document.getElementById('preset-modal-desc');
+        const saveBtn = document.getElementById('preset-save-btn');
+        const loadBtn = document.getElementById('preset-load-btn');
+        const deleteBtn = document.getElementById('preset-delete-btn');
+
+        const key = `portfolio_preset_${presetNum}`;
+        const hasData = localStorage.getItem(key) !== null;
+
+        title.textContent = `프리셋 ${presetNum}`;
+        desc.textContent = hasData ? '저장된 데이터가 있습니다.' : '저장된 데이터가 없습니다.';
+        loadBtn.disabled = !hasData;
+        loadBtn.style.opacity = hasData ? '1' : '0.5';
+        deleteBtn.disabled = !hasData;
+        deleteBtn.style.opacity = hasData ? '1' : '0.5';
+
+        // Remove old listeners by cloning
+        const newSave = saveBtn.cloneNode(true);
+        const newLoad = loadBtn.cloneNode(true);
+        const newDelete = deleteBtn.cloneNode(true);
+        saveBtn.parentNode.replaceChild(newSave, saveBtn);
+        loadBtn.parentNode.replaceChild(newLoad, loadBtn);
+        deleteBtn.parentNode.replaceChild(newDelete, deleteBtn);
+
+        newSave.addEventListener('click', () => {
+            localStorage.setItem(key, JSON.stringify(dataManager.getData()));
+            this.showToast(`프리셋 ${presetNum}에 저장되었습니다.`, 'success');
+            this.updatePresetButtonStates();
+            overlay.classList.remove('active');
+        });
+
+        newLoad.addEventListener('click', () => {
+            if (!hasData) return;
+            if (!confirm(`프리셋 ${presetNum}의 데이터를 불러오시겠습니까? 현재 데이터가 덮어쓰기됩니다.`)) return;
+            const stored = localStorage.getItem(key);
+            if (stored) {
+                const success = dataManager.importData(stored);
+                if (success) {
+                    this.showToast(`프리셋 ${presetNum}을 불러왔습니다. 새로고침합니다.`, 'success');
+                    setTimeout(() => location.reload(), 500);
+                } else {
+                    this.showToast('불러오기에 실패했습니다.', 'error');
+                }
+            }
+            overlay.classList.remove('active');
+        });
+
+        newDelete.addEventListener('click', () => {
+            if (!hasData) return;
+            if (!confirm(`프리셋 ${presetNum}의 데이터를 삭제하시겠습니까?`)) return;
+            localStorage.removeItem(key);
+            this.showToast(`프리셋 ${presetNum}이 삭제되었습니다.`, 'success');
+            this.updatePresetButtonStates();
+            overlay.classList.remove('active');
+        });
+
+        overlay.classList.add('active');
+    }
+
+    // =====================
+    // Mobile Sidebar Toggle
+    // =====================
+    initSidebarToggle() {
+        const toggleBtn = document.getElementById('btn-sidebar-toggle');
+        const sidebar = document.getElementById('admin-sidebar');
+        const backdrop = document.getElementById('sidebar-backdrop');
+
+        if (!toggleBtn || !sidebar) return;
+
+        const closeSidebar = () => {
+            sidebar.classList.remove('open');
+            backdrop?.classList.remove('active');
+        };
+
+        toggleBtn.addEventListener('click', () => {
+            const isOpen = sidebar.classList.contains('open');
+            if (isOpen) {
+                closeSidebar();
+            } else {
+                sidebar.classList.add('open');
+                backdrop?.classList.add('active');
+            }
+        });
+
+        backdrop?.addEventListener('click', closeSidebar);
+
+        // Update title on resize
+        window.addEventListener('resize', () => {
+            this.setUserNameInHeader();
         });
     }
 
@@ -1383,17 +1495,41 @@ class AdminPanel {
         // Header buttons
         document.getElementById('btn-save-all')?.addEventListener('click', () => this.saveAll());
         document.getElementById('btn-preview')?.addEventListener('click', () => this.togglePreview());
-        document.getElementById('btn-export')?.addEventListener('click', () => dataManager.exportData());
-        document.getElementById('btn-import')?.addEventListener('click', () => {
-            document.getElementById('import-file')?.click();
-        });
-        document.getElementById('import-file')?.addEventListener('change', (e) => this.importData(e));
         document.getElementById('btn-reset')?.addEventListener('click', () => {
             if (confirm('모든 데이터를 초기화하시겠습니까?')) {
                 dataManager.reset();
                 location.reload();
             }
         });
+
+        // Theme modal
+        document.getElementById('btn-theme-open')?.addEventListener('click', () => {
+            document.getElementById('theme-modal-overlay')?.classList.add('active');
+        });
+        document.getElementById('theme-modal-close')?.addEventListener('click', () => {
+            document.getElementById('theme-modal-overlay')?.classList.remove('active');
+        });
+        document.getElementById('theme-modal-overlay')?.addEventListener('click', (e) => {
+            if (e.target === e.currentTarget) e.currentTarget.classList.remove('active');
+        });
+        document.querySelectorAll('.theme-modal-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const themeNum = parseInt(btn.dataset.themeNum);
+                if (themeNum === 1) {
+                    document.querySelectorAll('.theme-modal-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    document.getElementById('theme-modal-overlay')?.classList.remove('active');
+                } else {
+                    alert('준비중입니다.');
+                }
+            });
+        });
+
+        // Preset buttons
+        this.initPresetButtons();
+
+        // Mobile sidebar toggle
+        this.initSidebarToggle();
 
         // Add buttons
         document.getElementById('btn-add-menu')?.addEventListener('click', () => this.showMenuModal());
