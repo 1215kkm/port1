@@ -2130,6 +2130,18 @@ class AdminPanel {
                 }
             });
         });
+
+        // Click menu name to scroll to that section in admin
+        container.querySelectorAll('.section-link').forEach(link => {
+            link.style.cursor = 'pointer';
+            link.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const sectionKey = link.dataset.target;
+                if (sectionKey) {
+                    this.scrollToAdminSection(sectionKey);
+                }
+            });
+        });
     }
 
     renderSiteSettings() {
