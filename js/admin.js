@@ -2477,6 +2477,11 @@ class AdminPanel {
                                 return `
                                 <div class="item-card" data-item-id="${item.id}">
                                     <span class="drag-handle" style="cursor: grab; margin-right: 8px; color: #888;">⋮⋮</span>
+                                    <div class="item-card-thumb" style="width: 48px; height: 48px; min-width: 48px; border-radius: 6px; overflow: hidden; background: var(--color-bg-secondary); border: 1px solid var(--color-border); margin-right: 10px; display: flex; align-items: center; justify-content: center;">
+                                        ${item.thumbnails?.length > 0
+                                            ? createImageElement(item.thumbnails[0], item.title, 'width: 100%; height: 100%; object-fit: cover;')
+                                            : '<span style="color: #bbb; font-size: 18px;">🖼</span>'}
+                                    </div>
                                     <div class="item-card-content">
                                         <div class="item-card-title">${item.title}</div>
                                         <div class="item-card-desc">${contributionText}</div>
@@ -3623,7 +3628,7 @@ class AdminPanel {
             const thumbnails = document.getElementById('modal-portfolio-thumbnails').value.split('|||').map(s => s.trim()).filter(s => s);
             const linkUrl = document.getElementById('modal-portfolio-link').value.trim();
             const siteUrl = document.getElementById('modal-portfolio-siteurl').value.trim();
-            const links = linkUrl ? [{ label: '상세보기', url: linkUrl }] : [];
+            const links = linkUrl ? [{ label: '링크 바로가기', url: linkUrl }] : [];
 
             // Collect contributions
             const contributionsContainer = document.getElementById('contributions-container');

@@ -628,7 +628,12 @@ class PortfolioRenderer {
             ? thumbnails.map(t => `<img src="${addCacheBuster(t)}" alt="${item.title}">`).join('')
             : '<div class="profile-image-placeholder">No Image</div>';
 
-        const linksHTML = (item.links || []).map(link =>
+        // Detail button (links to detail page if available)
+        const hasDetailContent = item.detailImages?.length > 0 || item.detailDescriptions?.length > 0;
+        const filteredLinks = hasDetailContent
+            ? (item.links || []).filter(link => link.label !== '상세보기')
+            : (item.links || []);
+        const linksHTML = filteredLinks.map(link =>
             `<a href="${link.url}" target="_blank" class="btn btn-primary">${link.label}</a>`
         ).join('');
 
@@ -649,8 +654,6 @@ class PortfolioRenderer {
         // Site visit button
         const siteButtonHTML = item.siteUrl ? `<a href="${item.siteUrl}" target="_blank" class="btn btn-secondary">사이트 방문</a>` : '';
 
-        // Detail button (links to detail page if available)
-        const hasDetailContent = item.detailImages?.length > 0 || item.detailDescriptions?.length > 0;
         const hasThumbnailOnly = !hasDetailContent && item.thumbnail && !item.siteUrl && (!item.links || item.links.length === 0);
         let detailButtonHTML = '';
         if (hasDetailContent) {
@@ -1573,7 +1576,7 @@ class PageInitializer {
 
         const visibleMenus = sortedMenus.filter(m => m.visible);
         menuContainer.innerHTML = visibleMenus.map(item =>
-            `<a href="#${item.id}" class="nav-link">${item.label}</a>`
+            `<li><a href="#${item.id}" class="nav-link">${item.label}</a></li>`
         ).join('');
 
         // 동적 생성된 네비 링크에 스크롤 이벤트 바인딩
