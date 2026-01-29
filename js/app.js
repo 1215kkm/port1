@@ -346,6 +346,9 @@ class ThemeToggle {
     init() {
         if (!this.themeToggle) return;
 
+        // Render theme menu dynamically based on enabled themes
+        this.renderThemeMenu();
+
         const btn = this.themeToggle.querySelector('.theme-toggle-btn');
         if (btn) {
             btn.addEventListener('click', () => {
@@ -360,8 +363,58 @@ class ThemeToggle {
             }
         });
 
-        // Theme option clicks
-        this.themeToggle.querySelectorAll('.theme-option').forEach(option => {
+        this.bindThemeOptions();
+    }
+
+    renderThemeMenu() {
+        const themeMenu = this.themeToggle.querySelector('.theme-menu');
+        if (!themeMenu) return;
+
+        const data = dataManager.getData();
+        const themeModes = data.theme?.modes || [];
+        const currentTheme = data.theme?.current || 'light';
+
+        // Filter only enabled themes for portfolio
+        const enabledThemes = themeModes.filter(mode => mode.enabledOnPortfolio !== false);
+
+        // If no themes are enabled, hide the entire toggle
+        if (enabledThemes.length === 0) {
+            this.themeToggle.style.display = 'none';
+            return;
+        }
+
+        // If only one theme is enabled, hide the toggle (no need to switch)
+        if (enabledThemes.length === 1) {
+            this.themeToggle.style.display = 'none';
+            // Apply the only enabled theme
+            if (currentTheme !== enabledThemes[0].id) {
+                dataManager.setTheme(enabledThemes[0].id);
+            }
+            return;
+        }
+
+        this.themeToggle.style.display = '';
+
+        // Generate theme menu HTML
+        themeMenu.innerHTML = enabledThemes.map(mode => {
+            const isActive = mode.id === currentTheme;
+            const bgColor = mode.colors?.background || '#ffffff';
+            const borderStyle = mode.id === 'light' ? 'border-color: #dee2e6;' : '';
+
+            return `
+                <button class="theme-option ${isActive ? 'active' : ''}" data-theme="${mode.id}">
+                    <span class="theme-color" style="background: ${bgColor}; ${borderStyle}"></span>
+                    ${mode.name}
+                </button>
+            `;
+        }).join('');
+
+        // Re-bind click events
+        this.bindThemeOptions();
+    }
+
+    bindThemeOptions() {
+        this.themeToggle?.querySelectorAll('.theme-option').forEach(option => {
             option.addEventListener('click', () => {
                 const themeId = option.dataset.theme;
                 this.setTheme(themeId);

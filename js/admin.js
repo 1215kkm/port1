@@ -3394,6 +3394,13 @@ class AdminPanel {
                         <label class="form-label">테마 이름</label>
                         <input type="text" class="form-input" value="${mode.name}" data-theme-id="${mode.id}" data-field="name">
                     </div>
+                    <div class="form-group" style="margin-bottom: var(--space-lg);">
+                        <label class="form-label" style="display: flex; align-items: center; gap: var(--space-sm); cursor: pointer;">
+                            <input type="checkbox" data-theme-id="${mode.id}" data-field="enabledOnPortfolio" ${mode.enabledOnPortfolio !== false ? 'checked' : ''} style="width: 18px; height: 18px; cursor: pointer;">
+                            <span>포트폴리오 페이지에서 사용</span>
+                        </label>
+                        <p style="font-size: 12px; color: var(--color-text-secondary); margin-top: 4px;">체크 해제시 포트폴리오 페이지의 테마 선택에서 숨겨집니다.</p>
+                    </div>
                     <div class="theme-color-grid">
                         <div class="theme-color-item">
                             <label>메인 컬러</label>
@@ -3483,6 +3490,17 @@ class AdminPanel {
                 if (/^#[0-9A-Fa-f]{6}$/.test(textInput.value)) {
                     colorInput.value = textInput.value;
                 }
+            });
+        });
+
+        // Portfolio enable/disable checkbox
+        container.querySelectorAll('input[data-field="enabledOnPortfolio"]').forEach(checkbox => {
+            checkbox.addEventListener('change', () => {
+                const themeId = checkbox.dataset.themeId;
+                const enabled = checkbox.checked;
+                dataManager.updateThemeMode(themeId, { enabledOnPortfolio: enabled });
+                this.data = dataManager.getData();
+                this.refreshPreview();
             });
         });
 

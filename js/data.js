@@ -539,6 +539,7 @@ Slack과 Notion을 통해 디자인 피드백을 체계적으로 관리했습니
             {
                 id: "light",
                 name: "라이트 모드",
+                enabledOnPortfolio: true, // 포트폴리오 페이지에서 사용 여부
                 colors: {
                     primary: "#3498db",
                     secondary: "#2ecc71",
@@ -557,6 +558,7 @@ Slack과 Notion을 통해 디자인 피드백을 체계적으로 관리했습니
             {
                 id: "dark",
                 name: "다크 모드",
+                enabledOnPortfolio: true, // 포트폴리오 페이지에서 사용 여부
                 colors: {
                     primary: "#5dade2",
                     secondary: "#58d68d",
