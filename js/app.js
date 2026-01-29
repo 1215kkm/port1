@@ -719,8 +719,15 @@ class PortfolioRenderer {
             </div>
         `).join('');
 
-        // Convert line breaks to <br> for review text
-        const reviewHTML = item.review ? item.review.replace(/\n/g, '<br>') : '';
+        // 상세설명의 첫번째 항목 설명을 표시 (기존 review 데이터와 호환)
+        let descriptionText = '';
+        if (item.detailDescriptions && item.detailDescriptions.length > 0 && item.detailDescriptions[0].description) {
+            descriptionText = item.detailDescriptions[0].description;
+        } else if (item.review) {
+            // 기존 review 데이터 호환성 유지
+            descriptionText = item.review;
+        }
+        const reviewHTML = descriptionText ? descriptionText.replace(/\n/g, '<br>') : '';
 
         // Site visit button
         const siteButtonHTML = item.siteUrl ? `<a href="${item.siteUrl}" target="_blank" class="btn btn-secondary">사이트보기</a>` : '';
@@ -1462,9 +1469,13 @@ class PageInitializer {
         const kakaoEl = document.querySelector('[data-content="kakao"]');
         if (kakaoEl) kakaoEl.textContent = `(카톡:${profile.kakaoId})`;
 
-        // Job roles
+        // Job roles (간격으로 구분해서 표시)
         const rolesEl = document.querySelector('[data-content="job-roles"]');
-        if (rolesEl) rolesEl.textContent = profile.jobRoles.join(', ');
+        if (rolesEl) {
+            rolesEl.innerHTML = profile.jobRoles.map(r =>
+                `<span class="job-role-tag">${r}</span>`
+            ).join('');
+        }
 
         // Skills
         const skillsEl = document.querySelector('[data-content="skills"]');
@@ -1472,6 +1483,21 @@ class PageInitializer {
             skillsEl.innerHTML = profile.skills.map(s =>
                 `<span class="skill-tag">${s}</span>`
             ).join('');
+        }
+
+        // Certificates
+        const certificatesEl = document.querySelector('[data-content="certificates"]');
+        const certificatesSection = document.querySelector('[data-section="certificates"]');
+        const certificates = profile.certificates || [];
+        if (certificatesEl) {
+            if (certificates.length > 0) {
+                certificatesEl.innerHTML = certificates.map(c =>
+                    `<span class="certificate-tag">${c.name} <span class="certificate-date">(${c.date || '-'})</span></span>`
+                ).join('');
+                if (certificatesSection) certificatesSection.style.display = '';
+            } else {
+                if (certificatesSection) certificatesSection.style.display = 'none';
+            }
         }
 
         // Education

@@ -1906,6 +1906,7 @@ class AdminPanel {
         // Add buttons
         document.getElementById('btn-add-menu')?.addEventListener('click', () => this.showMenuModal());
         document.getElementById('btn-add-ai-tool')?.addEventListener('click', () => this.showAIToolModal());
+        document.getElementById('btn-add-certificate')?.addEventListener('click', () => this.showCertificateModal());
         document.getElementById('btn-add-related')?.addEventListener('click', () => this.showExperienceModal('related'));
         document.getElementById('btn-add-other')?.addEventListener('click', () => this.showExperienceModal('other'));
         document.getElementById('btn-add-portfolio-ai')?.addEventListener('click', () => this.showProjectModal('ai'));
@@ -2672,6 +2673,95 @@ class AdminPanel {
             const preview = document.getElementById('profile-image-preview');
             preview.innerHTML = createImageElement(profile.profileImage, '프로필', 'max-width: 100%; max-height: 100%; object-fit: contain;');
         }
+
+        // Certificates rendering
+        this.renderCertificates();
+    }
+
+    renderCertificates() {
+        const container = document.getElementById('certificates-list');
+        if (!container) return;
+
+        const certificates = this.data.profile.certificates || [];
+
+        container.innerHTML = certificates.map((cert, index) => `
+            <div class="item-card" data-index="${index}">
+                <div class="item-card-content">
+                    <div class="item-card-title">${cert.name || '자격증명'}</div>
+                    <div class="item-card-desc">취득일: ${cert.date || '-'}</div>
+                </div>
+                <div class="item-card-actions">
+                    <button class="btn-icon btn-icon-edit" data-action="edit-certificate" data-index="${index}">✏️</button>
+                    <button class="btn-icon btn-icon-delete" data-action="delete-certificate" data-index="${index}">🗑️</button>
+                </div>
+            </div>
+        `).join('');
+
+        // Bind edit certificate
+        container.querySelectorAll('[data-action="edit-certificate"]').forEach(btn => {
+            btn.addEventListener('click', () => this.showCertificateModal(parseInt(btn.dataset.index)));
+        });
+
+        // Bind delete certificate
+        container.querySelectorAll('[data-action="delete-certificate"]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                if (confirm('이 자격증을 삭제하시겠습니까?')) {
+                    const index = parseInt(btn.dataset.index);
+                    this.data.profile.certificates = this.data.profile.certificates || [];
+                    this.data.profile.certificates.splice(index, 1);
+                    dataManager.updateProfile({ certificates: this.data.profile.certificates });
+                    this.renderCertificates();
+                    this.refreshPreview();
+                }
+            });
+        });
+    }
+
+    showCertificateModal(editIndex = -1) {
+        const isEdit = editIndex >= 0;
+        const cert = isEdit ? (this.data.profile.certificates || [])[editIndex] : null;
+
+        const content = `
+            <div class="form-group">
+                <label class="form-label">자격증명</label>
+                <input type="text" class="form-input" id="modal-certificate-name" value="${cert?.name || ''}" placeholder="예: 컴퓨터그래픽스운용기능사">
+            </div>
+            <div class="form-group">
+                <label class="form-label">취득일</label>
+                <input type="text" class="form-input" id="modal-certificate-date" value="${cert?.date || ''}" placeholder="예: 2024.03">
+            </div>
+            <div class="form-actions">
+                <button class="btn btn-primary" id="modal-save">${isEdit ? '수정' : '추가'}</button>
+                <button class="btn btn-secondary" id="modal-cancel">취소</button>
+            </div>
+        `;
+
+        this.openModal(isEdit ? '자격증 수정' : '자격증 추가', content);
+
+        document.getElementById('modal-save').addEventListener('click', () => {
+            const name = document.getElementById('modal-certificate-name').value.trim();
+            const date = document.getElementById('modal-certificate-date').value.trim();
+
+            if (!name) {
+                alert('자격증명을 입력해주세요.');
+                return;
+            }
+
+            this.data.profile.certificates = this.data.profile.certificates || [];
+
+            if (isEdit) {
+                this.data.profile.certificates[editIndex] = { name, date };
+            } else {
+                this.data.profile.certificates.push({ name, date });
+            }
+
+            dataManager.updateProfile({ certificates: this.data.profile.certificates });
+            this.renderCertificates();
+            this.closeModal();
+            this.refreshPreview();
+        });
+
+        document.getElementById('modal-cancel').addEventListener('click', () => this.closeModal());
     }
 
     renderAITools() {
@@ -3798,10 +3888,6 @@ class AdminPanel {
                 <button type="button" class="btn btn-secondary btn-sm" id="btn-add-contribution" style="margin-top: var(--space-sm);">+ 기여도 추가</button>
             </div>
             <div class="form-group">
-                <label class="form-label">제작후기</label>
-                <textarea class="form-textarea" id="modal-portfolio-review">${existing?.review || ''}</textarea>
-            </div>
-            <div class="form-group">
                 <label class="form-label">썸네일 이미지</label>
                 <div id="modal-portfolio-thumbnails-preview" style="display: flex; flex-wrap: wrap; gap: var(--space-sm); margin-bottom: var(--space-sm);">
                     ${(existing?.thumbnails || []).map((url, i) => `
@@ -3850,7 +3936,7 @@ class AdminPanel {
             <div class="form-group">
                 <label class="form-label">상세 설명 (제목-설명)</label>
                 <div id="detail-descriptions-container" style="display: flex; flex-direction: column; gap: var(--space-sm);">
-                    ${(existing?.detailDescriptions || []).map((d, i) => `
+                    ${((existing?.detailDescriptions && existing.detailDescriptions.length > 0) ? existing.detailDescriptions : [{title: '', description: ''}]).map((d, i) => `
                         <div class="detail-desc-item" data-index="${i}" style="background: var(--color-bg-secondary); padding: var(--space-sm); border-radius: var(--radius-sm); border: 1px solid var(--color-border);">
                             <input type="text" class="form-input" value="${d.title || ''}" data-field="title" placeholder="제목" style="margin-bottom: var(--space-xs);">
                             <textarea class="form-textarea" data-field="description" placeholder="설명" style="min-height: 60px;">${d.description || ''}</textarea>
@@ -3966,7 +4052,6 @@ class AdminPanel {
             const title = document.getElementById('modal-portfolio-title').value.trim();
             const subject = document.getElementById('modal-portfolio-subject').value.trim();
             const target = document.getElementById('modal-portfolio-target').value.trim();
-            const review = document.getElementById('modal-portfolio-review').value.trim();
             const thumbnails = document.getElementById('modal-portfolio-thumbnails').value.split('|||').map(s => s.trim()).filter(s => s);
             const linkUrl = document.getElementById('modal-portfolio-link').value.trim();
             const siteUrl = document.getElementById('modal-portfolio-siteurl').value.trim();
@@ -4002,7 +4087,7 @@ class AdminPanel {
                 return;
             }
 
-            const item = { title, subject, target, contributions, review, thumbnails, links, siteUrl, detailImages, detailDescriptions };
+            const item = { title, subject, target, contributions, thumbnails, links, siteUrl, detailImages, detailDescriptions };
 
             if (existing) {
                 dataManager.updatePortfolioItem(editId, { ...item, section: selectedSection });

@@ -588,6 +588,36 @@ ul, ol {
     font-size: var(--font-sm);
 }
 
+.about-certificates-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.certificate-tag {
+    padding: 0;
+    background: transparent;
+    font-size: var(--font-sm);
+}
+
+.certificate-date {
+    color: var(--color-text-muted);
+    font-size: 0.9em;
+}
+
+/* 가능직무 태그 스타일 */
+.job-role-tag {
+    padding: 0;
+    background: transparent;
+    font-size: var(--font-sm);
+}
+
+.about-job-roles-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 24px;
+}
+
 .about-profile {
     display: flex;
     flex-direction: column;
@@ -892,7 +922,7 @@ ul, ol {
 
 .portfolio-single .portfolio-item {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 0.5fr 1fr;
     gap: var(--space-xl);
     background: var(--color-bg);
     border-radius: var(--radius-lg);
@@ -918,6 +948,7 @@ ul, ol {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    object-position: top;
     display: block;
 }
 
@@ -935,6 +966,7 @@ ul, ol {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    object-position: top;
     display: block;
 }
 
