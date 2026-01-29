@@ -341,17 +341,10 @@
                     customContent.appendChild(textEl);
                 });
 
-                // Render buttons - group by position
+                // Render buttons - use common position setting
                 if (introCustom.buttons?.length > 0) {
-                    // Group buttons by position
-                    const buttonsByPosition = {};
-                    introCustom.buttons.forEach(button => {
-                        const pos = button.position || 'middle-center';
-                        if (!buttonsByPosition[pos]) {
-                            buttonsByPosition[pos] = [];
-                        }
-                        buttonsByPosition[pos].push(button);
-                    });
+                    const position = introCustom.buttonPosition || 'middle-center';
+                    const offsetY = introCustom.buttonOffsetY || 0;
 
                     // Get position styles
                     const getPositionStyle = (position, offsetY = 0) => {
@@ -370,56 +363,52 @@
                         return styles[position] || styles['middle-center'];
                     };
 
-                    // Create container for each position group
-                    Object.keys(buttonsByPosition).forEach(position => {
-                        const buttons = buttonsByPosition[position];
-                        const firstButton = buttons[0];
-                        const posStyle = getPositionStyle(position, firstButton.offsetY || 0);
+                    const posStyle = getPositionStyle(position, offsetY);
 
-                        const posContainer = document.createElement('div');
-                        posContainer.style.cssText = `
-                            position: absolute;
-                            display: flex;
-                            gap: 12px;
-                            flex-wrap: wrap;
-                            z-index: 100;
-                            ${posStyle.top !== undefined ? `top: ${typeof posStyle.top === 'number' ? posStyle.top + 'px' : posStyle.top};` : ''}
-                            ${posStyle.bottom !== undefined ? `bottom: ${typeof posStyle.bottom === 'number' ? posStyle.bottom + 'px' : posStyle.bottom};` : ''}
-                            ${posStyle.left !== undefined ? `left: ${typeof posStyle.left === 'number' ? posStyle.left + 'px' : posStyle.left};` : ''}
-                            ${posStyle.right !== undefined ? `right: ${typeof posStyle.right === 'number' ? posStyle.right + 'px' : posStyle.right};` : ''}
-                            transform: ${posStyle.transform};
+                    // Create single container for all buttons
+                    const buttonContainer = document.createElement('div');
+                    buttonContainer.style.cssText = `
+                        position: absolute;
+                        display: flex;
+                        gap: 12px;
+                        flex-wrap: wrap;
+                        z-index: 100;
+                        ${posStyle.top !== undefined ? `top: ${typeof posStyle.top === 'number' ? posStyle.top + 'px' : posStyle.top};` : ''}
+                        ${posStyle.bottom !== undefined ? `bottom: ${typeof posStyle.bottom === 'number' ? posStyle.bottom + 'px' : posStyle.bottom};` : ''}
+                        ${posStyle.left !== undefined ? `left: ${typeof posStyle.left === 'number' ? posStyle.left + 'px' : posStyle.left};` : ''}
+                        ${posStyle.right !== undefined ? `right: ${typeof posStyle.right === 'number' ? posStyle.right + 'px' : posStyle.right};` : ''}
+                        transform: ${posStyle.transform};
+                    `;
+
+                    introCustom.buttons.forEach(button => {
+                        const btnEl = document.createElement('a');
+                        btnEl.href = button.url || '#';
+                        btnEl.textContent = button.label || '버튼';
+                        btnEl.style.cssText = `
+                            padding: 14px 32px;
+                            background: ${button.bgColor || '#3498db'};
+                            color: ${button.textColor || '#ffffff'};
+                            text-decoration: none;
+                            border-radius: 8px;
+                            font-weight: 600;
+                            font-size: 1rem;
+                            transition: all 0.2s ease;
+                            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+                            white-space: nowrap;
                         `;
+                        btnEl.onmouseover = () => btnEl.style.transform = 'translateY(-3px)';
+                        btnEl.onmouseout = () => btnEl.style.transform = '';
 
-                        buttons.forEach(button => {
-                            const btnEl = document.createElement('a');
-                            btnEl.href = button.url || '#';
-                            btnEl.textContent = button.label || '버튼';
-                            btnEl.style.cssText = `
-                                padding: 14px 32px;
-                                background: ${button.bgColor || '#3498db'};
-                                color: ${button.textColor || '#ffffff'};
-                                text-decoration: none;
-                                border-radius: 8px;
-                                font-weight: 600;
-                                font-size: 1rem;
-                                transition: all 0.2s ease;
-                                box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-                                white-space: nowrap;
-                            `;
-                            btnEl.onmouseover = () => btnEl.style.transform = 'translateY(-3px)';
-                            btnEl.onmouseout = () => btnEl.style.transform = '';
+                        // Add user ID to URL if available
+                        const userId = window.getUrlUserId ? window.getUrlUserId() : null;
+                        if (userId && button.url) {
+                            btnEl.href = button.url.includes('?') ? `${button.url}&u=${userId}` : `${button.url}?u=${userId}`;
+                        }
 
-                            // Add user ID to URL if available
-                            const userId = window.getUrlUserId ? window.getUrlUserId() : null;
-                            if (userId && button.url) {
-                                btnEl.href = button.url.includes('?') ? `${button.url}&u=${userId}` : `${button.url}?u=${userId}`;
-                            }
-
-                            posContainer.appendChild(btnEl);
-                        });
-
-                        introPage.appendChild(posContainer);
+                        buttonContainer.appendChild(btnEl);
                     });
+
+                    introPage.appendChild(buttonContainer);
                 }
 
                 // Show/hide default content based on settings

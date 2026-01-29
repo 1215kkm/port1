@@ -280,7 +280,9 @@ const defaultData = {
         ],
         buttons: [
             // 예시: { id: 1, label: '포트폴리오 보기', url: 'portfolio.html', bgColor: '#3498db', textColor: '#ffffff' }
-        ]
+        ],
+        buttonPosition: 'middle-center', // 버튼 공통 위치 (9가지 중 선택)
+        buttonOffsetY: 0 // 버튼 공통 세로 오프셋
     },
 
     // Portfolio Items (Solo) - organized by section (각 섹션 1개씩 샘플)

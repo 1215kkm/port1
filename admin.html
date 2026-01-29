@@ -1414,6 +1414,22 @@
                                 <!-- Button items will be rendered here -->
                             </div>
                             <button type="button" class="btn btn-secondary btn-sm" id="btn-add-intro-panel-button" style="margin-top: 8px;">+ 버튼 추가</button>
+
+                            <!-- 버튼 공통 위치 설정 -->
+                            <div id="intro-panel-button-position-settings" style="margin-top: 16px; padding: 12px; background: var(--color-bg-tertiary); border-radius: 8px; display: none;">
+                                <div style="display: flex; gap: 16px; align-items: flex-start;">
+                                    <div>
+                                        <span style="font-size: 11px; color: var(--color-text-secondary); display: block; margin-bottom: 6px;">버튼 위치:</span>
+                                        <div id="intro-panel-button-position-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px; width: 72px; height: 48px; padding: 4px; background: var(--color-bg-primary); border: 2px solid var(--color-primary); border-radius: 4px;">
+                                            <!-- Position cells will be rendered by JS -->
+                                        </div>
+                                    </div>
+                                    <div style="flex: 1;">
+                                        <span style="font-size: 11px; color: var(--color-text-secondary); display: block; margin-bottom: 6px;">세로 조정 (px):</span>
+                                        <input type="number" class="form-input" id="intro-panel-button-offsetY" placeholder="0" value="0" style="width: 100%; padding: 6px 8px; font-size: 12px;">
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                         <div style="display: flex; gap: var(--space-sm); margin-top: var(--space-xl);">
@@ -2001,6 +2017,22 @@
                         <!-- Button items will be rendered here -->
                     </div>
                     <button type="button" class="btn btn-secondary btn-sm" id="btn-add-intro-button" style="margin-top: 8px;">+ 버튼 추가</button>
+
+                    <!-- 버튼 공통 위치 설정 -->
+                    <div id="intro-button-position-settings" style="margin-top: 16px; padding: 12px; background: #1a1a2e; border-radius: 8px; display: none;">
+                        <div style="display: flex; gap: 16px; align-items: flex-start;">
+                            <div>
+                                <span style="font-size: 11px; color: #888; display: block; margin-bottom: 6px;">버튼 위치:</span>
+                                <div id="intro-button-position-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px; width: 72px; height: 48px; padding: 4px; background: #0d0d1a; border: 2px solid #3498db; border-radius: 4px;">
+                                    <!-- Position cells will be rendered by JS -->
+                                </div>
+                            </div>
+                            <div style="flex: 1;">
+                                <span style="font-size: 11px; color: #888; display: block; margin-bottom: 6px;">세로 조정 (px):</span>
+                                <input type="number" class="form-input" id="intro-button-offsetY" placeholder="0" value="0" style="width: 100%; padding: 6px 8px; font-size: 12px;">
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="intro-editor-actions">

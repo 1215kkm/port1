@@ -563,12 +563,6 @@ class AdminPanel {
         const container = document.getElementById('intro-buttons-container');
         if (!container) return;
 
-        const positions = [
-            'top-left', 'top-center', 'top-right',
-            'middle-left', 'middle-center', 'middle-right',
-            'bottom-left', 'bottom-center', 'bottom-right'
-        ];
-
         container.innerHTML = buttons.map((button, index) => `
             <div class="intro-button-item" data-index="${index}" data-id="${button.id || ''}">
                 <div class="form-row">
@@ -585,28 +579,6 @@ class AdminPanel {
                         <input type="color" data-field="textColor" value="${button.textColor || '#ffffff'}" style="width: 30px; height: 30px; border: none; cursor: pointer;">
                     </div>
                 </div>
-                <div class="form-row" style="margin-top: 8px; display: flex; gap: 12px; align-items: flex-start;">
-                    <div>
-                        <span style="font-size: 11px; color: #888; display: block; margin-bottom: 4px;">노출 위치:</span>
-                        <input type="hidden" data-field="position" value="${button.position || 'middle-center'}">
-                        <div class="position-grid-modal" data-index="${index}" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px; width: 72px; height: 48px; padding: 4px; background: #1a1a2e; border: 2px solid #3498db; border-radius: 4px;">
-                            ${positions.map(pos => `
-                                <div class="position-cell-modal ${(button.position || 'middle-center') === pos ? 'selected' : ''}"
-                                     data-pos="${pos}"
-                                     style="background: ${(button.position || 'middle-center') === pos ? '#3498db' : '#2a2a3e'};
-                                            border: 1px solid #444;
-                                            border-radius: 2px;
-                                            cursor: pointer;
-                                            transition: all 0.15s ease;">
-                                </div>
-                            `).join('')}
-                        </div>
-                    </div>
-                    <div style="flex: 1;">
-                        <span style="font-size: 11px; color: #888; display: block; margin-bottom: 4px;">세로 조정 (px):</span>
-                        <input type="number" class="form-input" data-field="offsetY" placeholder="0" value="${button.offsetY || 0}" style="width: 100%; padding: 6px 8px; font-size: 12px;">
-                    </div>
-                </div>
                 <div class="intro-item-actions">
                     <button class="btn btn-accent btn-sm" data-action="delete-intro-button" data-index="${index}">삭제</button>
                 </div>
@@ -621,17 +593,52 @@ class AdminPanel {
             });
         });
 
-        // Position grid click events for modal
-        container.querySelectorAll('.position-grid-modal').forEach(grid => {
-            grid.querySelectorAll('.position-cell-modal').forEach(cell => {
+        // Render common position settings
+        this.renderButtonPositionSettings(buttons.length > 0);
+    }
+
+    // Render button position settings UI
+    renderButtonPositionSettings(show) {
+        const settingsContainer = document.getElementById('intro-button-position-settings');
+        if (!settingsContainer) return;
+
+        // Show/hide based on button count
+        settingsContainer.style.display = show ? 'block' : 'none';
+        if (!show) return;
+
+        const introCustom = this.data.introCustom || {};
+        const currentPosition = introCustom.buttonPosition || 'middle-center';
+        const currentOffsetY = introCustom.buttonOffsetY || 0;
+
+        const positions = [
+            'top-left', 'top-center', 'top-right',
+            'middle-left', 'middle-center', 'middle-right',
+            'bottom-left', 'bottom-center', 'bottom-right'
+        ];
+
+        // Render position grid
+        const grid = document.getElementById('intro-button-position-grid');
+        if (grid) {
+            grid.innerHTML = positions.map(pos => `
+                <div class="position-cell-common ${currentPosition === pos ? 'selected' : ''}"
+                     data-pos="${pos}"
+                     style="background: ${currentPosition === pos ? '#3498db' : '#2a2a3e'};
+                            border: 1px solid #444;
+                            border-radius: 2px;
+                            cursor: pointer;
+                            transition: all 0.15s ease;">
+                </div>
+            `).join('');
+
+            // Bind position cell click events
+            grid.querySelectorAll('.position-cell-common').forEach(cell => {
                 cell.addEventListener('click', () => {
                     const pos = cell.dataset.pos;
-                    const buttonItem = grid.closest('.intro-button-item');
-                    const hiddenInput = buttonItem.querySelector('[data-field="position"]');
-                    hiddenInput.value = pos;
+                    this.data.introCustom = this.data.introCustom || {};
+                    this.data.introCustom.buttonPosition = pos;
 
                     // Update visual selection
-                    grid.querySelectorAll('.position-cell-modal').forEach(c => {
+                    grid.querySelectorAll('.position-cell-common').forEach(c => {
                         c.classList.remove('selected');
                         c.style.background = '#2a2a3e';
                     });
@@ -651,7 +658,20 @@ class AdminPanel {
                     }
                 });
             });
-        });
+        }
+
+        // Set offsetY input value
+        const offsetYInput = document.getElementById('intro-button-offsetY');
+        if (offsetYInput) {
+            offsetYInput.value = currentOffsetY;
+            // Remove old listener and add new one
+            const newInput = offsetYInput.cloneNode(true);
+            offsetYInput.parentNode.replaceChild(newInput, offsetYInput);
+            newInput.addEventListener('input', () => {
+                this.data.introCustom = this.data.introCustom || {};
+                this.data.introCustom.buttonOffsetY = parseInt(newInput.value) || 0;
+            });
+        }
     }
 
     // Collect current intro text data from form before re-rendering
@@ -683,9 +703,7 @@ class AdminPanel {
                 label: item.querySelector('[data-field="label"]')?.value || '버튼',
                 url: item.querySelector('[data-field="url"]')?.value || 'portfolio.html',
                 bgColor: item.querySelector('[data-field="bgColor"]')?.value || '#3498db',
-                textColor: item.querySelector('[data-field="textColor"]')?.value || '#ffffff',
-                position: item.querySelector('[data-field="position"]')?.value || 'middle-center',
-                offsetY: parseInt(item.querySelector('[data-field="offsetY"]')?.value) || 0
+                textColor: item.querySelector('[data-field="textColor"]')?.value || '#ffffff'
             };
             buttons.push(button);
         });
@@ -967,12 +985,6 @@ class AdminPanel {
         const container = document.getElementById('intro-panel-buttons-container');
         if (!container) return;
 
-        const positions = [
-            'top-left', 'top-center', 'top-right',
-            'middle-left', 'middle-center', 'middle-right',
-            'bottom-left', 'bottom-center', 'bottom-right'
-        ];
-
         container.innerHTML = buttons.map((button, index) => `
             <div class="intro-button-item intro-panel-button-item" data-index="${index}" data-id="${button.id || ''}">
                 <div class="form-row" style="display: flex; gap: 8px; margin-bottom: 8px;">
@@ -989,28 +1001,6 @@ class AdminPanel {
                         <input type="color" data-field="textColor" value="${button.textColor || '#ffffff'}" style="width: 30px; height: 30px; border: none; cursor: pointer;">
                     </div>
                 </div>
-                <div class="form-row" style="display: flex; gap: 12px; margin-bottom: 8px; align-items: flex-start;">
-                    <div>
-                        <span style="font-size: 11px; color: var(--color-text-secondary); display: block; margin-bottom: 4px;">노출 위치:</span>
-                        <input type="hidden" data-field="position" value="${button.position || 'middle-center'}">
-                        <div class="position-grid" data-index="${index}" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px; width: 72px; height: 48px; padding: 4px; background: #1a1a2e; border: 2px solid #3498db; border-radius: 4px;">
-                            ${positions.map(pos => `
-                                <div class="position-cell ${(button.position || 'middle-center') === pos ? 'selected' : ''}"
-                                     data-pos="${pos}"
-                                     style="background: ${(button.position || 'middle-center') === pos ? '#3498db' : '#2a2a3e'};
-                                            border: 1px solid #444;
-                                            border-radius: 2px;
-                                            cursor: pointer;
-                                            transition: all 0.15s ease;">
-                                </div>
-                            `).join('')}
-                        </div>
-                    </div>
-                    <div style="flex: 1;">
-                        <span style="font-size: 11px; color: var(--color-text-secondary); display: block; margin-bottom: 4px;">세로 조정 (px):</span>
-                        <input type="number" class="form-input" data-field="offsetY" placeholder="0" value="${button.offsetY || 0}" style="width: 100%; padding: 6px 8px; font-size: 12px;">
-                    </div>
-                </div>
                 <div style="display: flex; justify-content: flex-end; gap: 8px;">
                     <button class="btn btn-accent btn-sm" data-action="delete-intro-panel-button" data-index="${index}">삭제</button>
                 </div>
@@ -1024,22 +1014,67 @@ class AdminPanel {
             });
         });
 
-        // Position grid click events
-        container.querySelectorAll('.position-grid').forEach(grid => {
-            grid.querySelectorAll('.position-cell').forEach(cell => {
+        // Render common position settings for panel
+        this.renderPanelButtonPositionSettings(buttons.length > 0);
+    }
+
+    // Render panel button position settings UI
+    renderPanelButtonPositionSettings(show) {
+        const settingsContainer = document.getElementById('intro-panel-button-position-settings');
+        if (!settingsContainer) return;
+
+        // Show/hide based on button count
+        settingsContainer.style.display = show ? 'block' : 'none';
+        if (!show) return;
+
+        const introCustom = this.data.introCustom || {};
+        const currentPosition = introCustom.buttonPosition || 'middle-center';
+        const currentOffsetY = introCustom.buttonOffsetY || 0;
+
+        const positions = [
+            'top-left', 'top-center', 'top-right',
+            'middle-left', 'middle-center', 'middle-right',
+            'bottom-left', 'bottom-center', 'bottom-right'
+        ];
+
+        // Render position grid
+        const grid = document.getElementById('intro-panel-button-position-grid');
+        if (grid) {
+            grid.innerHTML = positions.map(pos => `
+                <div class="position-cell-panel ${currentPosition === pos ? 'selected' : ''}"
+                     data-pos="${pos}"
+                     style="background: ${currentPosition === pos ? '#3498db' : '#2a2a3e'};
+                            border: 1px solid #444;
+                            border-radius: 2px;
+                            cursor: pointer;
+                            transition: all 0.15s ease;">
+                </div>
+            `).join('');
+
+            // Bind position cell click events
+            grid.querySelectorAll('.position-cell-panel').forEach(cell => {
                 cell.addEventListener('click', () => {
                     const pos = cell.dataset.pos;
-                    const buttonItem = grid.closest('.intro-panel-button-item');
-                    const hiddenInput = buttonItem.querySelector('[data-field="position"]');
-                    hiddenInput.value = pos;
+                    this.data.introCustom = this.data.introCustom || {};
+                    this.data.introCustom.buttonPosition = pos;
 
                     // Update visual selection
-                    grid.querySelectorAll('.position-cell').forEach(c => {
+                    grid.querySelectorAll('.position-cell-panel').forEach(c => {
                         c.classList.remove('selected');
                         c.style.background = '#2a2a3e';
                     });
                     cell.classList.add('selected');
                     cell.style.background = '#3498db';
+
+                    // Sync with modal position grid if visible
+                    const modalGrid = document.getElementById('intro-button-position-grid');
+                    if (modalGrid) {
+                        modalGrid.querySelectorAll('.position-cell-common').forEach(c => {
+                            c.classList.remove('selected');
+                            c.style.background = c.dataset.pos === pos ? '#3498db' : '#2a2a3e';
+                            if (c.dataset.pos === pos) c.classList.add('selected');
+                        });
+                    }
                 });
 
                 // Hover effect
@@ -1054,7 +1089,26 @@ class AdminPanel {
                     }
                 });
             });
-        });
+        }
+
+        // Set offsetY input value
+        const offsetYInput = document.getElementById('intro-panel-button-offsetY');
+        if (offsetYInput) {
+            offsetYInput.value = currentOffsetY;
+            // Remove old listener and add new one
+            const newInput = offsetYInput.cloneNode(true);
+            offsetYInput.parentNode.replaceChild(newInput, offsetYInput);
+            newInput.addEventListener('input', () => {
+                this.data.introCustom = this.data.introCustom || {};
+                this.data.introCustom.buttonOffsetY = parseInt(newInput.value) || 0;
+
+                // Sync with modal offsetY input if visible
+                const modalOffsetY = document.getElementById('intro-button-offsetY');
+                if (modalOffsetY) {
+                    modalOffsetY.value = newInput.value;
+                }
+            });
+        }
     }
 
     collectCurrentIntroPanelTexts() {
@@ -1082,9 +1136,7 @@ class AdminPanel {
                 label: item.querySelector('[data-field="label"]')?.value || '버튼',
                 url: item.querySelector('[data-field="url"]')?.value || 'portfolio.html',
                 bgColor: item.querySelector('[data-field="bgColor"]')?.value || '#3498db',
-                textColor: item.querySelector('[data-field="textColor"]')?.value || '#ffffff',
-                position: item.querySelector('[data-field="position"]')?.value || 'middle-center',
-                offsetY: parseInt(item.querySelector('[data-field="offsetY"]')?.value) || 0
+                textColor: item.querySelector('[data-field="textColor"]')?.value || '#ffffff'
             };
             buttons.push(button);
         });
