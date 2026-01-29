@@ -563,6 +563,18 @@ class AdminPanel {
         const container = document.getElementById('intro-buttons-container');
         if (!container) return;
 
+        const positionOptions = [
+            { value: 'top-left', label: '좌측상단' },
+            { value: 'top-center', label: '중앙상단' },
+            { value: 'top-right', label: '우측상단' },
+            { value: 'middle-left', label: '좌측중앙' },
+            { value: 'middle-center', label: '중앙' },
+            { value: 'middle-right', label: '우측중앙' },
+            { value: 'bottom-left', label: '좌측하단' },
+            { value: 'bottom-center', label: '중앙하단' },
+            { value: 'bottom-right', label: '우측하단' }
+        ];
+
         container.innerHTML = buttons.map((button, index) => `
             <div class="intro-button-item" data-index="${index}" data-id="${button.id || ''}">
                 <div class="form-row">
@@ -577,6 +589,18 @@ class AdminPanel {
                     <div style="display: flex; align-items: center; gap: 6px; flex: 1;">
                         <span style="font-size: 11px; color: #888;">글자:</span>
                         <input type="color" data-field="textColor" value="${button.textColor || '#ffffff'}" style="width: 30px; height: 30px; border: none; cursor: pointer;">
+                    </div>
+                </div>
+                <div class="form-row" style="margin-top: 8px;">
+                    <div style="flex: 1;">
+                        <span style="font-size: 11px; color: #888; display: block; margin-bottom: 4px;">노출 위치:</span>
+                        <select class="form-select" data-field="position" style="width: 100%; padding: 6px 8px; font-size: 12px; background: #2a2a3e; color: #fff; border: 1px solid #444; border-radius: 4px;">
+                            ${positionOptions.map(opt => `<option value="${opt.value}" ${(button.position || 'middle-center') === opt.value ? 'selected' : ''}>${opt.label}</option>`).join('')}
+                        </select>
+                    </div>
+                    <div style="flex: 1;">
+                        <span style="font-size: 11px; color: #888; display: block; margin-bottom: 4px;">세로 조정 (px):</span>
+                        <input type="number" class="form-input" data-field="offsetY" placeholder="0" value="${button.offsetY || 0}" style="width: 100%; padding: 6px 8px; font-size: 12px;">
                     </div>
                 </div>
                 <div class="intro-item-actions">
@@ -616,12 +640,16 @@ class AdminPanel {
     collectCurrentIntroButtons() {
         const buttons = [];
         document.querySelectorAll('.intro-button-item').forEach(item => {
+            // Skip items that are in the panel (intro-panel-button-item)
+            if (item.classList.contains('intro-panel-button-item')) return;
             const button = {
                 id: parseInt(item.dataset.id) || Date.now() + Math.random(),
                 label: item.querySelector('[data-field="label"]')?.value || '버튼',
                 url: item.querySelector('[data-field="url"]')?.value || 'portfolio.html',
                 bgColor: item.querySelector('[data-field="bgColor"]')?.value || '#3498db',
-                textColor: item.querySelector('[data-field="textColor"]')?.value || '#ffffff'
+                textColor: item.querySelector('[data-field="textColor"]')?.value || '#ffffff',
+                position: item.querySelector('[data-field="position"]')?.value || 'middle-center',
+                offsetY: parseInt(item.querySelector('[data-field="offsetY"]')?.value) || 0
             };
             buttons.push(button);
         });
@@ -678,7 +706,9 @@ class AdminPanel {
             label: '버튼',
             url: 'portfolio.html',
             bgColor: '#3498db',
-            textColor: '#ffffff'
+            textColor: '#ffffff',
+            position: 'middle-center',
+            offsetY: 0
         };
         introCustom.buttons.push(newButton);
         this.data.introCustom = introCustom;
@@ -722,14 +752,16 @@ class AdminPanel {
             }
         });
 
-        // Collect buttons
-        document.querySelectorAll('.intro-button-item').forEach(item => {
+        // Collect buttons (only from modal, not panel)
+        document.querySelectorAll('.intro-button-item:not(.intro-panel-button-item)').forEach(item => {
             const button = {
                 id: Date.now() + Math.random(),
                 label: item.querySelector('[data-field="label"]')?.value || '',
                 url: item.querySelector('[data-field="url"]')?.value || '',
                 bgColor: item.querySelector('[data-field="bgColor"]')?.value || '#3498db',
-                textColor: item.querySelector('[data-field="textColor"]')?.value || '#ffffff'
+                textColor: item.querySelector('[data-field="textColor"]')?.value || '#ffffff',
+                position: item.querySelector('[data-field="position"]')?.value || 'middle-center',
+                offsetY: parseInt(item.querySelector('[data-field="offsetY"]')?.value) || 0
             };
             if (button.label) {
                 introCustom.buttons.push(button);
@@ -899,6 +931,18 @@ class AdminPanel {
         const container = document.getElementById('intro-panel-buttons-container');
         if (!container) return;
 
+        const positionOptions = [
+            { value: 'top-left', label: '좌측상단' },
+            { value: 'top-center', label: '중앙상단' },
+            { value: 'top-right', label: '우측상단' },
+            { value: 'middle-left', label: '좌측중앙' },
+            { value: 'middle-center', label: '중앙' },
+            { value: 'middle-right', label: '우측중앙' },
+            { value: 'bottom-left', label: '좌측하단' },
+            { value: 'bottom-center', label: '중앙하단' },
+            { value: 'bottom-right', label: '우측하단' }
+        ];
+
         container.innerHTML = buttons.map((button, index) => `
             <div class="intro-button-item intro-panel-button-item" data-index="${index}" data-id="${button.id || ''}">
                 <div class="form-row" style="display: flex; gap: 8px; margin-bottom: 8px;">
@@ -913,6 +957,18 @@ class AdminPanel {
                     <div style="display: flex; align-items: center; gap: 6px; flex: 1;">
                         <span style="font-size: 11px; color: var(--color-text-secondary);">글자:</span>
                         <input type="color" data-field="textColor" value="${button.textColor || '#ffffff'}" style="width: 30px; height: 30px; border: none; cursor: pointer;">
+                    </div>
+                </div>
+                <div class="form-row" style="display: flex; gap: 8px; margin-bottom: 8px; align-items: center;">
+                    <div style="flex: 1;">
+                        <span style="font-size: 11px; color: var(--color-text-secondary); display: block; margin-bottom: 4px;">노출 위치:</span>
+                        <select class="form-select" data-field="position" style="width: 100%; padding: 6px 8px; font-size: 12px;">
+                            ${positionOptions.map(opt => `<option value="${opt.value}" ${(button.position || 'middle-center') === opt.value ? 'selected' : ''}>${opt.label}</option>`).join('')}
+                        </select>
+                    </div>
+                    <div style="flex: 1;">
+                        <span style="font-size: 11px; color: var(--color-text-secondary); display: block; margin-bottom: 4px;">세로 위치 조정 (px):</span>
+                        <input type="number" class="form-input" data-field="offsetY" placeholder="0" value="${button.offsetY || 0}" style="width: 100%; padding: 6px 8px; font-size: 12px;">
                     </div>
                 </div>
                 <div style="display: flex; justify-content: flex-end; gap: 8px;">
@@ -954,7 +1010,9 @@ class AdminPanel {
                 label: item.querySelector('[data-field="label"]')?.value || '버튼',
                 url: item.querySelector('[data-field="url"]')?.value || 'portfolio.html',
                 bgColor: item.querySelector('[data-field="bgColor"]')?.value || '#3498db',
-                textColor: item.querySelector('[data-field="textColor"]')?.value || '#ffffff'
+                textColor: item.querySelector('[data-field="textColor"]')?.value || '#ffffff',
+                position: item.querySelector('[data-field="position"]')?.value || 'middle-center',
+                offsetY: parseInt(item.querySelector('[data-field="offsetY"]')?.value) || 0
             };
             buttons.push(button);
         });
@@ -1007,7 +1065,9 @@ class AdminPanel {
             label: '버튼',
             url: 'portfolio.html',
             bgColor: '#3498db',
-            textColor: '#ffffff'
+            textColor: '#ffffff',
+            position: 'middle-center',
+            offsetY: 0
         });
         this.data.introCustom = introCustom;
         this.renderIntroPanelButtons(introCustom.buttons);
@@ -1055,7 +1115,9 @@ class AdminPanel {
                 label: item.querySelector('[data-field="label"]')?.value || '',
                 url: item.querySelector('[data-field="url"]')?.value || '',
                 bgColor: item.querySelector('[data-field="bgColor"]')?.value || '#3498db',
-                textColor: item.querySelector('[data-field="textColor"]')?.value || '#ffffff'
+                textColor: item.querySelector('[data-field="textColor"]')?.value || '#ffffff',
+                position: item.querySelector('[data-field="position"]')?.value || 'middle-center',
+                offsetY: parseInt(item.querySelector('[data-field="offsetY"]')?.value) || 0
             };
             if (button.label) {
                 introCustom.buttons.push(button);

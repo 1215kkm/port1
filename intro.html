@@ -341,39 +341,85 @@
                     customContent.appendChild(textEl);
                 });
 
-                // Render buttons
+                // Render buttons - group by position
                 if (introCustom.buttons?.length > 0) {
-                    const buttonsContainer = document.createElement('div');
-                    buttonsContainer.style.cssText = 'display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; margin-top: 30px;';
-
+                    // Group buttons by position
+                    const buttonsByPosition = {};
                     introCustom.buttons.forEach(button => {
-                        const btnEl = document.createElement('a');
-                        btnEl.href = button.url || '#';
-                        btnEl.textContent = button.label || '버튼';
-                        btnEl.style.cssText = `
-                            padding: 14px 32px;
-                            background: ${button.bgColor || '#3498db'};
-                            color: ${button.textColor || '#ffffff'};
-                            text-decoration: none;
-                            border-radius: 8px;
-                            font-weight: 600;
-                            font-size: 1rem;
-                            transition: all 0.2s ease;
-                            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-                        `;
-                        btnEl.onmouseover = () => btnEl.style.transform = 'translateY(-3px)';
-                        btnEl.onmouseout = () => btnEl.style.transform = '';
-
-                        // Add user ID to URL if available
-                        const userId = window.getUrlUserId ? window.getUrlUserId() : null;
-                        if (userId && button.url) {
-                            btnEl.href = button.url.includes('?') ? `${button.url}&u=${userId}` : `${button.url}?u=${userId}`;
+                        const pos = button.position || 'middle-center';
+                        if (!buttonsByPosition[pos]) {
+                            buttonsByPosition[pos] = [];
                         }
-
-                        buttonsContainer.appendChild(btnEl);
+                        buttonsByPosition[pos].push(button);
                     });
 
-                    customContent.appendChild(buttonsContainer);
+                    // Get position styles
+                    const getPositionStyle = (position, offsetY = 0) => {
+                        const baseOffset = 50; // 브라우저로부터 기본 50px 떨어짐
+                        const styles = {
+                            'top-left': { top: baseOffset + offsetY, left: baseOffset, transform: 'none' },
+                            'top-center': { top: baseOffset + offsetY, left: '50%', transform: 'translateX(-50%)' },
+                            'top-right': { top: baseOffset + offsetY, right: baseOffset, transform: 'none' },
+                            'middle-left': { top: '50%', left: baseOffset, transform: `translateY(calc(-50% + ${offsetY}px))` },
+                            'middle-center': { top: '50%', left: '50%', transform: `translate(-50%, calc(-50% + ${offsetY}px))` },
+                            'middle-right': { top: '50%', right: baseOffset, transform: `translateY(calc(-50% + ${offsetY}px))` },
+                            'bottom-left': { bottom: baseOffset - offsetY, left: baseOffset, transform: 'none' },
+                            'bottom-center': { bottom: baseOffset - offsetY, left: '50%', transform: 'translateX(-50%)' },
+                            'bottom-right': { bottom: baseOffset - offsetY, right: baseOffset, transform: 'none' }
+                        };
+                        return styles[position] || styles['middle-center'];
+                    };
+
+                    // Create container for each position group
+                    Object.keys(buttonsByPosition).forEach(position => {
+                        const buttons = buttonsByPosition[position];
+                        const firstButton = buttons[0];
+                        const posStyle = getPositionStyle(position, firstButton.offsetY || 0);
+
+                        const posContainer = document.createElement('div');
+                        posContainer.style.cssText = `
+                            position: absolute;
+                            display: flex;
+                            gap: 12px;
+                            flex-wrap: wrap;
+                            z-index: 100;
+                            ${posStyle.top !== undefined ? `top: ${typeof posStyle.top === 'number' ? posStyle.top + 'px' : posStyle.top};` : ''}
+                            ${posStyle.bottom !== undefined ? `bottom: ${typeof posStyle.bottom === 'number' ? posStyle.bottom + 'px' : posStyle.bottom};` : ''}
+                            ${posStyle.left !== undefined ? `left: ${typeof posStyle.left === 'number' ? posStyle.left + 'px' : posStyle.left};` : ''}
+                            ${posStyle.right !== undefined ? `right: ${typeof posStyle.right === 'number' ? posStyle.right + 'px' : posStyle.right};` : ''}
+                            transform: ${posStyle.transform};
+                        `;
+
+                        buttons.forEach(button => {
+                            const btnEl = document.createElement('a');
+                            btnEl.href = button.url || '#';
+                            btnEl.textContent = button.label || '버튼';
+                            btnEl.style.cssText = `
+                                padding: 14px 32px;
+                                background: ${button.bgColor || '#3498db'};
+                                color: ${button.textColor || '#ffffff'};
+                                text-decoration: none;
+                                border-radius: 8px;
+                                font-weight: 600;
+                                font-size: 1rem;
+                                transition: all 0.2s ease;
+                                box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+                                white-space: nowrap;
+                            `;
+                            btnEl.onmouseover = () => btnEl.style.transform = 'translateY(-3px)';
+                            btnEl.onmouseout = () => btnEl.style.transform = '';
+
+                            // Add user ID to URL if available
+                            const userId = window.getUrlUserId ? window.getUrlUserId() : null;
+                            if (userId && button.url) {
+                                btnEl.href = button.url.includes('?') ? `${button.url}&u=${userId}` : `${button.url}?u=${userId}`;
+                            }
+
+                            posContainer.appendChild(btnEl);
+                        });
+
+                        introPage.appendChild(posContainer);
+                    });
                 }
 
                 // Show/hide default content based on settings
