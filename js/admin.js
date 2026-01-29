@@ -563,16 +563,10 @@ class AdminPanel {
         const container = document.getElementById('intro-buttons-container');
         if (!container) return;
 
-        const positionOptions = [
-            { value: 'top-left', label: '좌측상단' },
-            { value: 'top-center', label: '중앙상단' },
-            { value: 'top-right', label: '우측상단' },
-            { value: 'middle-left', label: '좌측중앙' },
-            { value: 'middle-center', label: '중앙' },
-            { value: 'middle-right', label: '우측중앙' },
-            { value: 'bottom-left', label: '좌측하단' },
-            { value: 'bottom-center', label: '중앙하단' },
-            { value: 'bottom-right', label: '우측하단' }
+        const positions = [
+            'top-left', 'top-center', 'top-right',
+            'middle-left', 'middle-center', 'middle-right',
+            'bottom-left', 'bottom-center', 'bottom-right'
         ];
 
         container.innerHTML = buttons.map((button, index) => `
@@ -591,12 +585,22 @@ class AdminPanel {
                         <input type="color" data-field="textColor" value="${button.textColor || '#ffffff'}" style="width: 30px; height: 30px; border: none; cursor: pointer;">
                     </div>
                 </div>
-                <div class="form-row" style="margin-top: 8px;">
-                    <div style="flex: 1;">
+                <div class="form-row" style="margin-top: 8px; display: flex; gap: 12px; align-items: flex-start;">
+                    <div>
                         <span style="font-size: 11px; color: #888; display: block; margin-bottom: 4px;">노출 위치:</span>
-                        <select class="form-select" data-field="position" style="width: 100%; padding: 6px 8px; font-size: 12px; background: #2a2a3e; color: #fff; border: 1px solid #444; border-radius: 4px;">
-                            ${positionOptions.map(opt => `<option value="${opt.value}" ${(button.position || 'middle-center') === opt.value ? 'selected' : ''}>${opt.label}</option>`).join('')}
-                        </select>
+                        <input type="hidden" data-field="position" value="${button.position || 'middle-center'}">
+                        <div class="position-grid-modal" data-index="${index}" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px; width: 72px; height: 48px; padding: 4px; background: #1a1a2e; border: 2px solid #3498db; border-radius: 4px;">
+                            ${positions.map(pos => `
+                                <div class="position-cell-modal ${(button.position || 'middle-center') === pos ? 'selected' : ''}"
+                                     data-pos="${pos}"
+                                     style="background: ${(button.position || 'middle-center') === pos ? '#3498db' : '#2a2a3e'};
+                                            border: 1px solid #444;
+                                            border-radius: 2px;
+                                            cursor: pointer;
+                                            transition: all 0.15s ease;">
+                                </div>
+                            `).join('')}
+                        </div>
                     </div>
                     <div style="flex: 1;">
                         <span style="font-size: 11px; color: #888; display: block; margin-bottom: 4px;">세로 조정 (px):</span>
@@ -614,6 +618,38 @@ class AdminPanel {
             btn.addEventListener('click', () => {
                 const idx = parseInt(btn.dataset.index);
                 this.deleteIntroButton(idx);
+            });
+        });
+
+        // Position grid click events for modal
+        container.querySelectorAll('.position-grid-modal').forEach(grid => {
+            grid.querySelectorAll('.position-cell-modal').forEach(cell => {
+                cell.addEventListener('click', () => {
+                    const pos = cell.dataset.pos;
+                    const buttonItem = grid.closest('.intro-button-item');
+                    const hiddenInput = buttonItem.querySelector('[data-field="position"]');
+                    hiddenInput.value = pos;
+
+                    // Update visual selection
+                    grid.querySelectorAll('.position-cell-modal').forEach(c => {
+                        c.classList.remove('selected');
+                        c.style.background = '#2a2a3e';
+                    });
+                    cell.classList.add('selected');
+                    cell.style.background = '#3498db';
+                });
+
+                // Hover effect
+                cell.addEventListener('mouseenter', () => {
+                    if (!cell.classList.contains('selected')) {
+                        cell.style.background = '#3a3a4e';
+                    }
+                });
+                cell.addEventListener('mouseleave', () => {
+                    if (!cell.classList.contains('selected')) {
+                        cell.style.background = '#2a2a3e';
+                    }
+                });
             });
         });
     }
@@ -931,16 +967,10 @@ class AdminPanel {
         const container = document.getElementById('intro-panel-buttons-container');
         if (!container) return;
 
-        const positionOptions = [
-            { value: 'top-left', label: '좌측상단' },
-            { value: 'top-center', label: '중앙상단' },
-            { value: 'top-right', label: '우측상단' },
-            { value: 'middle-left', label: '좌측중앙' },
-            { value: 'middle-center', label: '중앙' },
-            { value: 'middle-right', label: '우측중앙' },
-            { value: 'bottom-left', label: '좌측하단' },
-            { value: 'bottom-center', label: '중앙하단' },
-            { value: 'bottom-right', label: '우측하단' }
+        const positions = [
+            'top-left', 'top-center', 'top-right',
+            'middle-left', 'middle-center', 'middle-right',
+            'bottom-left', 'bottom-center', 'bottom-right'
         ];
 
         container.innerHTML = buttons.map((button, index) => `
@@ -959,15 +989,25 @@ class AdminPanel {
                         <input type="color" data-field="textColor" value="${button.textColor || '#ffffff'}" style="width: 30px; height: 30px; border: none; cursor: pointer;">
                     </div>
                 </div>
-                <div class="form-row" style="display: flex; gap: 8px; margin-bottom: 8px; align-items: center;">
-                    <div style="flex: 1;">
+                <div class="form-row" style="display: flex; gap: 12px; margin-bottom: 8px; align-items: flex-start;">
+                    <div>
                         <span style="font-size: 11px; color: var(--color-text-secondary); display: block; margin-bottom: 4px;">노출 위치:</span>
-                        <select class="form-select" data-field="position" style="width: 100%; padding: 6px 8px; font-size: 12px;">
-                            ${positionOptions.map(opt => `<option value="${opt.value}" ${(button.position || 'middle-center') === opt.value ? 'selected' : ''}>${opt.label}</option>`).join('')}
-                        </select>
+                        <input type="hidden" data-field="position" value="${button.position || 'middle-center'}">
+                        <div class="position-grid" data-index="${index}" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px; width: 72px; height: 48px; padding: 4px; background: #1a1a2e; border: 2px solid #3498db; border-radius: 4px;">
+                            ${positions.map(pos => `
+                                <div class="position-cell ${(button.position || 'middle-center') === pos ? 'selected' : ''}"
+                                     data-pos="${pos}"
+                                     style="background: ${(button.position || 'middle-center') === pos ? '#3498db' : '#2a2a3e'};
+                                            border: 1px solid #444;
+                                            border-radius: 2px;
+                                            cursor: pointer;
+                                            transition: all 0.15s ease;">
+                                </div>
+                            `).join('')}
+                        </div>
                     </div>
                     <div style="flex: 1;">
-                        <span style="font-size: 11px; color: var(--color-text-secondary); display: block; margin-bottom: 4px;">세로 위치 조정 (px):</span>
+                        <span style="font-size: 11px; color: var(--color-text-secondary); display: block; margin-bottom: 4px;">세로 조정 (px):</span>
                         <input type="number" class="form-input" data-field="offsetY" placeholder="0" value="${button.offsetY || 0}" style="width: 100%; padding: 6px 8px; font-size: 12px;">
                     </div>
                 </div>
@@ -981,6 +1021,38 @@ class AdminPanel {
             btn.addEventListener('click', () => {
                 const idx = parseInt(btn.dataset.index);
                 this.deleteIntroPanelButton(idx);
+            });
+        });
+
+        // Position grid click events
+        container.querySelectorAll('.position-grid').forEach(grid => {
+            grid.querySelectorAll('.position-cell').forEach(cell => {
+                cell.addEventListener('click', () => {
+                    const pos = cell.dataset.pos;
+                    const buttonItem = grid.closest('.intro-panel-button-item');
+                    const hiddenInput = buttonItem.querySelector('[data-field="position"]');
+                    hiddenInput.value = pos;
+
+                    // Update visual selection
+                    grid.querySelectorAll('.position-cell').forEach(c => {
+                        c.classList.remove('selected');
+                        c.style.background = '#2a2a3e';
+                    });
+                    cell.classList.add('selected');
+                    cell.style.background = '#3498db';
+                });
+
+                // Hover effect
+                cell.addEventListener('mouseenter', () => {
+                    if (!cell.classList.contains('selected')) {
+                        cell.style.background = '#3a3a4e';
+                    }
+                });
+                cell.addEventListener('mouseleave', () => {
+                    if (!cell.classList.contains('selected')) {
+                        cell.style.background = '#2a2a3e';
+                    }
+                });
             });
         });
     }
