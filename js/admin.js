@@ -783,11 +783,14 @@ class AdminPanel {
     }
 
     saveIntroSettings() {
+        const currentIntroCustom = this.data.introCustom || {};
         const introCustom = {
             enabled: true,
             backgroundImage: document.getElementById('intro-bg-image')?.value || '',
             texts: [],
-            buttons: []
+            buttons: [],
+            buttonPosition: currentIntroCustom.buttonPosition || 'middle-center',
+            buttonOffsetY: currentIntroCustom.buttonOffsetY || 0
         };
 
         // Collect texts
@@ -1210,12 +1213,15 @@ class AdminPanel {
     }
 
     saveIntroPanelSettings() {
+        const currentIntroCustom = this.data.introCustom || {};
         const introCustom = {
             enabled: true,
             backgroundImage: document.getElementById('intro-panel-bg-image')?.value || '',
             showDefaultCards: document.getElementById('intro-panel-show-default-cards')?.checked !== false,
             texts: [],
-            buttons: []
+            buttons: [],
+            buttonPosition: currentIntroCustom.buttonPosition || 'middle-center',
+            buttonOffsetY: currentIntroCustom.buttonOffsetY || 0
         };
 
         document.querySelectorAll('.intro-panel-text-item').forEach(item => {
