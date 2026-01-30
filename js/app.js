@@ -2258,6 +2258,7 @@ window.showPortfolioDetail = function(itemId) {
     // Thumbnail click handlers
     const thumbs = modal.querySelectorAll('.portfolio-detail-thumb');
     const mainImage = modal.querySelector('.portfolio-detail-main-image img');
+    const mainImageContainer = modal.querySelector('.portfolio-detail-main-image');
 
     thumbs.forEach(thumb => {
         thumb.addEventListener('click', () => {
@@ -2271,6 +2272,11 @@ window.showPortfolioDetail = function(itemId) {
             // Update main image
             if (mainImage && imageUrl) {
                 mainImage.src = imageUrl;
+            }
+
+            // Scroll to top of main image container
+            if (mainImageContainer) {
+                mainImageContainer.scrollTop = 0;
             }
         });
     });

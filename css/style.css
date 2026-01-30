@@ -1060,6 +1060,7 @@ ul, ol {
     width: 100%;
     aspect-ratio: 16/10;
     object-fit: cover;
+    object-position: top;
     transition: transform var(--transition-normal);
 }
 
