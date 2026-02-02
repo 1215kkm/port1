@@ -1685,12 +1685,15 @@ class PageInitializer {
         const relatedContainer = document.querySelector('[data-content="related-experience"]');
         if (relatedContainer) {
             const related = this.data.relatedExperience;
-            const calculatedTotal = this.calculateTotalExperience(related.items);
+            // 직접 입력한 totalPeriod가 있으면 그 값을 사용, 없으면 합산
+            const displayTotal = related.totalPeriod && related.totalPeriod.trim()
+                ? related.totalPeriod
+                : this.calculateTotalExperience(related.items);
             const relatedTitle = sectionTitles.related || '관련경력';
             relatedContainer.innerHTML = `
                 <h3 class="experience-title">
                     ${relatedTitle}
-                    <span class="experience-badge">${calculatedTotal}</span>
+                    <span class="experience-badge">${displayTotal}</span>
                 </h3>
                 <div class="experience-list">
                     ${related.items.map((item, i) => `
@@ -1712,12 +1715,15 @@ class PageInitializer {
         const otherContainer = document.querySelector('[data-content="other-experience"]');
         if (otherContainer) {
             const other = this.data.otherExperience;
-            const calculatedTotal = this.calculateTotalExperience(other.items);
+            // 직접 입력한 totalPeriod가 있으면 그 값을 사용, 없으면 합산
+            const displayTotal = other.totalPeriod && other.totalPeriod.trim()
+                ? other.totalPeriod
+                : this.calculateTotalExperience(other.items);
             const otherTitle = sectionTitles.other || '기타경력';
             otherContainer.innerHTML = `
                 <h3 class="experience-title">
                     ${otherTitle}
-                    <span class="experience-badge">${calculatedTotal}</span>
+                    <span class="experience-badge">${displayTotal}</span>
                 </h3>
                 <div class="experience-list">
                     ${other.items.map((item, i) => `
