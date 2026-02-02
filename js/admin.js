@@ -4043,6 +4043,63 @@ class AdminPanel {
                 this.updateBackgroundPreview(section, urlInput.value);
             });
         });
+
+        // Body background clear button
+        const bodyClearBtn = document.getElementById('btn-bg-body-clear');
+        if (bodyClearBtn) {
+            bodyClearBtn.addEventListener('click', () => {
+                this.clearBodyBackground();
+            });
+        }
+
+        // Section background clear buttons
+        const sectionClearBtns = document.querySelectorAll('.section-bg-clear');
+        sectionClearBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const section = btn.dataset.section;
+                const type = btn.dataset.type;
+                this.clearSectionBackground(section, type);
+            });
+        });
+    }
+
+    clearBodyBackground() {
+        // Clear body background inputs
+        const imageEl = document.getElementById('bg-body-image');
+        const sizeEl = document.getElementById('bg-body-size');
+        const positionEl = document.getElementById('bg-body-position');
+        const repeatEl = document.getElementById('bg-body-repeat');
+        const attachmentEl = document.getElementById('bg-body-attachment');
+        const opacityEl = document.getElementById('bg-body-opacity');
+
+        if (imageEl) imageEl.value = '';
+        if (sizeEl) sizeEl.value = 'cover';
+        if (positionEl) positionEl.value = 'center center';
+        if (repeatEl) repeatEl.value = 'no-repeat';
+        if (attachmentEl) attachmentEl.value = 'scroll';
+        if (opacityEl) opacityEl.value = 1;
+
+        this.updateBackgroundPreview('body', '');
+        this.saveBackgroundSettings(true);
+        alert('전체 페이지 배경이 삭제되었습니다.');
+    }
+
+    clearSectionBackground(section, type) {
+        if (type === 'image') {
+            const imageEl = document.getElementById(`bg-${section}-image`);
+            if (imageEl) imageEl.value = '';
+            this.updateBackgroundPreview(section, '');
+        } else if (type === 'color') {
+            const colorEl = document.getElementById(`bg-${section}-color`);
+            const colorTextEl = document.getElementById(`bg-${section}-color-text`);
+            if (colorEl) colorEl.value = '#ffffff';
+            if (colorTextEl) colorTextEl.value = '';
+        }
+        this.saveBackgroundSettings(true);
+
+        const sectionNames = { about: '자기소개', portfolio: '작품 섹션', contact: '연락처' };
+        const typeNames = { image: '배경 이미지', color: '배경색' };
+        alert(`${sectionNames[section]} ${typeNames[type]}이(가) 삭제되었습니다.`);
     }
 
     saveBackgroundSettings(silent = false) {

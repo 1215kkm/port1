@@ -1757,7 +1757,10 @@
                                     <div style="flex: 1;">
                                         <input type="text" class="form-input" id="bg-body-image" placeholder="이미지 URL 또는 파일 업로드">
                                         <input type="file" id="bg-body-file" accept="image/*" style="display: none;">
-                                        <button type="button" class="btn btn-secondary btn-sm" id="btn-bg-body-upload" style="margin-top: var(--space-sm);">이미지 선택</button>
+                                        <div style="display: flex; gap: var(--space-sm); margin-top: var(--space-sm);">
+                                            <button type="button" class="btn btn-secondary btn-sm" id="btn-bg-body-upload">이미지 선택</button>
+                                            <button type="button" class="btn btn-danger btn-sm" id="btn-bg-body-clear">배경 삭제</button>
+                                        </div>
                                     </div>
                                     <div id="bg-body-preview" style="width: 80px; height: 60px; border: 1px solid var(--color-border); border-radius: var(--radius-sm); overflow: hidden; display: flex; align-items: center; justify-content: center; background: var(--color-bg-secondary);">
                                         <span style="color: var(--color-text-muted); font-size: 10px;">미리보기</span>
@@ -1808,6 +1811,7 @@
                                             <input type="text" class="form-input" id="bg-about-image" placeholder="이미지 URL" style="flex: 1;">
                                             <input type="file" id="bg-about-file" accept="image/*" style="display: none;">
                                             <button type="button" class="btn btn-secondary btn-sm section-bg-upload" data-section="about">📁</button>
+                                            <button type="button" class="btn btn-danger btn-sm section-bg-clear" data-section="about" data-type="image" title="이미지 삭제">✕</button>
                                             <div id="bg-about-preview" style="width: 40px; height: 40px; border: 1px solid var(--color-border); border-radius: 4px; overflow: hidden; background: var(--color-bg-secondary);"></div>
                                         </div>
                                     </div>
@@ -1816,6 +1820,7 @@
                                         <div style="display: flex; gap: var(--space-sm); align-items: center;">
                                             <input type="color" id="bg-about-color" value="#ffffff" style="width: 40px; height: 32px; border: none; cursor: pointer;">
                                             <input type="text" class="form-input" id="bg-about-color-text" placeholder="#ffffff" style="flex: 1;">
+                                            <button type="button" class="btn btn-danger btn-sm section-bg-clear" data-section="about" data-type="color" title="배경색 삭제">✕</button>
                                         </div>
                                     </div>
                                 </div>
@@ -1830,6 +1835,7 @@
                                             <input type="text" class="form-input" id="bg-portfolio-image" placeholder="이미지 URL" style="flex: 1;">
                                             <input type="file" id="bg-portfolio-file" accept="image/*" style="display: none;">
                                             <button type="button" class="btn btn-secondary btn-sm section-bg-upload" data-section="portfolio">📁</button>
+                                            <button type="button" class="btn btn-danger btn-sm section-bg-clear" data-section="portfolio" data-type="image" title="이미지 삭제">✕</button>
                                             <div id="bg-portfolio-preview" style="width: 40px; height: 40px; border: 1px solid var(--color-border); border-radius: 4px; overflow: hidden; background: var(--color-bg-secondary);"></div>
                                         </div>
                                     </div>
@@ -1838,6 +1844,7 @@
                                         <div style="display: flex; gap: var(--space-sm); align-items: center;">
                                             <input type="color" id="bg-portfolio-color" value="#f8f9fa" style="width: 40px; height: 32px; border: none; cursor: pointer;">
                                             <input type="text" class="form-input" id="bg-portfolio-color-text" placeholder="#f8f9fa" style="flex: 1;">
+                                            <button type="button" class="btn btn-danger btn-sm section-bg-clear" data-section="portfolio" data-type="color" title="배경색 삭제">✕</button>
                                         </div>
                                     </div>
                                 </div>
@@ -1852,6 +1859,7 @@
                                             <input type="text" class="form-input" id="bg-contact-image" placeholder="이미지 URL" style="flex: 1;">
                                             <input type="file" id="bg-contact-file" accept="image/*" style="display: none;">
                                             <button type="button" class="btn btn-secondary btn-sm section-bg-upload" data-section="contact">📁</button>
+                                            <button type="button" class="btn btn-danger btn-sm section-bg-clear" data-section="contact" data-type="image" title="이미지 삭제">✕</button>
                                             <div id="bg-contact-preview" style="width: 40px; height: 40px; border: 1px solid var(--color-border); border-radius: 4px; overflow: hidden; background: var(--color-bg-secondary);"></div>
                                         </div>
                                     </div>
@@ -1860,6 +1868,7 @@
                                         <div style="display: flex; gap: var(--space-sm); align-items: center;">
                                             <input type="color" id="bg-contact-color" value="#f8f9fa" style="width: 40px; height: 32px; border: none; cursor: pointer;">
                                             <input type="text" class="form-input" id="bg-contact-color-text" placeholder="#f8f9fa" style="flex: 1;">
+                                            <button type="button" class="btn btn-danger btn-sm section-bg-clear" data-section="contact" data-type="color" title="배경색 삭제">✕</button>
                                         </div>
                                     </div>
                                 </div>
