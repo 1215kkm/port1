@@ -14,30 +14,43 @@ const IMAGE_UPLOAD_CONFIG = {
 // Helper function to upload image to Firebase Storage
 async function uploadImageToStorage(file, path = 'images') {
     try {
-        // Check file size limit
+        let uploadFile = file;
+        let wasCompressed = false;
+
+        // Auto-compress if file exceeds max size
         if (file.size > IMAGE_UPLOAD_CONFIG.maxFileSize) {
-            const maxMB = (IMAGE_UPLOAD_CONFIG.maxFileSize / 1024 / 1024).toFixed(0);
-            const fileMB = (file.size / 1024 / 1024).toFixed(1);
-            alert(`파일이 너무 큽니다!\n\n최대: ${maxMB}MB\n현재: ${fileMB}MB\n\n더 작은 이미지를 사용하거나 이미지 편집 프로그램에서 크기를 줄여주세요.`);
-            return null;
+            const originalMB = (file.size / 1024 / 1024).toFixed(1);
+            console.log(`[Upload] File exceeds ${(IMAGE_UPLOAD_CONFIG.maxFileSize / 1024 / 1024).toFixed(0)}MB limit. Auto-compressing...`);
+
+            try {
+                uploadFile = await compressImageToTargetSize(file, IMAGE_UPLOAD_CONFIG.maxFileSize);
+                wasCompressed = true;
+                const compressedMB = (uploadFile.size / 1024 / 1024).toFixed(1);
+                showToast(`이미지가 자동 압축되었습니다 (${originalMB}MB → ${compressedMB}MB)`, 'success', 4000);
+            } catch (compressError) {
+                console.error('[Upload] Auto-compression failed:', compressError);
+                const maxMB = (IMAGE_UPLOAD_CONFIG.maxFileSize / 1024 / 1024).toFixed(0);
+                alert(`이미지 자동 압축에 실패했습니다.\n\n최대: ${maxMB}MB\n현재: ${originalMB}MB\n\n더 작은 이미지를 사용해주세요.`);
+                return null;
+            }
         }
 
-        // Warn for large files
-        if (file.size > IMAGE_UPLOAD_CONFIG.warnFileSize) {
-            const fileMB = (file.size / 1024 / 1024).toFixed(1);
+        // Warn for large files (but still upload)
+        if (uploadFile.size > IMAGE_UPLOAD_CONFIG.warnFileSize && !wasCompressed) {
+            const fileMB = (uploadFile.size / 1024 / 1024).toFixed(1);
             console.warn(`[Upload] ⚠️ 큰 파일 (${fileMB}MB) - 업로드가 느릴 수 있습니다`);
         }
 
         const StorageManager = window.getStorageManager ? window.getStorageManager() : null;
         const userId = window.dataManager?.userId;
 
-        console.log(`[Upload] Starting upload for ${file.name} (${(file.size/1024).toFixed(1)}KB) to ${path}`);
+        console.log(`[Upload] Starting upload for ${uploadFile.name} (${(uploadFile.size/1024).toFixed(1)}KB) to ${path}`);
         console.log(`[Upload] StorageManager: ${!!StorageManager}, userId: ${userId ? 'yes' : 'no'}`);
 
         if (StorageManager && userId) {
             // Upload to Firebase Storage
             console.log('[Upload] Attempting Firebase Storage upload...');
-            const result = await StorageManager.uploadImage(userId, file, path);
+            const result = await StorageManager.uploadImage(userId, uploadFile, path);
             if (result.success && result.url) {
                 console.log('[Upload] ✅ Firebase Storage success!');
                 return result.url;
@@ -53,7 +66,7 @@ async function uploadImageToStorage(file, path = 'images') {
                 // Use base64 fallback only if enabled
                 if (IMAGE_UPLOAD_CONFIG.useBase64Fallback) {
                     console.log('[Upload] Using compressed base64 fallback...');
-                    return await fileToBase64(file);
+                    return await fileToBase64(uploadFile);
                 } else {
                     alert(`이미지 업로드 실패: ${result.error}\n\n다시 시도해주세요.`);
                     return null;
@@ -70,13 +83,13 @@ async function uploadImageToStorage(file, path = 'images') {
                 return null;
             }
             console.log('[Upload] Using compressed base64 (no Firebase)...');
-            return await fileToBase64(file);
+            return await fileToBase64(uploadFile);
         }
     } catch (error) {
         console.error('[Upload] Error:', error);
         if (IMAGE_UPLOAD_CONFIG.useBase64Fallback) {
             console.log('[Upload] Using compressed base64 fallback...');
-            return await fileToBase64(file);
+            return await fileToBase64(uploadFile);
         } else {
             alert(`이미지 업로드 중 오류: ${error.message}`);
             return null;
@@ -141,6 +154,135 @@ function compressImage(file, maxWidth = 800, quality = 0.7) {
         reader.onerror = reject;
         reader.readAsDataURL(file);
     });
+}
+
+// Compress image to target size (auto-compress for large files)
+async function compressImageToTargetSize(file, targetSize = 5 * 1024 * 1024) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+            const img = new Image();
+            img.onload = async () => {
+                let quality = 0.9;
+                let maxWidth = Math.min(img.width, 2400);
+                let result = null;
+                let attempts = 0;
+                const maxAttempts = 10;
+
+                while (attempts < maxAttempts) {
+                    const canvas = document.createElement('canvas');
+                    let width = img.width;
+                    let height = img.height;
+
+                    // Scale down if larger than maxWidth
+                    if (width > maxWidth) {
+                        height = (height * maxWidth) / width;
+                        width = maxWidth;
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    // Convert to compressed JPEG
+                    const compressedBase64 = canvas.toDataURL('image/jpeg', quality);
+
+                    // Convert base64 to blob to check size
+                    const blob = await (await fetch(compressedBase64)).blob();
+
+                    console.log(`Compression attempt ${attempts + 1}: ${(blob.size / 1024 / 1024).toFixed(2)}MB (quality: ${quality.toFixed(2)}, maxWidth: ${maxWidth}px)`);
+
+                    if (blob.size <= targetSize) {
+                        result = new File([blob], file.name.replace(/\.[^.]+$/, '.jpg'), { type: 'image/jpeg' });
+                        break;
+                    }
+
+                    // Reduce quality and/or size for next attempt
+                    if (quality > 0.3) {
+                        quality -= 0.1;
+                    } else if (maxWidth > 800) {
+                        maxWidth = Math.floor(maxWidth * 0.75);
+                        quality = 0.7;
+                    } else {
+                        // Can't compress further
+                        result = new File([blob], file.name.replace(/\.[^.]+$/, '.jpg'), { type: 'image/jpeg' });
+                        break;
+                    }
+                    attempts++;
+                }
+
+                if (result) {
+                    console.log(`Final compression: ${(file.size / 1024 / 1024).toFixed(2)}MB → ${(result.size / 1024 / 1024).toFixed(2)}MB`);
+                    resolve(result);
+                } else {
+                    reject(new Error('Failed to compress image'));
+                }
+            };
+            img.onerror = reject;
+            img.src = e.target.result;
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+    });
+}
+
+// Show toast notification
+function showToast(message, type = 'info', duration = 4000) {
+    // Remove existing toast
+    const existingToast = document.querySelector('.upload-toast');
+    if (existingToast) {
+        existingToast.remove();
+    }
+
+    const toast = document.createElement('div');
+    toast.className = 'upload-toast';
+    const bgColor = type === 'success' ? '#4CAF50' : type === 'warning' ? '#FF9800' : type === 'error' ? '#f44336' : '#2196F3';
+    const icon = type === 'success' ? '✓' : type === 'warning' ? '⚠' : type === 'error' ? '✕' : 'ℹ';
+
+    toast.style.cssText = `
+        position: fixed;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: ${bgColor};
+        color: white;
+        padding: 12px 24px;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        z-index: 100000;
+        font-size: 14px;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        animation: toastSlideIn 0.3s ease;
+    `;
+    toast.innerHTML = `<span style="font-size: 18px;">${icon}</span> ${message}`;
+
+    // Add animation keyframes if not exists
+    if (!document.querySelector('#toast-animation-style')) {
+        const style = document.createElement('style');
+        style.id = 'toast-animation-style';
+        style.textContent = `
+            @keyframes toastSlideIn {
+                from { opacity: 0; transform: translateX(-50%) translateY(-20px); }
+                to { opacity: 1; transform: translateX(-50%) translateY(0); }
+            }
+            @keyframes toastSlideOut {
+                from { opacity: 1; transform: translateX(-50%) translateY(0); }
+                to { opacity: 0; transform: translateX(-50%) translateY(-20px); }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
+    document.body.appendChild(toast);
+
+    setTimeout(() => {
+        toast.style.animation = 'toastSlideOut 0.3s ease forwards';
+        setTimeout(() => toast.remove(), 300);
+    }, duration);
 }
 
 // Show loading indicator
@@ -4362,12 +4504,6 @@ class AdminPanel {
             <div class="form-group">
                 <label class="form-label">썸네일 이미지</label>
                 <div id="modal-portfolio-thumbnails-preview" style="display: flex; flex-wrap: wrap; gap: var(--space-sm); margin-bottom: var(--space-sm);">
-                    ${(existing?.thumbnails || []).map((url, i) => `
-                        <div class="thumbnail-preview-item" data-index="${i}" style="position: relative; width: 80px; height: 80px; border: 1px solid var(--color-border); border-radius: var(--radius-sm); overflow: hidden;">
-                            ${createImageElement(url, '', 'width: 100%; height: 100%; object-fit: cover;')}
-                            <button type="button" class="btn-remove-thumbnail" data-index="${i}" style="position: absolute; top: 2px; right: 2px; width: 20px; height: 20px; border-radius: 50%; background: rgba(0,0,0,0.6); color: white; border: none; cursor: pointer; font-size: 12px;">✕</button>
-                        </div>
-                    `).join('')}
                 </div>
                 <div style="display: flex; gap: var(--space-sm);">
                     <input type="file" id="modal-portfolio-file" accept="image/*" multiple style="display: none;">
@@ -4391,12 +4527,6 @@ class AdminPanel {
             <div class="form-group">
                 <label class="form-label">상세 이미지</label>
                 <div id="modal-detail-images-preview" style="display: flex; flex-wrap: wrap; gap: var(--space-sm); margin-bottom: var(--space-sm);">
-                    ${(existing?.detailImages || []).map((url, i) => `
-                        <div class="detail-image-item" data-index="${i}" style="position: relative; width: 80px; height: 80px; border: 1px solid var(--color-border); border-radius: var(--radius-sm); overflow: hidden;">
-                            ${createImageElement(url, '', 'width: 100%; height: 100%; object-fit: cover;')}
-                            <button type="button" class="btn-remove-detail-image" data-index="${i}" style="position: absolute; top: 2px; right: 2px; width: 20px; height: 20px; border-radius: 50%; background: rgba(0,0,0,0.6); color: white; border: none; cursor: pointer; font-size: 12px;">✕</button>
-                        </div>
-                    `).join('')}
                 </div>
                 <div style="display: flex; gap: var(--space-sm);">
                     <input type="file" id="modal-detail-images-file" accept="image/*" multiple style="display: none;">
@@ -4471,8 +4601,11 @@ class AdminPanel {
             fileInput.value = '';
         });
 
-        // Bind remove buttons
-        this.bindThumbnailRemove(previewContainer, thumbnailsInput);
+        // Initial thumbnail render with reorder buttons (if thumbnails exist)
+        const initialThumbnails = thumbnailsInput.value ? thumbnailsInput.value.split('|||').filter(s => s) : [];
+        if (initialThumbnails.length > 0) {
+            this.updateThumbnailPreview(previewContainer, initialThumbnails);
+        }
 
         // Detail images upload
         const detailImagesFile = document.getElementById('modal-detail-images-file');
@@ -4498,7 +4631,11 @@ class AdminPanel {
             detailImagesFile.value = '';
         });
 
-        this.bindDetailImageRemove(detailImagesPreview, detailImagesInput);
+        // Initial detail images render with reorder buttons (if images exist)
+        const initialDetailImages = detailImagesInput.value ? detailImagesInput.value.split('|||').filter(s => s) : [];
+        if (initialDetailImages.length > 0) {
+            this.updateDetailImagesPreview(detailImagesPreview, initialDetailImages);
+        }
 
         // Detail descriptions add/remove
         document.getElementById('btn-add-detail-desc')?.addEventListener('click', () => {
