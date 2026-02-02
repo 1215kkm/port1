@@ -92,8 +92,11 @@
     --color-4xl: #212529;
     --color-3xl: #212529;
     --color-2xl: #495057;
+    --color-xl: #495057;
+    --color-lg: #495057;
     --color-base: #495057;
     --color-sm: #6c757d;
+    --color-xs: #6c757d;
 
     /* Logo Text Color */
     --logo-text-color: #212529;
@@ -122,8 +125,11 @@
     --color-4xl: #eaeaea;
     --color-3xl: #eaeaea;
     --color-2xl: #b8b8b8;
+    --color-xl: #b8b8b8;
+    --color-lg: #b8b8b8;
     --color-base: #b8b8b8;
     --color-sm: #888888;
+    --color-xs: #888888;
     --logo-text-color: #ffffff;
 
     --shadow-sm: 0 1px 2px rgba(0,0,0,0.3);
@@ -555,7 +561,7 @@ ul, ol {
 
 .about-motto {
     font-size: var(--font-xl);
-    color: var(--color-text-secondary);
+    color: var(--color-xl);
     font-style: italic;
     padding: var(--space-lg);
     border-left: 4px solid var(--color-primary);
@@ -573,7 +579,7 @@ ul, ol {
     font-size: var(--font-lg);
     font-weight: 600;
     margin-bottom: var(--space-md);
-    color: var(--color-3xl);
+    color: var(--color-lg);
 }
 
 .about-skills-list {
@@ -737,7 +743,7 @@ ul, ol {
 
 .ai-item-desc {
     font-size: var(--font-xs);
-    color: var(--color-text-secondary);
+    color: var(--color-xs);
 }
 
 /* Experience Section */
@@ -761,6 +767,7 @@ ul, ol {
     display: flex;
     align-items: center;
     gap: var(--space-sm);
+    color: var(--color-lg);
 }
 
 .experience-badge {
@@ -768,7 +775,7 @@ ul, ol {
     padding: var(--space-xs) var(--space-sm);
     background: var(--color-bg-tertiary);
     border-radius: var(--radius-sm);
-    color: var(--color-text-secondary);
+    color: var(--color-xs);
 }
 
 .experience-list {
@@ -834,6 +841,7 @@ ul, ol {
     font-size: var(--font-lg);
     font-weight: 600;
     margin-bottom: var(--space-lg);
+    color: var(--color-lg);
 }
 
 .evaluation-text-content {
@@ -1143,7 +1151,7 @@ ul, ol {
     font-size: var(--font-lg);
     font-weight: 600;
     margin-bottom: var(--space-sm);
-    color: var(--color-title2);
+    color: var(--color-lg);
 }
 
 .portfolio-meta {
@@ -1155,7 +1163,7 @@ ul, ol {
 
 .portfolio-meta-item {
     font-size: var(--font-xs);
-    color: var(--color-text-secondary);
+    color: var(--color-xs);
 }
 
 .portfolio-desc {
@@ -1184,7 +1192,7 @@ ul, ol {
 
 .contribution-label {
     font-size: var(--font-xs);
-    color: var(--color-text-muted);
+    color: var(--color-xs);
 }
 
 .contribution-bar {

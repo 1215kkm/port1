@@ -2365,8 +2365,11 @@ class AdminPanel {
             '4xl': document.getElementById('font-size-4xl')?.value || '2.25rem',
             '3xl': document.getElementById('font-size-3xl')?.value || '1.875rem',
             '2xl': document.getElementById('font-size-2xl')?.value || '1.5rem',
+            'xl': document.getElementById('font-size-xl')?.value || '1.25rem',
+            'lg': document.getElementById('font-size-lg')?.value || '1.125rem',
             'base': document.getElementById('font-size-base')?.value || '1rem',
-            'sm': document.getElementById('font-size-sm')?.value || '0.875rem'
+            'sm': document.getElementById('font-size-sm')?.value || '0.875rem',
+            'xs': document.getElementById('font-size-xs')?.value || '0.75rem'
         };
 
         // Font colors per level (light mode)
@@ -2375,8 +2378,11 @@ class AdminPanel {
             '4xl': document.getElementById('font-color-4xl')?.value || '#212529',
             '3xl': document.getElementById('font-color-3xl')?.value || '#212529',
             '2xl': document.getElementById('font-color-2xl')?.value || '#495057',
+            'xl': document.getElementById('font-color-xl')?.value || '#495057',
+            'lg': document.getElementById('font-color-lg')?.value || '#495057',
             'base': document.getElementById('font-color-base')?.value || '#495057',
-            'sm': document.getElementById('font-color-sm')?.value || '#6c757d'
+            'sm': document.getElementById('font-color-sm')?.value || '#6c757d',
+            'xs': document.getElementById('font-color-xs')?.value || '#6c757d'
         };
 
         // Font colors for dark mode
@@ -2385,8 +2391,11 @@ class AdminPanel {
             '4xl': document.getElementById('font-color-4xl-dark')?.value || '#eaeaea',
             '3xl': document.getElementById('font-color-3xl-dark')?.value || '#eaeaea',
             '2xl': document.getElementById('font-color-2xl-dark')?.value || '#b8b8b8',
+            'xl': document.getElementById('font-color-xl-dark')?.value || '#b8b8b8',
+            'lg': document.getElementById('font-color-lg-dark')?.value || '#b8b8b8',
             'base': document.getElementById('font-color-base-dark')?.value || '#b8b8b8',
-            'sm': document.getElementById('font-color-sm-dark')?.value || '#888888'
+            'sm': document.getElementById('font-color-sm-dark')?.value || '#888888',
+            'xs': document.getElementById('font-color-xs-dark')?.value || '#888888'
         };
 
         dataManager.updateSiteSettings({
@@ -2717,15 +2726,21 @@ class AdminPanel {
         const fontSizeEl4xl = document.getElementById('font-size-4xl');
         const fontSizeEl3xl = document.getElementById('font-size-3xl');
         const fontSizeEl2xl = document.getElementById('font-size-2xl');
+        const fontSizeElXl = document.getElementById('font-size-xl');
+        const fontSizeElLg = document.getElementById('font-size-lg');
         const fontSizeElBase = document.getElementById('font-size-base');
         const fontSizeElSm = document.getElementById('font-size-sm');
+        const fontSizeElXs = document.getElementById('font-size-xs');
 
         if (fontSizeEl5xl) fontSizeEl5xl.value = fontSizes['5xl'] || '3rem';
         if (fontSizeEl4xl) fontSizeEl4xl.value = fontSizes['4xl'] || '2.25rem';
         if (fontSizeEl3xl) fontSizeEl3xl.value = fontSizes['3xl'] || '1.875rem';
         if (fontSizeEl2xl) fontSizeEl2xl.value = fontSizes['2xl'] || '1.5rem';
+        if (fontSizeElXl) fontSizeElXl.value = fontSizes['xl'] || '1.25rem';
+        if (fontSizeElLg) fontSizeElLg.value = fontSizes['lg'] || '1.125rem';
         if (fontSizeElBase) fontSizeElBase.value = fontSizes['base'] || '1rem';
         if (fontSizeElSm) fontSizeElSm.value = fontSizes['sm'] || '0.875rem';
+        if (fontSizeElXs) fontSizeElXs.value = fontSizes['xs'] || '0.75rem';
 
         // Font Colors - with null checks
         const fontColors = settings.font?.colors || {};
@@ -2754,14 +2769,17 @@ class AdminPanel {
 
         // Per-level font colors
         const fontColorsPerLevel = settings.font?.fontColors || {};
-        const colorLevels = ['5xl', '4xl', '3xl', '2xl', 'base', 'sm'];
+        const colorLevels = ['5xl', '4xl', '3xl', '2xl', 'xl', 'lg', 'base', 'sm', 'xs'];
         const defaultColors = {
             '5xl': '#212529',
             '4xl': '#212529',
             '3xl': '#212529',
             '2xl': '#495057',
+            'xl': '#495057',
+            'lg': '#495057',
             'base': '#495057',
-            'sm': '#6c757d'
+            'sm': '#6c757d',
+            'xs': '#6c757d'
         };
 
         colorLevels.forEach(level => {
@@ -2790,8 +2808,11 @@ class AdminPanel {
             '4xl': '#eaeaea',
             '3xl': '#eaeaea',
             '2xl': '#b8b8b8',
+            'xl': '#b8b8b8',
+            'lg': '#b8b8b8',
             'base': '#b8b8b8',
-            'sm': '#888888'
+            'sm': '#888888',
+            'xs': '#888888'
         };
 
         colorLevels.forEach(level => {

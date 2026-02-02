@@ -1393,8 +1393,11 @@ class PageInitializer {
         if (fontSizes['4xl']) document.documentElement.style.setProperty('--font-4xl', fontSizes['4xl']);
         if (fontSizes['3xl']) document.documentElement.style.setProperty('--font-3xl', fontSizes['3xl']);
         if (fontSizes['2xl']) document.documentElement.style.setProperty('--font-2xl', fontSizes['2xl']);
+        if (fontSizes['xl']) document.documentElement.style.setProperty('--font-xl', fontSizes['xl']);
+        if (fontSizes['lg']) document.documentElement.style.setProperty('--font-lg', fontSizes['lg']);
         if (fontSizes['base']) document.documentElement.style.setProperty('--font-base', fontSizes['base']);
         if (fontSizes['sm']) document.documentElement.style.setProperty('--font-sm', fontSizes['sm']);
+        if (fontSizes['xs']) document.documentElement.style.setProperty('--font-xs', fontSizes['xs']);
 
         // Apply font colors
         if (colors.title1) {
@@ -1413,16 +1416,19 @@ class PageInitializer {
 
         // Apply per-level font colors based on theme
         const fontColors = isDark ? (font.colorsDark || {}) : (font.fontColors || {});
-        const defaultColorsLight = { '5xl': '#212529', '4xl': '#212529', '3xl': '#212529', '2xl': '#495057', 'base': '#495057', 'sm': '#6c757d' };
-        const defaultColorsDark = { '5xl': '#eaeaea', '4xl': '#eaeaea', '3xl': '#eaeaea', '2xl': '#b8b8b8', 'base': '#b8b8b8', 'sm': '#888888' };
+        const defaultColorsLight = { '5xl': '#212529', '4xl': '#212529', '3xl': '#212529', '2xl': '#495057', 'xl': '#495057', 'lg': '#495057', 'base': '#495057', 'sm': '#6c757d', 'xs': '#6c757d' };
+        const defaultColorsDark = { '5xl': '#eaeaea', '4xl': '#eaeaea', '3xl': '#eaeaea', '2xl': '#b8b8b8', 'xl': '#b8b8b8', 'lg': '#b8b8b8', 'base': '#b8b8b8', 'sm': '#888888', 'xs': '#888888' };
         const defaults = isDark ? defaultColorsDark : defaultColorsLight;
 
         document.documentElement.style.setProperty('--color-5xl', fontColors['5xl'] || defaults['5xl']);
         document.documentElement.style.setProperty('--color-4xl', fontColors['4xl'] || defaults['4xl']);
         document.documentElement.style.setProperty('--color-3xl', fontColors['3xl'] || defaults['3xl']);
         document.documentElement.style.setProperty('--color-2xl', fontColors['2xl'] || defaults['2xl']);
+        document.documentElement.style.setProperty('--color-xl', fontColors['xl'] || defaults['xl']);
+        document.documentElement.style.setProperty('--color-lg', fontColors['lg'] || defaults['lg']);
         document.documentElement.style.setProperty('--color-base', fontColors['base'] || defaults['base']);
         document.documentElement.style.setProperty('--color-sm', fontColors['sm'] || defaults['sm']);
+        document.documentElement.style.setProperty('--color-xs', fontColors['xs'] || defaults['xs']);
 
         // Apply logo text color based on theme
         const logo = settings?.logo || {};
