@@ -2099,6 +2099,8 @@ class AdminPanel {
         document.getElementById('btn-add-menu')?.addEventListener('click', () => this.showMenuModal());
         document.getElementById('btn-add-ai-tool')?.addEventListener('click', () => this.showAIToolModal());
         document.getElementById('btn-add-certificate')?.addEventListener('click', () => this.showCertificateModal());
+        document.getElementById('btn-add-education')?.addEventListener('click', () => this.showEducationModal());
+        document.getElementById('btn-add-custom-link')?.addEventListener('click', () => this.showCustomLinkModal());
         document.getElementById('btn-add-related')?.addEventListener('click', () => this.showExperienceModal('related'));
         document.getElementById('btn-add-other')?.addEventListener('click', () => this.showExperienceModal('other'));
         document.getElementById('btn-add-portfolio-ai')?.addEventListener('click', () => this.showProjectModal('ai'));
@@ -2422,7 +2424,6 @@ class AdminPanel {
             showEmployment: document.getElementById('profile-show-employment')?.checked || false,
             jobRoles: (document.getElementById('profile-roles')?.value || '').split(',').map(s => s.trim()).filter(s => s),
             skills: (document.getElementById('profile-skills')?.value || '').split(',').map(s => s.trim()).filter(s => s),
-            education: document.getElementById('profile-education')?.value || '',
             residence: document.getElementById('profile-residence')?.value || '',
             motto: document.getElementById('profile-motto')?.value || '',
             profileImage: document.getElementById('profile-image')?.value || ''
@@ -2855,10 +2856,15 @@ class AdminPanel {
         document.getElementById('profile-show-employment').checked = profile.showEmployment !== false;
         document.getElementById('profile-roles').value = (profile.jobRoles || []).join(', ');
         document.getElementById('profile-skills').value = (profile.skills || []).join(', ');
-        document.getElementById('profile-education').value = profile.education || '';
         document.getElementById('profile-residence').value = profile.residence || '';
         document.getElementById('profile-motto').value = profile.motto || '';
         document.getElementById('profile-image').value = profile.profileImage || '';
+
+        // 기존 education 필드를 educations 배열로 마이그레이션
+        if (profile.education && (!profile.educations || profile.educations.length === 0)) {
+            profile.educations = [{ name: profile.education, date: '' }];
+            dataManager.updateProfile({ educations: profile.educations });
+        }
 
         // Profile image preview
         if (profile.profileImage) {
@@ -2868,6 +2874,12 @@ class AdminPanel {
 
         // Certificates rendering
         this.renderCertificates();
+
+        // Educations rendering
+        this.renderEducations();
+
+        // Custom links rendering
+        this.renderCustomLinks();
     }
 
     renderCertificates() {
@@ -2949,6 +2961,178 @@ class AdminPanel {
 
             dataManager.updateProfile({ certificates: this.data.profile.certificates });
             this.renderCertificates();
+            this.closeModal();
+            this.refreshPreview();
+        });
+
+        document.getElementById('modal-cancel').addEventListener('click', () => this.closeModal());
+    }
+
+    renderEducations() {
+        const container = document.getElementById('educations-list');
+        if (!container) return;
+
+        const educations = this.data.profile.educations || [];
+
+        container.innerHTML = educations.map((edu, index) => `
+            <div class="item-card" data-index="${index}">
+                <div class="item-card-content">
+                    <div class="item-card-title">${edu.name || '교육기관명'}</div>
+                    <div class="item-card-desc">수료일: ${edu.date || '-'}</div>
+                </div>
+                <div class="item-card-actions">
+                    <button class="btn-icon btn-icon-edit" data-action="edit-education" data-index="${index}">✏️</button>
+                    <button class="btn-icon btn-icon-delete" data-action="delete-education" data-index="${index}">🗑️</button>
+                </div>
+            </div>
+        `).join('');
+
+        container.querySelectorAll('[data-action="edit-education"]').forEach(btn => {
+            btn.addEventListener('click', () => this.showEducationModal(parseInt(btn.dataset.index)));
+        });
+
+        container.querySelectorAll('[data-action="delete-education"]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                if (confirm('이 교육이수를 삭제하시겠습니까?')) {
+                    const index = parseInt(btn.dataset.index);
+                    this.data.profile.educations = this.data.profile.educations || [];
+                    this.data.profile.educations.splice(index, 1);
+                    dataManager.updateProfile({ educations: this.data.profile.educations });
+                    this.renderEducations();
+                    this.refreshPreview();
+                }
+            });
+        });
+    }
+
+    showEducationModal(editIndex = -1) {
+        const isEdit = editIndex >= 0;
+        const edu = isEdit ? (this.data.profile.educations || [])[editIndex] : null;
+
+        const content = `
+            <div class="form-group">
+                <label class="form-label">교육기관명</label>
+                <input type="text" class="form-input" id="modal-education-name" value="${edu?.name || ''}" placeholder="예: OO컴퓨터학원">
+            </div>
+            <div class="form-group">
+                <label class="form-label">수료일</label>
+                <input type="text" class="form-input" id="modal-education-date" value="${edu?.date || ''}" placeholder="예: 2024.03">
+            </div>
+            <div class="form-actions">
+                <button class="btn btn-primary" id="modal-save">${isEdit ? '수정' : '추가'}</button>
+                <button class="btn btn-secondary" id="modal-cancel">취소</button>
+            </div>
+        `;
+
+        this.openModal(isEdit ? '교육이수 수정' : '교육이수 추가', content);
+
+        document.getElementById('modal-save').addEventListener('click', () => {
+            const name = document.getElementById('modal-education-name').value.trim();
+            const date = document.getElementById('modal-education-date').value.trim();
+
+            if (!name) {
+                alert('교육기관명을 입력해주세요.');
+                return;
+            }
+
+            this.data.profile.educations = this.data.profile.educations || [];
+
+            if (isEdit) {
+                this.data.profile.educations[editIndex] = { name, date };
+            } else {
+                this.data.profile.educations.push({ name, date });
+            }
+
+            dataManager.updateProfile({ educations: this.data.profile.educations });
+            this.renderEducations();
+            this.closeModal();
+            this.refreshPreview();
+        });
+
+        document.getElementById('modal-cancel').addEventListener('click', () => this.closeModal());
+    }
+
+    renderCustomLinks() {
+        const container = document.getElementById('custom-links-list');
+        if (!container) return;
+
+        const customLinks = this.data.profile.customLinks || [];
+
+        container.innerHTML = customLinks.map((link, index) => `
+            <div class="item-card" data-index="${index}">
+                <div class="item-card-content">
+                    <div class="item-card-title">${link.label || '버튼명'}</div>
+                    <div class="item-card-desc">${link.url || '-'}</div>
+                </div>
+                <div class="item-card-actions">
+                    <button class="btn-icon btn-icon-edit" data-action="edit-custom-link" data-index="${index}">✏️</button>
+                    <button class="btn-icon btn-icon-delete" data-action="delete-custom-link" data-index="${index}">🗑️</button>
+                </div>
+            </div>
+        `).join('');
+
+        container.querySelectorAll('[data-action="edit-custom-link"]').forEach(btn => {
+            btn.addEventListener('click', () => this.showCustomLinkModal(parseInt(btn.dataset.index)));
+        });
+
+        container.querySelectorAll('[data-action="delete-custom-link"]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                if (confirm('이 링크 버튼을 삭제하시겠습니까?')) {
+                    const index = parseInt(btn.dataset.index);
+                    this.data.profile.customLinks = this.data.profile.customLinks || [];
+                    this.data.profile.customLinks.splice(index, 1);
+                    dataManager.updateProfile({ customLinks: this.data.profile.customLinks });
+                    this.renderCustomLinks();
+                    this.refreshPreview();
+                }
+            });
+        });
+    }
+
+    showCustomLinkModal(editIndex = -1) {
+        const isEdit = editIndex >= 0;
+        const link = isEdit ? (this.data.profile.customLinks || [])[editIndex] : null;
+
+        const content = `
+            <div class="form-group">
+                <label class="form-label">버튼 이름</label>
+                <input type="text" class="form-input" id="modal-link-label" value="${link?.label || ''}" placeholder="예: 포트폴리오 사이트">
+            </div>
+            <div class="form-group">
+                <label class="form-label">URL</label>
+                <input type="text" class="form-input" id="modal-link-url" value="${link?.url || ''}" placeholder="예: https://example.com">
+            </div>
+            <div class="form-actions">
+                <button class="btn btn-primary" id="modal-save">${isEdit ? '수정' : '추가'}</button>
+                <button class="btn btn-secondary" id="modal-cancel">취소</button>
+            </div>
+        `;
+
+        this.openModal(isEdit ? '링크 버튼 수정' : '링크 버튼 추가', content);
+
+        document.getElementById('modal-save').addEventListener('click', () => {
+            const label = document.getElementById('modal-link-label').value.trim();
+            const url = document.getElementById('modal-link-url').value.trim();
+
+            if (!label) {
+                alert('버튼 이름을 입력해주세요.');
+                return;
+            }
+            if (!url) {
+                alert('URL을 입력해주세요.');
+                return;
+            }
+
+            this.data.profile.customLinks = this.data.profile.customLinks || [];
+
+            if (isEdit) {
+                this.data.profile.customLinks[editIndex] = { label, url };
+            } else {
+                this.data.profile.customLinks.push({ label, url });
+            }
+
+            dataManager.updateProfile({ customLinks: this.data.profile.customLinks });
+            this.renderCustomLinks();
             this.closeModal();
             this.refreshPreview();
         });
@@ -4316,14 +4500,21 @@ class AdminPanel {
 
     updateThumbnailPreview(container, thumbnails) {
         container.innerHTML = thumbnails.map((url, i) => `
-            <div class="thumbnail-preview-item" data-index="${i}" style="position: relative; width: 80px; height: 80px; border: 1px solid var(--color-border); border-radius: var(--radius-sm); overflow: hidden;">
-                ${createImageElement(url, '', 'width: 100%; height: 100%; object-fit: cover;')}
-                <button type="button" class="btn-remove-thumbnail" data-index="${i}" style="position: absolute; top: 2px; right: 2px; width: 20px; height: 20px; border-radius: 50%; background: rgba(0,0,0,0.6); color: white; border: none; cursor: pointer; font-size: 12px;">✕</button>
+            <div class="thumbnail-preview-item" data-index="${i}" style="position: relative; width: 80px; height: 100px; border: 1px solid var(--color-border); border-radius: var(--radius-sm); overflow: hidden; display: flex; flex-direction: column;">
+                <div style="position: relative; width: 100%; height: 80px; overflow: hidden;">
+                    ${createImageElement(url, '', 'width: 100%; height: 100%; object-fit: cover;')}
+                    <button type="button" class="btn-remove-thumbnail" data-index="${i}" style="position: absolute; top: 2px; right: 2px; width: 20px; height: 20px; border-radius: 50%; background: rgba(0,0,0,0.6); color: white; border: none; cursor: pointer; font-size: 12px;">✕</button>
+                </div>
+                <div style="display: flex; justify-content: center; gap: 2px; padding: 2px; background: var(--color-bg-secondary);">
+                    <button type="button" class="btn-move-thumbnail" data-index="${i}" data-direction="left" style="width: 24px; height: 18px; border: none; background: ${i === 0 ? '#666' : 'var(--color-primary)'}; color: white; cursor: ${i === 0 ? 'default' : 'pointer'}; border-radius: 3px; font-size: 10px;" ${i === 0 ? 'disabled' : ''}>◀</button>
+                    <button type="button" class="btn-move-thumbnail" data-index="${i}" data-direction="right" style="width: 24px; height: 18px; border: none; background: ${i === thumbnails.length - 1 ? '#666' : 'var(--color-primary)'}; color: white; cursor: ${i === thumbnails.length - 1 ? 'default' : 'pointer'}; border-radius: 3px; font-size: 10px;" ${i === thumbnails.length - 1 ? 'disabled' : ''}>▶</button>
+                </div>
             </div>
         `).join('');
 
         const thumbnailsInput = document.getElementById('modal-portfolio-thumbnails');
         this.bindThumbnailRemove(container, thumbnailsInput);
+        this.bindThumbnailReorder(container, thumbnailsInput);
     }
 
     bindThumbnailRemove(container, thumbnailsInput) {
@@ -4338,16 +4529,42 @@ class AdminPanel {
         });
     }
 
+    bindThumbnailReorder(container, thumbnailsInput) {
+        container.querySelectorAll('.btn-move-thumbnail').forEach(btn => {
+            btn.onclick = () => {
+                const index = parseInt(btn.dataset.index);
+                const direction = btn.dataset.direction;
+                const currentThumbnails = thumbnailsInput.value ? thumbnailsInput.value.split('|||').filter(s => s) : [];
+
+                if (direction === 'left' && index > 0) {
+                    [currentThumbnails[index], currentThumbnails[index - 1]] = [currentThumbnails[index - 1], currentThumbnails[index]];
+                } else if (direction === 'right' && index < currentThumbnails.length - 1) {
+                    [currentThumbnails[index], currentThumbnails[index + 1]] = [currentThumbnails[index + 1], currentThumbnails[index]];
+                }
+
+                thumbnailsInput.value = currentThumbnails.join('|||');
+                this.updateThumbnailPreview(container, currentThumbnails);
+            };
+        });
+    }
+
     updateProjectImagePreview(container, images) {
         container.innerHTML = images.map((url, i) => `
-            <div class="thumbnail-preview-item" data-index="${i}" style="position: relative; width: 80px; height: 80px; border: 1px solid var(--color-border); border-radius: var(--radius-sm); overflow: hidden;">
-                ${createImageElement(url, '', 'width: 100%; height: 100%; object-fit: cover;')}
-                <button type="button" class="btn-remove-project-image" data-index="${i}" style="position: absolute; top: 2px; right: 2px; width: 20px; height: 20px; border-radius: 50%; background: rgba(0,0,0,0.6); color: white; border: none; cursor: pointer; font-size: 12px;">✕</button>
+            <div class="thumbnail-preview-item" data-index="${i}" style="position: relative; width: 80px; height: 100px; border: 1px solid var(--color-border); border-radius: var(--radius-sm); overflow: hidden; display: flex; flex-direction: column;">
+                <div style="position: relative; width: 100%; height: 80px; overflow: hidden;">
+                    ${createImageElement(url, '', 'width: 100%; height: 100%; object-fit: cover;')}
+                    <button type="button" class="btn-remove-project-image" data-index="${i}" style="position: absolute; top: 2px; right: 2px; width: 20px; height: 20px; border-radius: 50%; background: rgba(0,0,0,0.6); color: white; border: none; cursor: pointer; font-size: 12px;">✕</button>
+                </div>
+                <div style="display: flex; justify-content: center; gap: 2px; padding: 2px; background: var(--color-bg-secondary);">
+                    <button type="button" class="btn-move-project-image" data-index="${i}" data-direction="left" style="width: 24px; height: 18px; border: none; background: ${i === 0 ? '#666' : 'var(--color-primary)'}; color: white; cursor: ${i === 0 ? 'default' : 'pointer'}; border-radius: 3px; font-size: 10px;" ${i === 0 ? 'disabled' : ''}>◀</button>
+                    <button type="button" class="btn-move-project-image" data-index="${i}" data-direction="right" style="width: 24px; height: 18px; border: none; background: ${i === images.length - 1 ? '#666' : 'var(--color-primary)'}; color: white; cursor: ${i === images.length - 1 ? 'default' : 'pointer'}; border-radius: 3px; font-size: 10px;" ${i === images.length - 1 ? 'disabled' : ''}>▶</button>
+                </div>
             </div>
         `).join('');
 
         const imagesInput = document.getElementById('modal-project-images');
         this.bindProjectImageRemove(container, imagesInput);
+        this.bindProjectImageReorder(container, imagesInput);
     }
 
     bindProjectImageRemove(container, imagesInput) {
@@ -4356,6 +4573,25 @@ class AdminPanel {
                 const index = parseInt(btn.dataset.index);
                 const currentImages = imagesInput.value ? imagesInput.value.split('|||').filter(s => s) : [];
                 currentImages.splice(index, 1);
+                imagesInput.value = currentImages.join('|||');
+                this.updateProjectImagePreview(container, currentImages);
+            };
+        });
+    }
+
+    bindProjectImageReorder(container, imagesInput) {
+        container.querySelectorAll('.btn-move-project-image').forEach(btn => {
+            btn.onclick = () => {
+                const index = parseInt(btn.dataset.index);
+                const direction = btn.dataset.direction;
+                const currentImages = imagesInput.value ? imagesInput.value.split('|||').filter(s => s) : [];
+
+                if (direction === 'left' && index > 0) {
+                    [currentImages[index], currentImages[index - 1]] = [currentImages[index - 1], currentImages[index]];
+                } else if (direction === 'right' && index < currentImages.length - 1) {
+                    [currentImages[index], currentImages[index + 1]] = [currentImages[index + 1], currentImages[index]];
+                }
+
                 imagesInput.value = currentImages.join('|||');
                 this.updateProjectImagePreview(container, currentImages);
             };
@@ -4377,14 +4613,21 @@ class AdminPanel {
 
     updateDetailImagesPreview(container, images) {
         container.innerHTML = images.map((url, i) => `
-            <div class="detail-image-item" data-index="${i}" style="position: relative; width: 80px; height: 80px; border: 1px solid var(--color-border); border-radius: var(--radius-sm); overflow: hidden;">
-                ${createImageElement(url, '', 'width: 100%; height: 100%; object-fit: cover;')}
-                <button type="button" class="btn-remove-detail-image" data-index="${i}" style="position: absolute; top: 2px; right: 2px; width: 20px; height: 20px; border-radius: 50%; background: rgba(0,0,0,0.6); color: white; border: none; cursor: pointer; font-size: 12px;">✕</button>
+            <div class="detail-image-item" data-index="${i}" style="position: relative; width: 80px; height: 100px; border: 1px solid var(--color-border); border-radius: var(--radius-sm); overflow: hidden; display: flex; flex-direction: column;">
+                <div style="position: relative; width: 100%; height: 80px; overflow: hidden;">
+                    ${createImageElement(url, '', 'width: 100%; height: 100%; object-fit: cover;')}
+                    <button type="button" class="btn-remove-detail-image" data-index="${i}" style="position: absolute; top: 2px; right: 2px; width: 20px; height: 20px; border-radius: 50%; background: rgba(0,0,0,0.6); color: white; border: none; cursor: pointer; font-size: 12px;">✕</button>
+                </div>
+                <div style="display: flex; justify-content: center; gap: 2px; padding: 2px; background: var(--color-bg-secondary);">
+                    <button type="button" class="btn-move-detail-image" data-index="${i}" data-direction="left" style="width: 24px; height: 18px; border: none; background: ${i === 0 ? '#666' : 'var(--color-primary)'}; color: white; cursor: ${i === 0 ? 'default' : 'pointer'}; border-radius: 3px; font-size: 10px;" ${i === 0 ? 'disabled' : ''}>◀</button>
+                    <button type="button" class="btn-move-detail-image" data-index="${i}" data-direction="right" style="width: 24px; height: 18px; border: none; background: ${i === images.length - 1 ? '#666' : 'var(--color-primary)'}; color: white; cursor: ${i === images.length - 1 ? 'default' : 'pointer'}; border-radius: 3px; font-size: 10px;" ${i === images.length - 1 ? 'disabled' : ''}>▶</button>
+                </div>
             </div>
         `).join('');
 
         const imagesInput = document.getElementById('modal-detail-images');
         this.bindDetailImageRemove(container, imagesInput);
+        this.bindDetailImageReorder(container, imagesInput);
     }
 
     bindDetailImageRemove(container, imagesInput) {
@@ -4393,6 +4636,25 @@ class AdminPanel {
                 const index = parseInt(btn.dataset.index);
                 const currentImages = imagesInput.value ? imagesInput.value.split('|||').filter(s => s) : [];
                 currentImages.splice(index, 1);
+                imagesInput.value = currentImages.join('|||');
+                this.updateDetailImagesPreview(container, currentImages);
+            };
+        });
+    }
+
+    bindDetailImageReorder(container, imagesInput) {
+        container.querySelectorAll('.btn-move-detail-image').forEach(btn => {
+            btn.onclick = () => {
+                const index = parseInt(btn.dataset.index);
+                const direction = btn.dataset.direction;
+                const currentImages = imagesInput.value ? imagesInput.value.split('|||').filter(s => s) : [];
+
+                if (direction === 'left' && index > 0) {
+                    [currentImages[index], currentImages[index - 1]] = [currentImages[index - 1], currentImages[index]];
+                } else if (direction === 'right' && index < currentImages.length - 1) {
+                    [currentImages[index], currentImages[index + 1]] = [currentImages[index + 1], currentImages[index]];
+                }
+
                 imagesInput.value = currentImages.join('|||');
                 this.updateDetailImagesPreview(container, currentImages);
             };

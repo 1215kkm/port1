@@ -1553,9 +1553,41 @@ class PageInitializer {
             }
         }
 
-        // Education
-        const eduEl = document.querySelector('[data-content="education"]');
-        if (eduEl) eduEl.textContent = profile.education;
+        // Custom Links
+        const customLinksSection = document.querySelector('[data-section="custom-links"]');
+        const customLinksContainer = document.querySelector('.custom-links-container');
+        const customLinks = profile.customLinks || [];
+        if (customLinksContainer) {
+            if (customLinks.length > 0) {
+                customLinksContainer.innerHTML = customLinks.map(link =>
+                    `<a href="${link.url}" target="_blank" rel="noopener noreferrer" class="custom-link-btn">${link.label}</a>`
+                ).join('');
+                if (customLinksSection) customLinksSection.style.display = '';
+            } else {
+                if (customLinksSection) customLinksSection.style.display = 'none';
+            }
+        }
+
+        // Educations
+        const educationsEl = document.querySelector('[data-content="educations"]');
+        const educationsSection = document.querySelector('[data-section="educations"]');
+        const educations = profile.educations || [];
+        // 기존 education 필드와 호환성 유지
+        const hasEducations = educations.length > 0;
+        const hasOldEducation = profile.education && !hasEducations;
+        if (educationsEl) {
+            if (hasEducations) {
+                educationsEl.innerHTML = educations.map(e =>
+                    `<span class="education-tag">${e.name} <span class="education-date">(${e.date || '-'})</span></span>`
+                ).join('');
+                if (educationsSection) educationsSection.style.display = '';
+            } else if (hasOldEducation) {
+                educationsEl.textContent = profile.education;
+                if (educationsSection) educationsSection.style.display = '';
+            } else {
+                if (educationsSection) educationsSection.style.display = 'none';
+            }
+        }
 
         // Residence
         const resEl = document.querySelector('[data-content="residence"]');

@@ -141,7 +141,13 @@ const defaultData = {
         jobRoles: ["쇼핑몰 디자이너", "마케터", "퍼블리셔", "프론트엔드"],
         skills: ["포토샵", "일러스트", "인디자인", "html", "javascript", "포토샵", "일러스트", "인디자인", "html", "javascript", "포토샵", "일러스트", "인디자인", "html", "javascript"],
         certificates: [
-            // { id: 1, name: "컴퓨터그래픽스운용기능사", date: "2024.03" }
+            // { name: "컴퓨터그래픽스운용기능사", date: "2024.03" }
+        ],
+        educations: [
+            // { name: "OO컴퓨터학원", date: "2024.03" }
+        ],
+        customLinks: [
+            // { label: "포트폴리오 사이트", url: "https://example.com" }
         ],
         education: "OO컴퓨터학원",
         residence: "경기 용인시 기흥구 청덕동",

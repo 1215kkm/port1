@@ -605,6 +605,46 @@ ul, ol {
     font-size: 0.9em;
 }
 
+.about-educations-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.education-tag {
+    padding: 0;
+    background: transparent;
+    font-size: var(--font-sm);
+}
+
+.education-date {
+    color: var(--color-text-muted);
+    font-size: 0.9em;
+}
+
+.custom-links-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.custom-link-btn {
+    display: inline-flex;
+    align-items: center;
+    padding: 8px 16px;
+    background: var(--color-primary);
+    color: white;
+    text-decoration: none;
+    border-radius: var(--radius-sm);
+    font-size: var(--font-sm);
+    transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.custom-link-btn:hover {
+    background: var(--color-primary-dark, #0056b3);
+    transform: translateY(-2px);
+}
+
 /* 가능직무 태그 스타일 */
 .job-role-tag {
     padding: 0;
