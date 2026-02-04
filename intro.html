@@ -177,17 +177,9 @@
     </div>
 
     <!-- Theme Toggle -->
-    <div class="theme-toggle">
+    <div class="theme-toggle" style="display:none">
         <button class="theme-toggle-btn" aria-label="테마 변경">🎨</button>
         <div class="theme-menu">
-            <button class="theme-option active" data-theme="light">
-                <span class="theme-color" style="background: #ffffff; border-color: #dee2e6;"></span>
-                라이트 모드
-            </button>
-            <button class="theme-option" data-theme="dark">
-                <span class="theme-color" style="background: #1a1a2e;"></span>
-                다크 모드
-            </button>
         </div>
     </div>
 
@@ -198,27 +190,57 @@
         document.addEventListener('DOMContentLoaded', () => {
             // Wait for dataManager to be ready
             const initPage = () => {
+                // Load settings from dataManager
+                const data = dataManager.getData();
+
                 const themeToggle = document.querySelector('.theme-toggle');
                 const toggleBtn = themeToggle.querySelector('.theme-toggle-btn');
+                const themeMenu = themeToggle.querySelector('.theme-menu');
 
-                toggleBtn.addEventListener('click', () => {
-                    themeToggle.classList.toggle('open');
-                });
+                // Render theme menu based on enabledOnPortfolio settings
+                const themeModes = data.theme?.modes || [];
+                const currentTheme = data.theme?.current || 'light';
+                const enabledThemes = themeModes.filter(mode => mode.enabledOnPortfolio !== false);
 
-                document.addEventListener('click', (e) => {
-                    if (!themeToggle.contains(e.target)) {
-                        themeToggle.classList.remove('open');
-                    }
-                });
+                if (enabledThemes.length >= 2) {
+                    // Multiple themes enabled - show toggle with dynamic menu
+                    themeMenu.innerHTML = enabledThemes.map(mode => {
+                        const isActive = mode.id === currentTheme;
+                        const bgColor = mode.colors?.background || '#ffffff';
+                        const borderStyle = mode.id === 'light' ? 'border-color: #dee2e6;' : '';
+                        return `
+                            <button class="theme-option ${isActive ? 'active' : ''}" data-theme="${mode.id}">
+                                <span class="theme-color" style="background: ${bgColor}; ${borderStyle}"></span>
+                                ${mode.name}
+                            </button>
+                        `;
+                    }).join('');
+                    themeToggle.style.display = '';
 
-                themeToggle.querySelectorAll('.theme-option').forEach(option => {
-                    option.addEventListener('click', () => {
-                        const theme = option.dataset.theme;
-                        dataManager.setTheme(theme);
-                        themeToggle.querySelectorAll('.theme-option').forEach(o => o.classList.remove('active'));
-                        option.classList.add('active');
+                    toggleBtn.addEventListener('click', () => {
+                        themeToggle.classList.toggle('open');
                     });
-                });
+
+                    document.addEventListener('click', (e) => {
+                        if (!themeToggle.contains(e.target)) {
+                            themeToggle.classList.remove('open');
+                        }
+                    });
+
+                    themeToggle.querySelectorAll('.theme-option').forEach(option => {
+                        option.addEventListener('click', () => {
+                            const theme = option.dataset.theme;
+                            dataManager.setTheme(theme);
+                            themeToggle.querySelectorAll('.theme-option').forEach(o => o.classList.remove('active'));
+                            option.classList.add('active');
+                        });
+                    });
+                } else {
+                    // 0 or 1 theme enabled - keep toggle hidden
+                    if (enabledThemes.length === 1 && currentTheme !== enabledThemes[0].id) {
+                        dataManager.setTheme(enabledThemes[0].id);
+                    }
+                }
 
                 // Pass user ID to linked pages
                 const userId = window.getUrlUserId ? window.getUrlUserId() : null;
@@ -234,8 +256,6 @@
                     });
                 }
 
-                // Load settings from dataManager
-                const data = dataManager.getData();
                 const emojiIcons = data.emojiIcons?.intro || {};
                 const pageSettings = data.pageSettings || { intro: true, ai: true, team: true };
 
