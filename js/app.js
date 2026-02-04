@@ -2125,7 +2125,7 @@ window.showPortfolioDetail = function(itemId) {
             width: 40px;
             height: 40px;
             border: none;
-            background: rgba(0, 0, 0, 0.5);
+            background: #000000;
             color: white;
             font-size: 24px;
             border-radius: 50%;
@@ -2134,7 +2134,7 @@ window.showPortfolioDetail = function(itemId) {
             transition: all 0.2s;
         }
         .portfolio-detail-close:hover {
-            background: rgba(0, 0, 0, 0.8);
+            background: #333333;
             transform: scale(1.1);
         }
         .portfolio-detail-body {
