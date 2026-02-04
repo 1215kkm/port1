@@ -526,10 +526,11 @@ class PDFExport {
         yPos += 15;
 
         addSection('Profile');
-        addText(`Name: ${data.profile.name} (Kakao: ${data.profile.kakaoId})`);
+        const kakaoLabel = data.profile.kakaoLabel || '카톡';
+        addText(`Name: ${data.profile.name}${data.profile.kakaoId ? ` (${kakaoLabel}: ${data.profile.kakaoId})` : ''}`);
         addText(`Skills: ${data.profile.skills.join(', ')}`);
         addText(`Education: ${data.profile.education}`);
-        addText(`Location: ${data.profile.residence}`);
+        addText(`Location: ${data.profile.residence}${data.profile.age ? ` / Age: ${data.profile.age}` : ''}`);
 
         pdf.save(`${name}-portfolio.pdf`);
     }
@@ -1524,9 +1525,16 @@ class PageInitializer {
         const nameEl = document.querySelector('[data-content="name"]');
         if (nameEl) nameEl.textContent = profile.name;
 
-        // Kakao ID
+        // Kakao ID (customizable label)
         const kakaoEl = document.querySelector('[data-content="kakao"]');
-        if (kakaoEl) kakaoEl.textContent = `(카톡:${profile.kakaoId})`;
+        if (kakaoEl) {
+            const kakaoLabel = profile.kakaoLabel || '카톡';
+            if (profile.kakaoId) {
+                kakaoEl.textContent = `(${kakaoLabel}:${profile.kakaoId})`;
+            } else {
+                kakaoEl.textContent = '';
+            }
+        }
 
         // Job roles (간격으로 구분해서 표시)
         const rolesEl = document.querySelector('[data-content="job-roles"]');
@@ -1598,6 +1606,18 @@ class PageInitializer {
         // Residence
         const resEl = document.querySelector('[data-content="residence"]');
         if (resEl) resEl.textContent = profile.residence;
+
+        // Age
+        const ageEl = document.querySelector('[data-content="age"]');
+        const ageSection = ageEl?.closest('.about-header');
+        if (ageEl) {
+            if (profile.age) {
+                ageEl.textContent = profile.age;
+                if (ageSection) ageSection.style.display = '';
+            } else {
+                if (ageSection) ageSection.style.display = 'none';
+            }
+        }
 
         // Employment status
         const empEl = document.querySelector('[data-content="employment"]');

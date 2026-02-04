@@ -297,8 +297,7 @@ ul, ol {
 }
 
 .btn-primary:hover {
-    background: #2980b9;
-    color: white;
+    box-shadow: inset 0 0 0 999px rgba(0, 0, 0, 0.15);
 }
 
 .btn-secondary {
@@ -322,8 +321,7 @@ ul, ol {
 }
 
 .btn-accent:hover {
-    background: #c0392b;
-    color: white;
+    box-shadow: inset 0 0 0 999px rgba(0, 0, 0, 0.15);
 }
 
 .btn-outline {
@@ -333,8 +331,7 @@ ul, ol {
 }
 
 .btn-outline:hover {
-    background: var(--color-primary);
-    color: white;
+    box-shadow: inset 0 0 0 999px rgba(0, 0, 0, 0.08);
 }
 
 /* Mobile Menu Toggle */

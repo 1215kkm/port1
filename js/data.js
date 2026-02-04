@@ -137,7 +137,9 @@ const defaultData = {
     // Personal Info
     profile: {
         name: "홍길동",
+        kakaoLabel: "카톡",
         kakaoId: "honggildong",
+        age: "",
         jobRoles: ["쇼핑몰 디자이너", "마케터", "퍼블리셔", "프론트엔드"],
         skills: ["포토샵", "일러스트", "인디자인", "html", "javascript", "포토샵", "일러스트", "인디자인", "html", "javascript", "포토샵", "일러스트", "인디자인", "html", "javascript"],
         certificates: [

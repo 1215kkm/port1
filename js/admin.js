@@ -2569,7 +2569,9 @@ class AdminPanel {
     saveProfile() {
         const updates = {
             name: document.getElementById('profile-name')?.value || '',
+            kakaoLabel: document.getElementById('profile-kakao-label')?.value || '카톡',
             kakaoId: document.getElementById('profile-kakao')?.value || '',
+            age: document.getElementById('profile-age')?.value || '',
             employmentStatus: document.getElementById('profile-employment')?.value || '',
             desiredSalary: document.getElementById('profile-salary')?.value || '',
             showEmployment: document.getElementById('profile-show-employment')?.checked || false,
@@ -3013,7 +3015,9 @@ class AdminPanel {
     renderProfile() {
         const profile = this.data.profile;
         document.getElementById('profile-name').value = profile.name || '';
+        document.getElementById('profile-kakao-label').value = profile.kakaoLabel || '카톡';
         document.getElementById('profile-kakao').value = profile.kakaoId || '';
+        document.getElementById('profile-age').value = profile.age || '';
         document.getElementById('profile-employment').value = profile.employmentStatus || '';
         document.getElementById('profile-salary').value = profile.desiredSalary || '';
         document.getElementById('profile-show-employment').checked = profile.showEmployment !== false;
