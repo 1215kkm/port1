@@ -580,6 +580,30 @@ class AdminPanel {
             this.updateIntroBgPreview(bgUrlInput.value);
         });
 
+        // Mobile background image upload
+        const mobileBgFileInput = document.getElementById('intro-bg-file-mobile');
+        const mobileBgUploadBtn = document.getElementById('btn-intro-bg-upload-mobile');
+        const mobileBgUrlInput = document.getElementById('intro-bg-image-mobile');
+
+        mobileBgUploadBtn?.addEventListener('click', () => mobileBgFileInput?.click());
+        mobileBgFileInput?.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const previewEl = document.getElementById('intro-bg-preview-mobile');
+                showUploadLoading(previewEl);
+                const imageUrl = await uploadImageToStorage(file, 'intro-mobile');
+                if (imageUrl) {
+                    mobileBgUrlInput.value = imageUrl;
+                    this.updateIntroBgPreviewMobile(imageUrl);
+                }
+                hideUploadLoading(previewEl);
+            }
+        });
+
+        mobileBgUrlInput?.addEventListener('change', () => {
+            this.updateIntroBgPreviewMobile(mobileBgUrlInput.value);
+        });
+
         // Add text button
         document.getElementById('btn-add-intro-text')?.addEventListener('click', () => {
             this.addIntroText();
@@ -635,11 +659,18 @@ class AdminPanel {
     renderIntroEditor() {
         const introCustom = this.data.introCustom || { texts: [], buttons: [] };
 
-        // Background image
+        // PC Background image
         const bgInput = document.getElementById('intro-bg-image');
         if (bgInput) {
             bgInput.value = introCustom.backgroundImage || '';
             this.updateIntroBgPreview(introCustom.backgroundImage);
+        }
+
+        // Mobile Background image
+        const mobileBgInput = document.getElementById('intro-bg-image-mobile');
+        if (mobileBgInput) {
+            mobileBgInput.value = introCustom.mobileBackgroundImage || '';
+            this.updateIntroBgPreviewMobile(introCustom.mobileBackgroundImage);
         }
 
         // Texts
@@ -653,7 +684,18 @@ class AdminPanel {
         const preview = document.getElementById('intro-bg-preview');
         if (preview) {
             if (imageUrl) {
-                preview.innerHTML = createImageElement(imageUrl, '배경', 'width: 100%; height: 100%; object-fit: cover;');
+                preview.innerHTML = createImageElement(imageUrl, 'PC 배경', 'width: 100%; height: 100%; object-fit: cover;');
+            } else {
+                preview.innerHTML = '<span style="color: #666; font-size: 11px;">미리보기</span>';
+            }
+        }
+    }
+
+    updateIntroBgPreviewMobile(imageUrl) {
+        const preview = document.getElementById('intro-bg-preview-mobile');
+        if (preview) {
+            if (imageUrl) {
+                preview.innerHTML = createImageElement(imageUrl, '모바일 배경', 'width: 100%; height: 100%; object-fit: cover;');
             } else {
                 preview.innerHTML = '<span style="color: #666; font-size: 11px;">미리보기</span>';
             }
@@ -929,6 +971,7 @@ class AdminPanel {
         const introCustom = {
             enabled: true,
             backgroundImage: document.getElementById('intro-bg-image')?.value || '',
+            mobileBackgroundImage: document.getElementById('intro-bg-image-mobile')?.value || '',
             texts: [],
             buttons: [],
             buttonPosition: currentIntroCustom.buttonPosition || 'middle-center',
@@ -979,6 +1022,7 @@ class AdminPanel {
         const introCustom = {
             enabled: false,
             backgroundImage: '',
+            mobileBackgroundImage: '',
             texts: [],
             buttons: []
         };

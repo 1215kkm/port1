@@ -2398,7 +2398,7 @@ window.showPortfolioDetail = function(itemId) {
             zoomModal.style.cssText = 'position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,0.95);overflow:auto;cursor:pointer;';
             zoomModal.innerHTML = `
                 <div style="position:sticky;top:0;text-align:right;padding:16px 24px;z-index:1;">
-                    <span style="color:#fff;font-size:32px;cursor:pointer;line-height:1;">✕</span>
+                    <span style="display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;background:#000000;border-radius:50%;color:#fff;font-size:24px;cursor:pointer;line-height:1;">✕</span>
                 </div>
                 <div style="display:flex;justify-content:center;padding:0 20px 40px;">
                     <img src="${mainImage.src}" alt="원본 이미지" style="display:block;">

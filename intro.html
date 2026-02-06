@@ -449,13 +449,34 @@
                 const introPage = document.querySelector('.intro-page');
                 if (!introPage) return;
 
-                // Apply background
-                if (introCustom.backgroundImage) {
-                    introPage.style.backgroundImage = `url('${introCustom.backgroundImage}')`;
+                // Apply background with responsive image support
+                const isMobile = window.innerWidth <= 768;
+                const bgImage = isMobile && introCustom.mobileBackgroundImage
+                    ? introCustom.mobileBackgroundImage
+                    : introCustom.backgroundImage;
+
+                if (bgImage) {
+                    introPage.style.backgroundImage = `url('${bgImage}')`;
                     introPage.style.backgroundSize = 'cover';
                     introPage.style.backgroundPosition = 'center';
                     introPage.style.backgroundRepeat = 'no-repeat';
                 }
+
+                // Handle resize for responsive background
+                let resizeTimeout;
+                const handleResize = () => {
+                    clearTimeout(resizeTimeout);
+                    resizeTimeout = setTimeout(() => {
+                        const nowMobile = window.innerWidth <= 768;
+                        const newBgImage = nowMobile && introCustom.mobileBackgroundImage
+                            ? introCustom.mobileBackgroundImage
+                            : introCustom.backgroundImage;
+                        if (newBgImage) {
+                            introPage.style.backgroundImage = `url('${newBgImage}')`;
+                        }
+                    }, 100);
+                };
+                window.addEventListener('resize', handleResize);
 
                 // Create custom content container
                 const customContent = document.createElement('div');

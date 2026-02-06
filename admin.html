@@ -2053,11 +2053,26 @@
             <div class="intro-editor-body">
                 <div class="intro-editor-section">
                     <h4>배경 이미지</h4>
-                    <div class="form-group">
-                        <input type="text" class="form-input" id="intro-bg-image" placeholder="배경 이미지 URL">
+                    <p style="font-size: 11px; color: #888; margin-bottom: 12px;">PC와 모바일에서 각각 다른 이미지를 사용할 수 있습니다.</p>
+
+                    <!-- PC 배경 이미지 -->
+                    <div class="form-group" style="margin-bottom: 16px;">
+                        <label style="font-size: 12px; color: #aaa; margin-bottom: 6px; display: block;">💻 PC용 배경 이미지</label>
+                        <input type="text" class="form-input" id="intro-bg-image" placeholder="PC용 배경 이미지 URL">
                         <input type="file" id="intro-bg-file" accept="image/*" style="display: none;">
                         <button type="button" class="btn btn-secondary btn-sm" id="btn-intro-bg-upload" style="margin-top: 8px;">이미지 업로드</button>
                         <div id="intro-bg-preview" style="margin-top: 8px; height: 80px; border: 1px solid #333; border-radius: 6px; overflow: hidden; display: flex; align-items: center; justify-content: center; background: #1a1a2e;">
+                            <span style="color: #666; font-size: 11px;">미리보기</span>
+                        </div>
+                    </div>
+
+                    <!-- 모바일 배경 이미지 -->
+                    <div class="form-group">
+                        <label style="font-size: 12px; color: #aaa; margin-bottom: 6px; display: block;">📱 모바일용 배경 이미지</label>
+                        <input type="text" class="form-input" id="intro-bg-image-mobile" placeholder="모바일용 배경 이미지 URL (미설정 시 PC 이미지 사용)">
+                        <input type="file" id="intro-bg-file-mobile" accept="image/*" style="display: none;">
+                        <button type="button" class="btn btn-secondary btn-sm" id="btn-intro-bg-upload-mobile" style="margin-top: 8px;">이미지 업로드</button>
+                        <div id="intro-bg-preview-mobile" style="margin-top: 8px; height: 80px; border: 1px solid #333; border-radius: 6px; overflow: hidden; display: flex; align-items: center; justify-content: center; background: #1a1a2e;">
                             <span style="color: #666; font-size: 11px;">미리보기</span>
                         </div>
                     </div>
