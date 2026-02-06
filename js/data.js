@@ -608,6 +608,9 @@ class DataManager {
         this.isFirebaseReady = false;
         this.isViewMode = false; // True when viewing someone else's portfolio
         this.initPromise = null;
+        this.dataLoaded = false; // Flag to indicate if data was successfully loaded
+        this.loadFailed = false; // Flag to indicate if loading failed
+        this.isRealUserData = false; // Flag to indicate if data is from actual user (not defaults)
     }
 
     // Initialize - must be called before using data
@@ -626,6 +629,15 @@ class DataManager {
         if (viewUserId) {
             this.isViewMode = true;
             await this.loadUserPortfolio(viewUserId);
+            // Dispatch load status event
+            window.dispatchEvent(new CustomEvent('dataLoadStatus', {
+                detail: {
+                    loaded: this.dataLoaded,
+                    failed: this.loadFailed,
+                    isRealUserData: this.isRealUserData,
+                    isViewMode: this.isViewMode
+                }
+            }));
             return this.data;
         }
 
@@ -633,9 +645,12 @@ class DataManager {
         if (this.isFirebaseReady && AuthManager && AuthManager.isLoggedIn()) {
             this.userId = AuthManager.getUser().uid;
             await this.loadFromFirestore();
+            this.dataLoaded = true;
+            this.isRealUserData = true;
         } else {
             // Fallback to localStorage
             this.data = this.loadFromLocalStorage();
+            this.dataLoaded = true;
         }
 
         return this.data;
@@ -643,39 +658,77 @@ class DataManager {
 
     // Load portfolio data for viewing (public access)
     async loadUserPortfolio(userIdOrPortfolioId) {
+        const MAX_RETRIES = 3;
+        const RETRY_DELAY = 1000; // 1 second
+
+        // Helper function to delay
+        const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+        // If Firebase is not ready, try to initialize it again
         if (!this.isFirebaseReady) {
-            this.data = this.loadFromLocalStorage();
+            console.log('Firebase not ready, attempting to reinitialize...');
+            this.isFirebaseReady = await initFirebase();
+        }
+
+        if (!this.isFirebaseReady) {
+            console.error('Firebase still not ready after retry');
+            this.loadFailed = true;
+            this.data = JSON.parse(JSON.stringify(defaultData));
             return;
         }
 
-        try {
-            // First try to load directly by userId
-            let portfolioData = await FirestoreManager.getUserData(userIdOrPortfolioId);
+        let lastError = null;
 
-            if (!portfolioData) {
-                // Try to find user by portfolioId
-                const user = await FirestoreManager.findUserByPortfolioId(userIdOrPortfolioId);
-                if (user) {
-                    portfolioData = await FirestoreManager.getUserData(user.id);
+        for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+            try {
+                console.log(`Loading portfolio data (attempt ${attempt}/${MAX_RETRIES})...`);
+
+                // First try to load directly by userId
+                let portfolioData = await FirestoreManager.getUserData(userIdOrPortfolioId);
+
+                if (!portfolioData) {
+                    // Try to find user by portfolioId
+                    const user = await FirestoreManager.findUserByPortfolioId(userIdOrPortfolioId);
+                    if (user) {
+                        portfolioData = await FirestoreManager.getUserData(user.id);
+                    }
+                }
+
+                if (portfolioData) {
+                    this.data = this.deepMerge(defaultData, portfolioData);
+                    this.isRealUserData = true;
+                    this.dataLoaded = true;
+                    console.log('Portfolio data loaded successfully');
+                    return;
+                } else {
+                    // No data found for this user - this is a valid case but means user doesn't exist
+                    console.warn('No portfolio data found for user:', userIdOrPortfolioId);
+                    this.loadFailed = true;
+                    this.data = JSON.parse(JSON.stringify(defaultData));
+                    return;
+                }
+            } catch (e) {
+                lastError = e;
+                console.error(`Error loading portfolio (attempt ${attempt}/${MAX_RETRIES}):`, e);
+
+                if (attempt < MAX_RETRIES) {
+                    console.log(`Retrying in ${RETRY_DELAY * attempt}ms...`);
+                    await delay(RETRY_DELAY * attempt);
                 }
             }
-
-            if (portfolioData) {
-                this.data = this.deepMerge(defaultData, portfolioData);
-            } else {
-                // Use default data if not found
-                this.data = JSON.parse(JSON.stringify(defaultData));
-            }
-        } catch (e) {
-            console.error('Error loading user portfolio:', e);
-            this.data = JSON.parse(JSON.stringify(defaultData));
         }
+
+        // All retries failed
+        console.error('All retry attempts failed:', lastError);
+        this.loadFailed = true;
+        this.data = JSON.parse(JSON.stringify(defaultData));
     }
 
     // Load data from Firestore
     async loadFromFirestore() {
         if (!this.isFirebaseReady || !this.userId) {
             this.data = this.loadFromLocalStorage();
+            this.dataLoaded = true;
             return;
         }
 
@@ -683,6 +736,7 @@ class DataManager {
             const firestoreData = await FirestoreManager.getUserData(this.userId);
             if (firestoreData) {
                 this.data = this.deepMerge(defaultData, firestoreData);
+                this.isRealUserData = true;
                 // Sync to localStorage for offline access
                 this.saveToLocalStorage();
             } else {
@@ -691,9 +745,11 @@ class DataManager {
                 // Save to Firestore for first time
                 await this.saveToFirestore();
             }
+            this.dataLoaded = true;
         } catch (e) {
             console.error('Error loading from Firestore:', e);
             this.data = this.loadFromLocalStorage();
+            this.dataLoaded = true;
         }
     }
 

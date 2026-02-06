@@ -1974,20 +1974,65 @@ class PageInitializer {
 
 // Initialize on DOM ready
 document.addEventListener('DOMContentLoaded', () => {
+    const loadingOverlay = document.getElementById('page-loading');
+    const errorOverlay = document.getElementById('page-error');
+    const isViewMode = !!(window.getUrlUserId && window.getUrlUserId());
+
+    const showError = () => {
+        if (loadingOverlay) loadingOverlay.classList.add('hidden');
+        if (errorOverlay) errorOverlay.classList.add('show');
+        document.body.classList.remove('loading');
+    };
+
+    const hideLoading = () => {
+        if (loadingOverlay) loadingOverlay.classList.add('hidden');
+    };
+
     const initApp = () => {
         // Check if we're on a user page (not admin)
         if (!document.querySelector('.admin-layout')) {
+            // Check if data loading failed in view mode
+            if (isViewMode && window.dataManager) {
+                if (window.dataManager.loadFailed) {
+                    showError();
+                    return;
+                }
+                if (!window.dataManager.isRealUserData) {
+                    // In view mode but no real user data - show error
+                    showError();
+                    return;
+                }
+            }
+
+            // Hide loading overlay
+            hideLoading();
+
             new PageInitializer();
             // Remove loading class after data is loaded to show content
             document.body.classList.remove('loading');
         }
     };
 
+    let initTimeout = null;
+
+    const startInit = () => {
+        if (initTimeout) clearTimeout(initTimeout);
+        initApp();
+    };
+
     // Wait for dataManager to be ready
     if (window.dataManager && window.dataManager.data) {
-        initApp();
+        startInit();
     } else {
-        window.addEventListener('dataManagerReady', initApp);
+        window.addEventListener('dataManagerReady', startInit);
+
+        // Timeout for loading - if it takes too long, show error
+        if (isViewMode) {
+            initTimeout = setTimeout(() => {
+                console.error('Data loading timeout');
+                showError();
+            }, 15000); // 15 second timeout for view mode
+        }
     }
 });
 
