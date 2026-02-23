@@ -2014,24 +2014,61 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     let initTimeout = null;
+    let retryAttempted = false;
 
     const startInit = () => {
         if (initTimeout) clearTimeout(initTimeout);
         initApp();
     };
 
+    // Auto-retry: re-initialize dataManager if first load failed
+    const retryLoad = async () => {
+        if (retryAttempted) {
+            showError();
+            return;
+        }
+        retryAttempted = true;
+        console.log('Auto-retrying data load...');
+        try {
+            const viewUserId = window.getUrlUserId ? window.getUrlUserId() : null;
+            if (viewUserId && window.dataManager) {
+                window.dataManager.initPromise = null;
+                window.dataManager.loadFailed = false;
+                window.dataManager.isRealUserData = false;
+                window.dataManager.dataLoaded = false;
+                await window.dataManager.init(viewUserId);
+                if (window.dataManager.isRealUserData) {
+                    startInit();
+                    return;
+                }
+            }
+            showError();
+        } catch (e) {
+            console.error('Retry failed:', e);
+            showError();
+        }
+    };
+
     // Wait for dataManager to be ready
     if (window.dataManager && window.dataManager.data) {
         startInit();
     } else {
-        window.addEventListener('dataManagerReady', startInit);
+        window.addEventListener('dataManagerReady', () => {
+            if (initTimeout) clearTimeout(initTimeout);
+            // If data loaded but failed, try retry instead of immediate error
+            if (isViewMode && window.dataManager && (window.dataManager.loadFailed || !window.dataManager.isRealUserData)) {
+                retryLoad();
+            } else {
+                startInit();
+            }
+        });
 
-        // Timeout for loading - if it takes too long, show error
+        // Timeout for loading - if it takes too long, retry once
         if (isViewMode) {
             initTimeout = setTimeout(() => {
-                console.error('Data loading timeout');
-                showError();
-            }, 15000); // 15 second timeout for view mode
+                console.error('Data loading timeout, attempting retry...');
+                retryLoad();
+            }, 15000);
         }
     }
 });

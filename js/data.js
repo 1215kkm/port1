@@ -5,19 +5,25 @@ let FirestoreManager = null;
 let AuthManager = null;
 let StorageManager = null;
 
-// Initialize Firebase connection
-async function initFirebase() {
-    try {
-        const module = await import('./firebase-config.js');
-        FirestoreManager = module.FirestoreManager;
-        AuthManager = module.AuthManager;
-        StorageManager = module.StorageManager;
-        await AuthManager.init();
-        return true;
-    } catch (e) {
-        console.warn('Firebase not available, using localStorage only:', e);
-        return false;
+// Initialize Firebase connection with retry
+async function initFirebase(retryCount = 3) {
+    for (let attempt = 1; attempt <= retryCount; attempt++) {
+        try {
+            const module = await import('./firebase-config.js');
+            FirestoreManager = module.FirestoreManager;
+            AuthManager = module.AuthManager;
+            StorageManager = module.StorageManager;
+            await AuthManager.init();
+            return true;
+        } catch (e) {
+            console.warn(`Firebase init attempt ${attempt}/${retryCount} failed:`, e);
+            if (attempt < retryCount) {
+                await new Promise(r => setTimeout(r, 1000 * attempt));
+            }
+        }
     }
+    console.warn('Firebase not available after all retries, using localStorage only');
+    return false;
 }
 
 // Get StorageManager for external use

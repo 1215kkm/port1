@@ -5,6 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI 활용 작품 - 포트폴리오</title>
 
+    <!-- Preload Firebase SDK for faster initialization -->
+    <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js">
+    <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js">
+    <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js">
+    <link rel="modulepreload" href="js/firebase-config.js">
+
     <!-- Swiper CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css">
 
@@ -409,23 +415,52 @@
             };
 
             let initTimeout = null;
+            let retryAttempted = false;
 
             const startInit = () => {
                 if (initTimeout) clearTimeout(initTimeout);
                 initPage();
             };
 
+            const retryLoad = async () => {
+                if (retryAttempted) { showError(); return; }
+                retryAttempted = true;
+                console.log('Auto-retrying data load...');
+                try {
+                    const viewUserId = window.getUrlUserId ? window.getUrlUserId() : null;
+                    if (viewUserId && window.dataManager) {
+                        window.dataManager.initPromise = null;
+                        window.dataManager.loadFailed = false;
+                        window.dataManager.isRealUserData = false;
+                        window.dataManager.dataLoaded = false;
+                        await window.dataManager.init(viewUserId);
+                        if (window.dataManager.isRealUserData) {
+                            window.dataManager.applyTheme();
+                            startInit();
+                            return;
+                        }
+                    }
+                    showError();
+                } catch (e) { console.error('Retry failed:', e); showError(); }
+            };
+
             // Check if dataManager is ready
             if (window.dataManager && window.dataManager.data) {
                 startInit();
             } else {
-                window.addEventListener('dataManagerReady', startInit);
+                window.addEventListener('dataManagerReady', () => {
+                    if (initTimeout) clearTimeout(initTimeout);
+                    if (isViewMode && window.dataManager && (window.dataManager.loadFailed || !window.dataManager.isRealUserData)) {
+                        retryLoad();
+                    } else {
+                        startInit();
+                    }
+                });
 
-                // Timeout for loading in view mode
                 if (isViewMode) {
                     initTimeout = setTimeout(() => {
-                        console.error('Data loading timeout');
-                        showError();
+                        console.error('Data loading timeout, attempting retry...');
+                        retryLoad();
                     }, 15000);
                 }
             }
