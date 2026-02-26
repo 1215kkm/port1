@@ -842,6 +842,247 @@
             background: #d0d0d0;
         }
 
+        /* 포트폴리오 아이템 */
+        .edit-portfolio-section {
+            margin-bottom: 24px;
+        }
+
+        .edit-portfolio-section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            background: #e8f4fc;
+            border-radius: 8px;
+            margin-bottom: 12px;
+        }
+
+        .edit-portfolio-section-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: #2c5282;
+        }
+
+        .edit-portfolio-items {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .edit-portfolio-item {
+            display: flex;
+            gap: 16px;
+            padding: 16px;
+            background: #fff;
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            transition: box-shadow 0.2s;
+        }
+
+        .edit-portfolio-item:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .edit-portfolio-thumb {
+            width: 120px;
+            height: 90px;
+            border-radius: 8px;
+            overflow: hidden;
+            background: #f0f0f0;
+            flex-shrink: 0;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .edit-portfolio-thumb img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .edit-portfolio-thumb-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 12px;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .edit-portfolio-thumb:hover .edit-portfolio-thumb-overlay {
+            opacity: 1;
+        }
+
+        .edit-portfolio-thumb-placeholder {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #999;
+            font-size: 24px;
+        }
+
+        .edit-portfolio-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .edit-portfolio-title-row {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .edit-portfolio-title-input {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 15px;
+            font-weight: 600;
+        }
+
+        .edit-portfolio-title-input:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        .edit-portfolio-meta-row {
+            display: flex;
+            gap: 8px;
+        }
+
+        .edit-portfolio-meta-input {
+            flex: 1;
+            padding: 6px 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 13px;
+        }
+
+        .edit-portfolio-meta-input:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        .edit-portfolio-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: auto;
+        }
+
+        .edit-portfolio-btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .edit-portfolio-btn-edit {
+            background: #e8f4fc;
+            color: #2c5282;
+        }
+
+        .edit-portfolio-btn-edit:hover {
+            background: #bee3f8;
+        }
+
+        .edit-portfolio-btn-delete {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .edit-portfolio-btn-delete:hover {
+            background: #fecaca;
+        }
+
+        .edit-portfolio-empty {
+            padding: 24px;
+            text-align: center;
+            color: #999;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 2px dashed #ddd;
+        }
+
+        /* 포트폴리오 상세 편집 모달 */
+        .portfolio-edit-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s;
+        }
+
+        .portfolio-edit-modal.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .portfolio-edit-modal-content {
+            width: 90%;
+            max-width: 700px;
+            max-height: 85vh;
+            background: #fff;
+            border-radius: 16px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .portfolio-edit-modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 20px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .portfolio-edit-modal-title {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .portfolio-edit-modal-close {
+            width: 32px;
+            height: 32px;
+            border: none;
+            background: #e0e0e0;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .portfolio-edit-modal-body {
+            padding: 20px;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .portfolio-edit-modal-footer {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            padding: 16px 20px;
+            background: #f8f9fa;
+            border-top: 1px solid #e0e0e0;
+        }
+
         /* ===== 반응형 ===== */
         @media (max-width: 1024px) {
             .center-panel {
@@ -1240,6 +1481,18 @@
                             </div>
                         </div>
                     </section>
+
+                    <!-- ===== 포트폴리오 섹션 ===== -->
+                    <section class="edit-section" id="edit-portfolio">
+                        <div class="edit-section-header">
+                            <h2 class="edit-section-title">📁 포트폴리오</h2>
+                        </div>
+
+                        <!-- 포트폴리오 메뉴/섹션별 아이템 -->
+                        <div id="edit-portfolio-sections">
+                            <!-- JS로 동적 렌더링 -->
+                        </div>
+                    </section>
                 </div>
             </div>
         </main>
@@ -1303,6 +1556,7 @@
             renderEvaluation();
             renderVideo();
             renderContact();
+            renderPortfolio();
             updateSectionVisibility();
         }
 
@@ -1653,6 +1907,311 @@
             setInputValue('contact.email', contact.email || '');
             setTextareaValue('contact.message', contact.message || '');
         }
+
+        // ===== 포트폴리오 렌더링 =====
+        function renderPortfolio() {
+            const container = document.getElementById('edit-portfolio-sections');
+            const portfolioMenus = (currentData.portfolioSolo?.menus || []).filter(m => m.isPortfolio);
+            const portfolioItems = currentData.portfolioSolo?.items || [];
+
+            if (portfolioMenus.length === 0) {
+                container.innerHTML = `
+                    <div class="edit-portfolio-empty">
+                        <p>포트폴리오 메뉴가 없습니다.</p>
+                        <p style="font-size: 12px; margin-top: 8px;">관리자 페이지 → 메뉴관리에서 포트폴리오 메뉴를 추가하세요.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = portfolioMenus.map(menu => {
+                const items = portfolioItems.filter(item => item.section === menu.id);
+                return `
+                    <div class="edit-portfolio-section" data-menu-id="${menu.id}">
+                        <div class="edit-portfolio-section-header">
+                            <span class="edit-portfolio-section-title">📂 ${escapeHtml(menu.label)}</span>
+                            <button class="edit-add-btn" onclick="addPortfolioItem('${menu.id}')">+ 항목 추가</button>
+                        </div>
+                        <div class="edit-portfolio-items" id="portfolio-items-${menu.id}">
+                            ${items.length > 0 ? items.map(item => renderPortfolioItemCard(item)).join('') : `
+                                <div class="edit-portfolio-empty">
+                                    이 섹션에 항목이 없습니다. + 항목 추가를 눌러 추가하세요.
+                                </div>
+                            `}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderPortfolioItemCard(item) {
+            const thumbUrl = item.thumbnails?.[0] || '';
+            return `
+                <div class="edit-portfolio-item" data-item-id="${item.id}">
+                    <div class="edit-portfolio-thumb" onclick="editPortfolioThumbnail(${item.id})">
+                        ${thumbUrl
+                            ? `<img src="${escapeHtml(thumbUrl)}" alt="">`
+                            : `<div class="edit-portfolio-thumb-placeholder">🖼️</div>`
+                        }
+                        <div class="edit-portfolio-thumb-overlay">📷 변경</div>
+                    </div>
+                    <div class="edit-portfolio-content">
+                        <div class="edit-portfolio-title-row">
+                            <input type="text" class="edit-portfolio-title-input"
+                                   value="${escapeHtml(item.title || '')}"
+                                   placeholder="프로젝트명"
+                                   onblur="updatePortfolioField(${item.id}, 'title', this.value)">
+                        </div>
+                        <div class="edit-portfolio-meta-row">
+                            <input type="text" class="edit-portfolio-meta-input"
+                                   value="${escapeHtml(item.subject || '')}"
+                                   placeholder="분류 (예: 웹사이트)"
+                                   onblur="updatePortfolioField(${item.id}, 'subject', this.value)">
+                            <input type="text" class="edit-portfolio-meta-input"
+                                   value="${escapeHtml(item.target || '')}"
+                                   placeholder="대상 (예: 개인프로젝트)"
+                                   onblur="updatePortfolioField(${item.id}, 'target', this.value)">
+                        </div>
+                        <div class="edit-portfolio-actions">
+                            <button class="edit-portfolio-btn edit-portfolio-btn-edit"
+                                    onclick="openPortfolioEditModal(${item.id})">
+                                ✏️ 상세편집
+                            </button>
+                            <button class="edit-portfolio-btn edit-portfolio-btn-delete"
+                                    onclick="deletePortfolioItem(${item.id})">
+                                🗑️ 삭제
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // 포트폴리오 필드 업데이트
+        window.updatePortfolioField = function(itemId, field, value) {
+            dataManager.updatePortfolioItem(itemId, { [field]: value });
+            markUnsaved();
+            refreshPreview();
+        };
+
+        // 포트폴리오 항목 추가
+        window.addPortfolioItem = function(sectionId) {
+            dataManager.addPortfolioItem(sectionId, {
+                title: '새 프로젝트',
+                subject: '',
+                target: '',
+                thumbnails: [],
+                links: [],
+                contributions: [],
+                detailDescriptions: []
+            });
+            markUnsaved();
+            renderPortfolio();
+            refreshPreview();
+            showToast('새 항목이 추가되었습니다', 'success');
+        };
+
+        // 포트폴리오 항목 삭제
+        window.deletePortfolioItem = function(itemId) {
+            if (!confirm('이 항목을 삭제하시겠습니까?')) return;
+            dataManager.deletePortfolioItem(itemId);
+            markUnsaved();
+            renderPortfolio();
+            refreshPreview();
+            showToast('항목이 삭제되었습니다', 'success');
+        };
+
+        // 썸네일 편집
+        window.editPortfolioThumbnail = function(itemId) {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'image/*';
+            input.onchange = async (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                try {
+                    updatePreviewStatus('이미지 업로드 중...');
+                    let imageUrl;
+
+                    if (window.StorageManager && AuthManager.isLoggedIn()) {
+                        imageUrl = await StorageManager.uploadImage(file, 'portfolio');
+                    } else {
+                        imageUrl = await fileToBase64(file);
+                    }
+
+                    const item = currentData.portfolioSolo.items.find(i => i.id === itemId);
+                    if (item) {
+                        const thumbnails = item.thumbnails || [];
+                        thumbnails[0] = imageUrl;
+                        dataManager.updatePortfolioItem(itemId, { thumbnails });
+                        markUnsaved();
+                        renderPortfolio();
+                        refreshPreview();
+                        showToast('썸네일이 변경되었습니다', 'success');
+                    }
+                } catch (error) {
+                    showToast('이미지 업로드 실패', 'error');
+                }
+            };
+            input.click();
+        };
+
+        // 포트폴리오 상세 편집 모달
+        window.openPortfolioEditModal = function(itemId) {
+            const item = currentData.portfolioSolo.items.find(i => i.id === itemId);
+            if (!item) return;
+
+            // 모달이 없으면 생성
+            let modal = document.getElementById('portfolio-edit-modal');
+            if (!modal) {
+                modal = document.createElement('div');
+                modal.id = 'portfolio-edit-modal';
+                modal.className = 'portfolio-edit-modal';
+                document.body.appendChild(modal);
+            }
+
+            modal.innerHTML = `
+                <div class="portfolio-edit-modal-content">
+                    <div class="portfolio-edit-modal-header">
+                        <span class="portfolio-edit-modal-title">📝 포트폴리오 상세 편집</span>
+                        <button class="portfolio-edit-modal-close" onclick="closePortfolioEditModal()">×</button>
+                    </div>
+                    <div class="portfolio-edit-modal-body">
+                        <div class="edit-field-group" style="margin-bottom: 16px;">
+                            <label class="edit-field-label">프로젝트명</label>
+                            <input type="text" class="edit-input" id="modal-pf-title" value="${escapeHtml(item.title || '')}">
+                        </div>
+                        <div class="edit-field-row" style="margin-bottom: 16px;">
+                            <div class="edit-field-group" style="flex: 1;">
+                                <label class="edit-field-label">분류</label>
+                                <input type="text" class="edit-input" id="modal-pf-subject" value="${escapeHtml(item.subject || '')}">
+                            </div>
+                            <div class="edit-field-group" style="flex: 1;">
+                                <label class="edit-field-label">대상</label>
+                                <input type="text" class="edit-input" id="modal-pf-target" value="${escapeHtml(item.target || '')}">
+                            </div>
+                        </div>
+                        <div class="edit-field-group" style="margin-bottom: 16px;">
+                            <label class="edit-field-label">사이트 URL</label>
+                            <input type="text" class="edit-input" id="modal-pf-siteurl" value="${escapeHtml(item.siteUrl || '')}" placeholder="https://...">
+                        </div>
+                        <div class="edit-field-group" style="margin-bottom: 16px;">
+                            <label class="edit-field-label">참고 링크</label>
+                            <input type="text" class="edit-input" id="modal-pf-link" value="${escapeHtml(item.links?.[0]?.url || '')}" placeholder="https://...">
+                        </div>
+                        <div class="edit-field-group" style="margin-bottom: 16px;">
+                            <label class="edit-field-label">기여도</label>
+                            <div id="modal-pf-contributions" style="display: flex; flex-direction: column; gap: 8px;">
+                                ${(item.contributions || []).map((c, i) => `
+                                    <div style="display: flex; gap: 8px; align-items: center;">
+                                        <input type="text" class="edit-input" value="${escapeHtml(c.label || '')}" data-field="label" style="flex: 1;">
+                                        <input type="number" class="edit-input" value="${c.value || 0}" data-field="value" style="width: 80px;" min="0" max="100">%
+                                        <button class="edit-tag-remove" onclick="this.parentElement.remove()">×</button>
+                                    </div>
+                                `).join('') || '<div style="color: #999; font-size: 13px;">기여도가 없습니다.</div>'}
+                            </div>
+                            <button class="edit-add-btn" style="margin-top: 8px;" onclick="addContributionRow()">+ 기여도 추가</button>
+                        </div>
+                        <div class="edit-field-group">
+                            <label class="edit-field-label">상세 설명</label>
+                            <div id="modal-pf-descriptions" style="display: flex; flex-direction: column; gap: 8px;">
+                                ${(item.detailDescriptions || []).map((d, i) => `
+                                    <div style="background: #f8f9fa; padding: 12px; border-radius: 8px;">
+                                        <input type="text" class="edit-input" value="${escapeHtml(d.title || '')}" data-field="title" placeholder="제목" style="margin-bottom: 8px;">
+                                        <textarea class="edit-textarea" data-field="description" placeholder="설명" rows="3">${escapeHtml(d.description || '')}</textarea>
+                                        <button class="edit-tag-remove" style="margin-top: 8px;" onclick="this.parentElement.remove()">× 삭제</button>
+                                    </div>
+                                `).join('') || '<div style="color: #999; font-size: 13px;">상세 설명이 없습니다.</div>'}
+                            </div>
+                            <button class="edit-add-btn" style="margin-top: 8px;" onclick="addDescriptionRow()">+ 설명 추가</button>
+                        </div>
+                    </div>
+                    <div class="portfolio-edit-modal-footer">
+                        <button class="btn btn-secondary" onclick="closePortfolioEditModal()">취소</button>
+                        <button class="btn btn-primary" onclick="savePortfolioModal(${itemId})">저장</button>
+                    </div>
+                </div>
+            `;
+
+            modal.classList.add('show');
+        };
+
+        window.closePortfolioEditModal = function() {
+            const modal = document.getElementById('portfolio-edit-modal');
+            if (modal) modal.classList.remove('show');
+        };
+
+        window.addContributionRow = function() {
+            const container = document.getElementById('modal-pf-contributions');
+            const emptyMsg = container.querySelector('div[style*="color: #999"]');
+            if (emptyMsg) emptyMsg.remove();
+
+            const row = document.createElement('div');
+            row.style.cssText = 'display: flex; gap: 8px; align-items: center;';
+            row.innerHTML = `
+                <input type="text" class="edit-input" value="" data-field="label" placeholder="항목명" style="flex: 1;">
+                <input type="number" class="edit-input" value="50" data-field="value" style="width: 80px;" min="0" max="100">%
+                <button class="edit-tag-remove" onclick="this.parentElement.remove()">×</button>
+            `;
+            container.appendChild(row);
+        };
+
+        window.addDescriptionRow = function() {
+            const container = document.getElementById('modal-pf-descriptions');
+            const emptyMsg = container.querySelector('div[style*="color: #999"]');
+            if (emptyMsg) emptyMsg.remove();
+
+            const row = document.createElement('div');
+            row.style.cssText = 'background: #f8f9fa; padding: 12px; border-radius: 8px;';
+            row.innerHTML = `
+                <input type="text" class="edit-input" value="" data-field="title" placeholder="제목" style="margin-bottom: 8px;">
+                <textarea class="edit-textarea" data-field="description" placeholder="설명" rows="3"></textarea>
+                <button class="edit-tag-remove" style="margin-top: 8px;" onclick="this.parentElement.remove()">× 삭제</button>
+            `;
+            container.appendChild(row);
+        };
+
+        window.savePortfolioModal = function(itemId) {
+            const title = document.getElementById('modal-pf-title').value;
+            const subject = document.getElementById('modal-pf-subject').value;
+            const target = document.getElementById('modal-pf-target').value;
+            const siteUrl = document.getElementById('modal-pf-siteurl').value;
+            const linkUrl = document.getElementById('modal-pf-link').value;
+
+            // 기여도 수집
+            const contributions = [];
+            document.querySelectorAll('#modal-pf-contributions > div').forEach(row => {
+                const label = row.querySelector('[data-field="label"]')?.value;
+                const value = parseInt(row.querySelector('[data-field="value"]')?.value) || 0;
+                if (label) contributions.push({ label, value });
+            });
+
+            // 상세 설명 수집
+            const detailDescriptions = [];
+            document.querySelectorAll('#modal-pf-descriptions > div').forEach(row => {
+                const titleEl = row.querySelector('[data-field="title"]');
+                const descEl = row.querySelector('[data-field="description"]');
+                if (titleEl && descEl) {
+                    detailDescriptions.push({
+                        title: titleEl.value,
+                        description: descEl.value
+                    });
+                }
+            });
+
+            const links = linkUrl ? [{ label: '참고보기', url: linkUrl }] : [];
+
+            dataManager.updatePortfolioItem(itemId, {
+                title, subject, target, siteUrl, links, contributions, detailDescriptions
+            });
+
+            markUnsaved();
+            renderPortfolio();
+            refreshPreview();
+            closePortfolioEditModal();
+            showToast('저장되었습니다', 'success');
+        };
 
         // ===== 섹션 표시/숨김 업데이트 =====
         function updateSectionVisibility() {
