@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>포트폴리오 - UIUX 디자인 & 퍼블리셔</title>
+
+    <!-- Preload Firebase SDK for faster initialization -->
+    <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js">
+    <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js">
+    <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js">
+    <link rel="modulepreload" href="js/firebase-config.js">
+
+    <!-- Main CSS -->
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        /* Loading state styles */
+        .intro-loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--color-bg) 0%, var(--color-bg-secondary) 100%);
+            z-index: 9999;
+        }
+        .intro-loading.hidden {
+            display: none;
+        }
+        .intro-loading-spinner {
+            width: 48px;
+            height: 48px;
+            border: 4px solid var(--color-border, #dee2e6);
+            border-top-color: var(--color-primary, #3498db);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        .intro-loading-text {
+            margin-top: 16px;
+            color: var(--color-text-secondary, #6c757d);
+            font-size: 1rem;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .intro-error {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--color-bg) 0%, var(--color-bg-secondary) 100%);
+            z-index: 9999;
+            padding: 20px;
+            text-align: center;
+        }
+        .intro-error.show {
+            display: flex;
+        }
+        .intro-error-icon {
+            font-size: 4rem;
+            margin-bottom: 16px;
+        }
+        .intro-error-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--color-text, #212529);
+            margin-bottom: 8px;
+        }
+        .intro-error-message {
+            color: var(--color-text-secondary, #6c757d);
+            margin-bottom: 24px;
+        }
+        .intro-error-btn {
+            padding: 12px 24px;
+            background: var(--color-primary, #3498db);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .intro-error-btn:hover {
+            opacity: 0.9;
+        }
+
+        .intro-page {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: var(--space-xl);
+            background: linear-gradient(135deg, var(--color-bg) 0%, var(--color-bg-secondary) 100%);
+        }
+
+        .intro-header {
+            text-align: center;
+            margin-bottom: var(--space-3xl);
+        }
+
+        .intro-title {
+            font-size: var(--font-4xl);
+            font-weight: 700;
+            margin-bottom: var(--space-md);
+            color: var(--color-text);
+        }
+
+        .intro-subtitle {
+            font-size: var(--font-lg);
+            color: var(--color-text-secondary);
+        }
+
+        .intro-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: var(--space-xl);
+            width: 100%;
+            max-width: 1000px;
+        }
+
+        .intro-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: var(--space-3xl) var(--space-xl);
+            background: var(--color-bg);
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow-lg);
+            transition: all var(--transition-normal);
+            cursor: pointer;
+            text-align: center;
+            min-height: 320px;
+            text-decoration: none;
+            color: inherit;
+            border: 2px solid transparent;
+        }
+
+        .intro-card:hover {
+            transform: translateY(-10px);
+            box-shadow: var(--shadow-xl);
+            border-color: var(--color-primary);
+        }
+
+        .intro-card-icon {
+            font-size: 4rem;
+            margin-bottom: var(--space-xl);
+        }
+
+        .intro-card-title {
+            font-size: var(--font-2xl);
+            font-weight: 700;
+            margin-bottom: var(--space-md);
+            color: var(--color-text);
+        }
+
+        .intro-card-desc {
+            font-size: var(--font-sm);
+            color: var(--color-text-secondary);
+            line-height: var(--leading-relaxed);
+        }
+
+        .intro-card-solo {
+            background: linear-gradient(135deg, #fff 0%, #f0f7ff 100%);
+        }
+
+        .intro-card-ai {
+            background: linear-gradient(135deg, #fff 0%, #f0fff4 100%);
+        }
+
+        .intro-card-team {
+            background: linear-gradient(135deg, #fff 0%, #fff5f0 100%);
+        }
+
+        .intro-footer {
+            margin-top: var(--space-3xl);
+            text-align: center;
+        }
+
+        .intro-footer-links {
+            display: flex;
+            gap: var(--space-lg);
+            justify-content: center;
+        }
+
+        /* Hide default content until JS decides to show it (prevents flash) */
+        .intro-page > .intro-header,
+        .intro-page > .intro-grid {
+            opacity: 0;
+            visibility: hidden;
+        }
+        .intro-page.ready > .intro-header,
+        .intro-page.ready > .intro-grid {
+            opacity: 1;
+            visibility: visible;
+            transition: opacity 0.3s ease;
+        }
+
+        @media (max-width: 768px) {
+            .intro-grid {
+                grid-template-columns: 1fr;
+                max-width: 400px;
+            }
+
+            .intro-card {
+                min-height: 200px;
+                padding: var(--space-xl);
+            }
+
+            .intro-card-icon {
+                font-size: 3rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Overlay -->
+    <div class="intro-loading" id="intro-loading">
+        <div class="intro-loading-spinner"></div>
+        <div class="intro-loading-text">포트폴리오를 불러오는 중...</div>
+    </div>
+
+    <!-- Error Overlay -->
+    <div class="intro-error" id="intro-error">
+        <div class="intro-error-icon">😢</div>
+        <div class="intro-error-title">포트폴리오를 불러올 수 없습니다</div>
+        <div class="intro-error-message">네트워크 연결을 확인하거나 잠시 후 다시 시도해 주세요.</div>
+        <button class="intro-error-btn" onclick="location.reload()">다시 시도</button>
+    </div>
+
+    <div class="intro-page">
+        <header class="intro-header">
+            <h1 class="intro-title">UIUX 디자인 & 퍼블리셔 포트폴리오</h1>
+            <p class="intro-subtitle">제작 방식을 선택하여 작품을 확인하세요</p>
+        </header>
+
+        <div class="intro-grid">
+            <a href="portfolio.html" class="intro-card intro-card-solo">
+                <div class="intro-card-icon" data-emoji="solo">👤</div>
+                <h2 class="intro-card-title">혼자제작</h2>
+                <p class="intro-card-desc">
+                    개인 프로젝트 및<br>
+                    독립적으로 제작한 작품들
+                </p>
+            </a>
+
+            <a href="ai.html" class="intro-card intro-card-ai">
+                <div class="intro-card-icon" data-emoji="ai">🤖</div>
+                <h2 class="intro-card-title">AI활용제작</h2>
+                <p class="intro-card-desc">
+                    AI 도구를 활용하여<br>
+                    제작한 프로젝트
+                </p>
+            </a>
+
+            <a href="team.html" class="intro-card intro-card-team">
+                <div class="intro-card-icon" data-emoji="team">👥</div>
+                <h2 class="intro-card-title">팀플제작</h2>
+                <p class="intro-card-desc">
+                    팀원들과 협업하여<br>
+                    완성한 프로젝트
+                </p>
+            </a>
+        </div>
+
+    </div>
+
+    <!-- Theme Toggle -->
+    <div class="theme-toggle" style="display:none">
+        <button class="theme-toggle-btn" aria-label="테마 변경">🎨</button>
+        <div class="theme-menu">
+        </div>
+    </div>
+
+    <script src="js/data.js"></script>
+    <script type="module" src="js/owner-menu.js"></script>
+    <script>
+        // Theme toggle functionality
+        document.addEventListener('DOMContentLoaded', () => {
+            const loadingEl = document.getElementById('intro-loading');
+            const errorEl = document.getElementById('intro-error');
+            const isViewMode = !!window.getUrlUserId?.();
+
+            const showError = () => {
+                loadingEl.classList.add('hidden');
+                errorEl.classList.add('show');
+            };
+
+            const hideLoading = () => {
+                loadingEl.classList.add('hidden');
+            };
+
+            // Wait for dataManager to be ready
+            const initPage = () => {
+                // Check if data loading failed in view mode
+                if (isViewMode && window.dataManager) {
+                    if (window.dataManager.loadFailed) {
+                        showError();
+                        return;
+                    }
+                    if (!window.dataManager.isRealUserData) {
+                        // In view mode but no real user data - show error
+                        showError();
+                        return;
+                    }
+                }
+
+                // Hide loading overlay
+                hideLoading();
+
+                // Load settings from dataManager
+                const data = dataManager.getData();
+
+                const themeToggle = document.querySelector('.theme-toggle');
+                const toggleBtn = themeToggle.querySelector('.theme-toggle-btn');
+                const themeMenu = themeToggle.querySelector('.theme-menu');
+
+                // Render theme menu based on enabledOnPortfolio settings
+                const themeModes = data.theme?.modes || [];
+                const currentTheme = data.theme?.current || 'light';
+                const enabledThemes = themeModes.filter(mode => mode.enabledOnPortfolio !== false);
+
+                if (enabledThemes.length >= 2) {
+                    // Multiple themes enabled - show toggle with dynamic menu
+                    themeMenu.innerHTML = enabledThemes.map(mode => {
+                        const isActive = mode.id === currentTheme;
+                        const bgColor = mode.colors?.background || '#ffffff';
+                        const borderStyle = mode.id === 'light' ? 'border-color: #dee2e6;' : '';
+                        return `
+                            <button class="theme-option ${isActive ? 'active' : ''}" data-theme="${mode.id}">
+                                <span class="theme-color" style="background: ${bgColor}; ${borderStyle}"></span>
+                                ${mode.name}
+                            </button>
+                        `;
+                    }).join('');
+                    themeToggle.style.display = '';
+
+                    toggleBtn.addEventListener('click', () => {
+                        themeToggle.classList.toggle('open');
+                    });
+
+                    document.addEventListener('click', (e) => {
+                        if (!themeToggle.contains(e.target)) {
+                            themeToggle.classList.remove('open');
+                        }
+                    });
+
+                    themeToggle.querySelectorAll('.theme-option').forEach(option => {
+                        option.addEventListener('click', () => {
+                            const theme = option.dataset.theme;
+                            dataManager.setTheme(theme);
+                            themeToggle.querySelectorAll('.theme-option').forEach(o => o.classList.remove('active'));
+                            option.classList.add('active');
+                        });
+                    });
+                } else {
+                    // 0 or 1 theme enabled - keep toggle hidden
+                    if (enabledThemes.length === 1 && currentTheme !== enabledThemes[0].id) {
+                        dataManager.setTheme(enabledThemes[0].id);
+                    }
+                }
+
+                // Pass user ID to linked pages
+                const userId = window.getUrlUserId ? window.getUrlUserId() : null;
+                if (userId) {
+                    // Update all links to include user ID
+                    document.querySelectorAll('.intro-card').forEach(card => {
+                        const href = card.getAttribute('href');
+                        if (href && !href.includes('?')) {
+                            card.setAttribute('href', `${href}?u=${userId}`);
+                        } else if (href && href.includes('?')) {
+                            card.setAttribute('href', `${href}&u=${userId}`);
+                        }
+                    });
+                }
+
+                const emojiIcons = data.emojiIcons?.intro || {};
+                const pageSettings = data.pageSettings || { intro: true, ai: true, team: true };
+
+                // If intro page is disabled, redirect to portfolio
+                if (pageSettings.intro === false) {
+                    const userId = window.getUrlUserId ? window.getUrlUserId() : null;
+                    window.location.href = userId ? `portfolio.html?u=${userId}` : 'portfolio.html';
+                    return;
+                }
+
+                // Hide disabled page cards
+                if (pageSettings.ai === false) {
+                    const aiCard = document.querySelector('.intro-card-ai');
+                    if (aiCard) aiCard.style.display = 'none';
+                }
+                if (pageSettings.team === false) {
+                    const teamCard = document.querySelector('.intro-card-team');
+                    if (teamCard) teamCard.style.display = 'none';
+                }
+
+                // Update grid columns based on visible cards
+                const visibleCards = [true, pageSettings.ai !== false, pageSettings.team !== false].filter(Boolean).length;
+                const introGrid = document.querySelector('.intro-grid');
+                if (visibleCards === 1) {
+                    introGrid.style.gridTemplateColumns = '1fr';
+                    introGrid.style.maxWidth = '400px';
+                } else if (visibleCards === 2) {
+                    introGrid.style.gridTemplateColumns = 'repeat(2, 1fr)';
+                    introGrid.style.maxWidth = '700px';
+                }
+
+                // Update page title with user name
+                if (data.profile?.name) {
+                    document.querySelector('.intro-title').textContent = `${data.profile.name}의 포트폴리오`;
+                }
+
+                // Helper function to render icon (emoji or image)
+                const renderIcon = (el, iconData, defaultEmoji) => {
+                    if (!el) return;
+                    if (typeof iconData === 'string') {
+                        el.textContent = iconData || defaultEmoji;
+                    } else if (iconData?.type === 'image' && iconData?.imageUrl) {
+                        el.innerHTML = `<img src="${iconData.imageUrl}" style="width: 100%; height: 100%; object-fit: contain;">`;
+                    } else {
+                        el.textContent = iconData?.emoji || defaultEmoji;
+                    }
+                };
+
+                const soloEl = document.querySelector('[data-emoji="solo"]');
+                const aiEl = document.querySelector('[data-emoji="ai"]');
+                const teamEl = document.querySelector('[data-emoji="team"]');
+
+                renderIcon(soloEl, emojiIcons.solo, '👤');
+                renderIcon(aiEl, emojiIcons.ai, '🤖');
+                renderIcon(teamEl, emojiIcons.team, '👥');
+
+                // Check for custom intro settings
+                const introCustom = data.introCustom || {};
+                if (introCustom.enabled && (introCustom.texts?.length > 0 || introCustom.buttons?.length > 0 || introCustom.backgroundImage)) {
+                    renderCustomIntro(introCustom);
+                } else {
+                    // No custom intro - show default content
+                    document.querySelector('.intro-page')?.classList.add('ready');
+                }
+            };
+
+            // Render custom intro page
+            function renderCustomIntro(introCustom) {
+                const introPage = document.querySelector('.intro-page');
+                if (!introPage) return;
+
+                // Apply background with responsive image support
+                const isMobile = window.innerWidth <= 768;
+                const bgImage = isMobile && introCustom.mobileBackgroundImage
+                    ? introCustom.mobileBackgroundImage
+                    : introCustom.backgroundImage;
+
+                if (bgImage) {
+                    introPage.style.backgroundImage = `url('${bgImage}')`;
+                    introPage.style.backgroundSize = 'cover';
+                    introPage.style.backgroundPosition = 'center';
+                    introPage.style.backgroundRepeat = 'no-repeat';
+                }
+
+                // Handle resize for responsive background
+                let resizeTimeout;
+                const handleResize = () => {
+                    clearTimeout(resizeTimeout);
+                    resizeTimeout = setTimeout(() => {
+                        const nowMobile = window.innerWidth <= 768;
+                        const newBgImage = nowMobile && introCustom.mobileBackgroundImage
+                            ? introCustom.mobileBackgroundImage
+                            : introCustom.backgroundImage;
+                        if (newBgImage) {
+                            introPage.style.backgroundImage = `url('${newBgImage}')`;
+                        }
+                    }, 100);
+                };
+                window.addEventListener('resize', handleResize);
+
+                // Create custom content container
+                const customContent = document.createElement('div');
+                customContent.className = 'intro-custom-content';
+                if (introCustom.showDefaultCards === false) {
+                    customContent.style.cssText = 'position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px;';
+                } else {
+                    customContent.style.cssText = 'display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 40px 0; width: 100%;';
+                }
+
+                // Render texts
+                introCustom.texts?.forEach(text => {
+                    const textEl = document.createElement('div');
+                    textEl.className = 'intro-custom-text';
+                    textEl.innerHTML = text.content.replace(/\n/g, '<br>');
+                    textEl.style.cssText = `
+                        font-size: ${text.fontSize || '2rem'};
+                        color: ${text.color || '#ffffff'};
+                        font-weight: ${text.fontWeight || '700'};
+                        text-align: ${text.align || 'center'};
+                        margin-bottom: 20px;
+                        text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+                        width: 100%;
+                    `;
+                    customContent.appendChild(textEl);
+                });
+
+                // Render buttons - use common position setting
+                if (introCustom.buttons?.length > 0) {
+                    const position = introCustom.buttonPosition || 'middle-center';
+                    const offsetY = introCustom.buttonOffsetY || 0;
+
+                    // Get position styles
+                    const getPositionStyle = (position, offsetY = 0) => {
+                        const baseOffset = 50; // 브라우저로부터 기본 50px 떨어짐
+                        const styles = {
+                            'top-left': { top: baseOffset + offsetY, left: baseOffset, transform: 'none' },
+                            'top-center': { top: baseOffset + offsetY, left: '50%', transform: 'translateX(-50%)' },
+                            'top-right': { top: baseOffset + offsetY, right: baseOffset, transform: 'none' },
+                            'middle-left': { top: '50%', left: baseOffset, transform: `translateY(calc(-50% + ${offsetY}px))` },
+                            'middle-center': { top: '50%', left: '50%', transform: `translate(-50%, calc(-50% + ${offsetY}px))` },
+                            'middle-right': { top: '50%', right: baseOffset, transform: `translateY(calc(-50% + ${offsetY}px))` },
+                            'bottom-left': { bottom: baseOffset - offsetY, left: baseOffset, transform: 'none' },
+                            'bottom-center': { bottom: baseOffset - offsetY, left: '50%', transform: 'translateX(-50%)' },
+                            'bottom-right': { bottom: baseOffset - offsetY, right: baseOffset, transform: 'none' }
+                        };
+                        return styles[position] || styles['middle-center'];
+                    };
+
+                    const posStyle = getPositionStyle(position, offsetY);
+
+                    // Create single container for all buttons
+                    const buttonContainer = document.createElement('div');
+                    buttonContainer.style.cssText = `
+                        position: absolute;
+                        display: flex;
+                        gap: 12px;
+                        flex-wrap: wrap;
+                        z-index: 100;
+                        ${posStyle.top !== undefined ? `top: ${typeof posStyle.top === 'number' ? posStyle.top + 'px' : posStyle.top};` : ''}
+                        ${posStyle.bottom !== undefined ? `bottom: ${typeof posStyle.bottom === 'number' ? posStyle.bottom + 'px' : posStyle.bottom};` : ''}
+                        ${posStyle.left !== undefined ? `left: ${typeof posStyle.left === 'number' ? posStyle.left + 'px' : posStyle.left};` : ''}
+                        ${posStyle.right !== undefined ? `right: ${typeof posStyle.right === 'number' ? posStyle.right + 'px' : posStyle.right};` : ''}
+                        transform: ${posStyle.transform};
+                    `;
+
+                    introCustom.buttons.forEach(button => {
+                        const btnEl = document.createElement('a');
+                        btnEl.href = button.url || '#';
+                        btnEl.textContent = button.label || '버튼';
+                        btnEl.style.cssText = `
+                            padding: 14px 32px;
+                            background: ${button.bgColor || '#3498db'};
+                            color: ${button.textColor || '#ffffff'};
+                            text-decoration: none;
+                            border-radius: 8px;
+                            font-weight: 600;
+                            font-size: 1rem;
+                            transition: all 0.2s ease;
+                            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+                            white-space: nowrap;
+                        `;
+                        btnEl.onmouseover = () => btnEl.style.transform = 'translateY(-3px)';
+                        btnEl.onmouseout = () => btnEl.style.transform = '';
+
+                        // Add user ID to URL if available
+                        const userId = window.getUrlUserId ? window.getUrlUserId() : null;
+                        if (userId && button.url) {
+                            btnEl.href = button.url.includes('?') ? `${button.url}&u=${userId}` : `${button.url}?u=${userId}`;
+                        }
+
+                        buttonContainer.appendChild(btnEl);
+                    });
+
+                    introPage.appendChild(buttonContainer);
+                }
+
+                // Show/hide default content based on settings
+                introPage.style.position = 'relative';
+                if (introCustom.showDefaultCards === false) {
+                    // Hide default cards
+                    introPage.querySelector('.intro-header')?.style && (introPage.querySelector('.intro-header').style.display = 'none');
+                    introPage.querySelector('.intro-grid')?.style && (introPage.querySelector('.intro-grid').style.display = 'none');
+                } else {
+                    // Show default cards alongside custom content
+                    introPage.classList.add('ready');
+                }
+                introPage.appendChild(customContent);
+            }
+
+            // Check if dataManager is ready
+            let initTimeout = null;
+            let retryAttempted = false;
+
+            const startInit = () => {
+                if (initTimeout) clearTimeout(initTimeout);
+                initPage();
+            };
+
+            // Auto-retry if first load failed
+            const retryLoad = async () => {
+                if (retryAttempted) {
+                    showError();
+                    return;
+                }
+                retryAttempted = true;
+                console.log('Auto-retrying data load...');
+                try {
+                    const viewUserId = window.getUrlUserId ? window.getUrlUserId() : null;
+                    if (viewUserId && window.dataManager) {
+                        window.dataManager.initPromise = null;
+                        window.dataManager.loadFailed = false;
+                        window.dataManager.isRealUserData = false;
+                        window.dataManager.dataLoaded = false;
+                        await window.dataManager.init(viewUserId);
+                        if (window.dataManager.isRealUserData) {
+                            window.dataManager.applyTheme();
+                            window.dataManager.applyCSSVariables();
+                            window.dataManager.applyFont();
+                            startInit();
+                            return;
+                        }
+                    }
+                    showError();
+                } catch (e) {
+                    console.error('Retry failed:', e);
+                    showError();
+                }
+            };
+
+            if (window.dataManager && window.dataManager.data) {
+                startInit();
+            } else {
+                window.addEventListener('dataManagerReady', () => {
+                    if (initTimeout) clearTimeout(initTimeout);
+                    if (isViewMode && window.dataManager && (window.dataManager.loadFailed || !window.dataManager.isRealUserData)) {
+                        retryLoad();
+                    } else {
+                        startInit();
+                    }
+                });
+
+                // Timeout for loading - retry once before showing error
+                if (isViewMode) {
+                    initTimeout = setTimeout(() => {
+                        console.error('Data loading timeout, attempting retry...');
+                        retryLoad();
+                    }, 15000);
+                }
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>포트폴리오 - UIUX 디자인 & 퍼블리셔</title>
+
+    <!-- Preload Firebase SDK for faster initialization -->
+    <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js">
+    <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js">
+    <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js">
+    <link rel="modulepreload" href="js/firebase-config.js">
+
+    <!-- Swiper CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css">
+
+    <!-- Main CSS -->
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        /* Keep Korean words from breaking mid-word */
+        body {
+            word-break: keep-all;
+        }
+        /* Hide content until data is loaded to prevent flash of default values */
+        body.loading .main,
+        body.loading .header,
+        body.loading .section-nav {
+            opacity: 0;
+            visibility: hidden;
+        }
+        body:not(.loading) .main,
+        body:not(.loading) .header,
+        body:not(.loading) .section-nav {
+            opacity: 1;
+            visibility: visible;
+            transition: opacity 0.3s ease;
+        }
+        /* Loading overlay */
+        .page-loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: var(--color-bg, #ffffff);
+            z-index: 9999;
+        }
+        .page-loading-overlay.hidden {
+            display: none;
+        }
+        .page-loading-spinner {
+            width: 48px;
+            height: 48px;
+            border: 4px solid var(--color-border, #dee2e6);
+            border-top-color: var(--color-primary, #3498db);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        .page-loading-text {
+            margin-top: 16px;
+            color: var(--color-text-secondary, #6c757d);
+            font-size: 1rem;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        /* Error overlay */
+        .page-error-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: var(--color-bg, #ffffff);
+            z-index: 9999;
+            padding: 20px;
+            text-align: center;
+        }
+        .page-error-overlay.show {
+            display: flex;
+        }
+        .page-error-icon {
+            font-size: 4rem;
+            margin-bottom: 16px;
+        }
+        .page-error-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--color-text, #212529);
+            margin-bottom: 8px;
+        }
+        .page-error-message {
+            color: var(--color-text-secondary, #6c757d);
+            margin-bottom: 24px;
+        }
+        .page-error-btn {
+            padding: 12px 24px;
+            background: var(--color-primary, #3498db);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .page-error-btn:hover {
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body class="loading">
+    <!-- Loading Overlay -->
+    <div class="page-loading-overlay" id="page-loading">
+        <div class="page-loading-spinner"></div>
+        <div class="page-loading-text">포트폴리오를 불러오는 중...</div>
+    </div>
+
+    <!-- Error Overlay -->
+    <div class="page-error-overlay" id="page-error">
+        <div class="page-error-icon">😢</div>
+        <div class="page-error-title">포트폴리오를 불러올 수 없습니다</div>
+        <div class="page-error-message">네트워크 연결을 확인하거나 잠시 후 다시 시도해 주세요.</div>
+        <button class="page-error-btn" onclick="location.reload()">다시 시도</button>
+    </div>
+
+    <!-- Header -->
+    <header class="header">
+        <div class="header-inner">
+            <a href="intro.html" class="logo">Portfolio</a>
+
+            <nav class="nav">
+                <ul class="nav-menu" data-content="menu">
+                    <li><a href="#about" class="nav-link">자기소개</a></li>
+                    <li><a href="#web-mobile" class="nav-link">웹&모바일</a></li>
+                    <li><a href="#popup-banner" class="nav-link">팝업&배너</a></li>
+                    <li><a href="#detail-page" class="nav-link">상세페이지</a></li>
+                    <li><a href="#contact" class="nav-link">contact</a></li>
+                </ul>
+                <div class="nav-buttons">
+                    <a href="ai.html" class="btn btn-secondary" data-page-link="ai">AI활용제작</a>
+                    <a href="team.html" class="btn btn-secondary" data-page-link="team">팀플제작</a>
+                </div>
+            </nav>
+
+            <button class="menu-toggle" aria-label="메뉴 열기">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Section Navigation Dots -->
+    <nav class="section-nav">
+        <button class="section-nav-dot active" data-section="about" data-label="자기소개"></button>
+        <button class="section-nav-dot" data-section="web-mobile" data-label="웹&모바일"></button>
+        <button class="section-nav-dot" data-section="popup-banner" data-label="팝업&배너"></button>
+        <button class="section-nav-dot" data-section="detail-page" data-label="상세페이지"></button>
+        <button class="section-nav-dot" data-section="contact" data-label="contact"></button>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main">
+        <!-- About Section -->
+        <section id="about" class="section about-section">
+            <div class="container">
+                <!-- Profile Header Area (with photo) -->
+                <div class="about-grid about-grid-top">
+                    <div class="about-info">
+                        <!-- Header Tags -->
+                        <div class="about-header">
+                            <div class="about-tag" style="flex: 1;">
+                                <span class="about-tag-label">가능직무 :</span>
+                                <span data-content="job-roles" class="about-job-roles-list">
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="about-header">
+                            <div class="about-tag" style="flex: 1;">
+                                <span class="about-tag-label">가능스킬 :</span>
+                                <span data-content="skills" class="about-skills-list">
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="about-header" data-section="certificates">
+                            <div class="about-tag" style="flex: 1;">
+                                <span class="about-tag-label">자격증 :</span>
+                                <span data-content="certificates" class="about-certificates-list">
+                                    <!-- 자격증 목록이 여기에 렌더링됩니다 -->
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="about-header" data-section="custom-links" style="display: none;">
+                            <div class="about-tag custom-links-container" style="flex: 1; gap: 8px; flex-wrap: wrap;">
+                                <!-- 커스텀 링크 버튼들이 여기에 렌더링됩니다 -->
+                            </div>
+                        </div>
+
+                        <div class="about-header" data-section="educations">
+                            <div class="about-tag" style="flex: 1;">
+                                <span class="about-tag-label">교육이수 :</span>
+                                <span data-content="educations" class="about-educations-list">
+                                    <!-- 교육이수 목록이 여기에 렌더링됩니다 -->
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="about-header">
+                            <div class="about-tag">
+                                <span class="about-tag-label">거주 :</span>
+                                <span data-content="residence"></span>
+                            </div>
+                        </div>
+
+                        <div class="about-header" style="display:none">
+                            <div class="about-tag">
+                                <span class="about-tag-label">나이 :</span>
+                                <span data-content="age"></span>
+                            </div>
+                        </div>
+
+                        <!-- Name and Status -->
+                        <div class="about-name">
+                            <span data-content="name"></span>
+                            <span data-content="kakao"></span>
+                            <span class="about-badge" data-content="employment"></span>
+                        </div>
+
+                        <!-- Motto -->
+                        <blockquote class="about-motto" data-content="motto">
+                        </blockquote>
+                    </div>
+
+                    <!-- Profile Image - Only extends to motto -->
+                    <div class="about-profile">
+                        <div data-content="profile-image">
+                            <div class="profile-image-placeholder">사진</div>
+                        </div>
+                        <button class="btn btn-primary download-btn" data-action="download-pdf">
+                            PDF로 보기
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Full-width sections below photo area -->
+                <div class="about-full-width">
+                    <!-- AI Tools Used -->
+                    <div class="about-skills" data-section="aitools">
+                        <h3 class="about-skills-title" data-content="ai-tools-title">사용해본 AI</h3>
+                        <div class="ai-list" data-content="ai-tools">
+                            <!-- AI tools will be rendered by JS -->
+                        </div>
+                    </div>
+
+                    <!-- Experience Grid -->
+                    <div class="experience-grid" style="margin-top: var(--space-xl);" data-section="experience">
+                        <div class="experience-block" data-content="related-experience" data-section="related">
+                            <!-- Related experience will be rendered by JS -->
+                        </div>
+                        <div class="experience-block" data-content="other-experience" data-section="other">
+                            <!-- Other experience will be rendered by JS -->
+                        </div>
+                    </div>
+
+                    <!-- Self Evaluation -->
+                    <div class="evaluation-grid" style="margin-top: var(--space-xl);" data-section="evaluation">
+                        <div class="evaluation-text" data-content="evaluation-text">
+                            <!-- Evaluation text will be rendered by JS -->
+                        </div>
+                        <div class="evaluation-chart">
+                            <h3 class="evaluation-text-title">자신 있는 부분과 없는 부분 그래프</h3>
+                            <canvas id="radar-chart" class="radar-chart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Video Section -->
+                    <div class="video-section" style="margin-top: var(--space-2xl);" data-section="video">
+                        <div class="video-container" data-content="video">
+                            <!-- Video will be rendered by JS -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Web & Mobile Section -->
+        <section id="web-mobile" class="section portfolio-section">
+            <div class="container">
+                <h2 class="section-title">웹 & 모바일</h2>
+                <div class="portfolio-container">
+                    <!-- Portfolio items will be rendered by JS -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Popup & Banner Section -->
+        <section id="popup-banner" class="section portfolio-section">
+            <div class="container">
+                <h2 class="section-title">팝업 & 배너</h2>
+                <div class="portfolio-container">
+                    <!-- Portfolio items will be rendered by JS -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Detail Page Section -->
+        <section id="detail-page" class="section portfolio-section">
+            <div class="container">
+                <h2 class="section-title">상세페이지</h2>
+                <div class="portfolio-container">
+                    <!-- Portfolio items will be rendered by JS -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Contact Section -->
+        <section id="contact" class="section contact-section">
+            <div class="container">
+                <h2 class="section-title">Contact</h2>
+                <div class="contact-grid">
+                    <div class="contact-info">
+                        <h3 class="contact-info-title">연락처</h3>
+                        <div class="contact-list">
+                            <div class="contact-item">
+                                <div class="contact-icon" data-emoji="contact-name">👤</div>
+                                <div>
+                                    <div class="contact-item-label">이름</div>
+                                    <div class="contact-item-value" data-content="contact-name"></div>
+                                </div>
+                            </div>
+                            <div class="contact-item">
+                                <div class="contact-icon" data-emoji="contact-phone">📞</div>
+                                <div>
+                                    <div class="contact-item-label">전화</div>
+                                    <div class="contact-item-value" data-content="contact-phone"></div>
+                                </div>
+                            </div>
+                            <div class="contact-item">
+                                <div class="contact-icon" data-emoji="contact-email">✉️</div>
+                                <div>
+                                    <div class="contact-item-label">이메일</div>
+                                    <div class="contact-item-value" data-content="contact-email"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="contact-thanks" data-content="contact-message">
+                        </div>
+                    </div>
+                    <div class="calendar-container">
+                        <!-- Calendar will be rendered by JS -->
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; <span id="footer-year"></span> Portfolio. All rights reserved.</p>
+            <script>document.getElementById('footer-year').textContent = new Date().getFullYear();</script>
+        </div>
+    </footer>
+
+    <!-- Theme Toggle -->
+    <div class="theme-toggle" style="display:none">
+        <button class="theme-toggle-btn" aria-label="테마 변경">🎨</button>
+        <div class="theme-menu">
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="js/data.js"></script>
+    <script src="js/pdf-font.js"></script>
+    <script src="js/app.js"></script>
+    <script type="module" src="js/owner-menu.js"></script>
+
+    <!-- Analytics Tracking -->
+    <script type="module">
+        import { AnalyticsManager } from './js/firebase-config.js';
+        // Track page visit
+        if (window.AnalyticsManager) {
+            AnalyticsManager.trackVisit('portfolio');
+        }
+    </script>
+</body>
+</html>

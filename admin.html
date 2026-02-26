@@ -1,0 +1,2421 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>관리자 설정 - 포트폴리오</title>
+
+    <!-- Main CSS -->
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        /* Admin Specific Styles */
+        .admin-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: var(--color-bg);
+            border-bottom: 1px solid var(--color-border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 var(--space-xl);
+            z-index: var(--z-fixed);
+        }
+
+        .admin-header-left {
+            display: flex;
+            align-items: center;
+            gap: var(--space-lg);
+        }
+
+        .admin-header-title {
+            font-size: var(--font-xl);
+            font-weight: 600;
+        }
+
+        .admin-header-actions {
+            display: flex;
+            gap: var(--space-sm);
+            align-items: center;
+        }
+
+        /* Sidebar Toggle Button (mobile only) */
+        .sidebar-toggle-btn {
+            display: none;
+            background: none;
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-md);
+            color: var(--color-text);
+            font-size: 20px;
+            cursor: pointer;
+            padding: 4px 10px;
+        }
+
+        /* Site view button labels */
+        .short-label {
+            display: none;
+        }
+
+        /* Preset Buttons */
+        .preset-group {
+            display: flex;
+            gap: 4px;
+        }
+
+        .btn-preset {
+            position: relative;
+            padding: 6px 10px;
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-md);
+            background: var(--color-bg-secondary);
+            color: var(--color-text);
+            font-size: var(--font-sm);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+        }
+
+        .btn-preset:hover {
+            border-color: var(--color-primary);
+            background: var(--color-primary);
+            color: white;
+        }
+
+        .btn-preset.has-data {
+            border-color: var(--color-primary);
+            background: rgba(52, 152, 219, 0.2);
+            color: var(--color-primary);
+        }
+
+        /* Active preset indicator - red dot */
+        .btn-preset.active-preset::after {
+            content: '';
+            position: absolute;
+            top: -3px;
+            right: -3px;
+            width: 8px;
+            height: 8px;
+            background: #e74c3c;
+            border-radius: 50%;
+            box-shadow: 0 0 3px rgba(231, 76, 60, 0.6);
+        }
+
+        /* Theme Modal */
+        .theme-modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 10000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .theme-modal-overlay.active {
+            display: flex;
+        }
+
+        .theme-modal {
+            background: var(--color-bg);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-lg);
+            padding: var(--space-xl);
+            min-width: 300px;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        .theme-modal-title {
+            font-size: var(--font-lg);
+            font-weight: 600;
+            margin-bottom: var(--space-lg);
+        }
+
+        .theme-modal-options {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-sm);
+            margin-bottom: var(--space-lg);
+        }
+
+        .theme-modal-btn {
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+            padding: var(--space-md) var(--space-lg);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-md);
+            background: var(--color-bg-secondary);
+            color: var(--color-text);
+            font-size: var(--font-md);
+            cursor: pointer;
+            transition: all var(--transition-fast);
+        }
+
+        .theme-modal-btn:hover {
+            border-color: var(--color-primary);
+        }
+
+        .theme-modal-btn.active {
+            background: var(--color-primary);
+            color: white;
+            border-color: var(--color-primary);
+        }
+
+        .theme-modal-icon {
+            font-size: 20px;
+        }
+
+        .preset-modal-actions {
+            display: flex;
+            gap: var(--space-sm);
+        }
+
+        .preset-modal-actions .btn {
+            flex: 1;
+        }
+
+        .admin-body {
+            padding-top: 60px;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .admin-sidebar {
+            position: fixed;
+            top: 60px;
+            left: 0;
+            bottom: 0;
+            width: 280px;
+            background: #222;
+            border-right: 1px solid #333;
+            overflow-y: auto;
+            padding: var(--space-lg);
+            color: #fff;
+        }
+
+        .admin-sidebar a {
+            color: #fff;
+        }
+
+        .admin-main {
+            flex: 1;
+            margin-left: 280px;
+            margin-right: 440px;
+            padding: var(--space-xl);
+            background: var(--color-bg);
+        }
+
+        .sidebar-section {
+            margin-bottom: var(--space-xl);
+        }
+
+        .sidebar-title {
+            font-size: var(--font-sm);
+            font-weight: 600;
+            color: #aaa;
+            margin-bottom: var(--space-md);
+            text-transform: uppercase;
+        }
+
+        .page-tabs {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-sm);
+        }
+
+        .page-tab {
+            padding: var(--space-md) var(--space-lg);
+            background: #333;
+            border: 1px solid #444;
+            border-radius: var(--radius-md);
+            text-align: left;
+            font-weight: 500;
+            transition: all var(--transition-fast);
+            cursor: pointer;
+            color: #fff;
+        }
+
+        .page-tab:hover {
+            border-color: var(--color-primary);
+            background: #444;
+        }
+
+        .page-tab.active {
+            background: var(--color-primary);
+            color: white;
+            border-color: var(--color-primary);
+        }
+
+        .sort-item {
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+            padding: var(--space-md);
+            background: #333;
+            border: 1px solid #444;
+            border-radius: var(--radius-md);
+            margin-bottom: var(--space-sm);
+            cursor: default;
+            transition: all var(--transition-fast);
+            color: #fff;
+        }
+
+        .sort-item:hover {
+            border-color: var(--color-primary);
+        }
+
+        .item-card.dragging {
+            opacity: 0.5;
+            background: rgba(100, 100, 100, 0.3);
+        }
+
+        .item-card {
+            cursor: grab;
+        }
+
+        .item-card:active {
+            cursor: grabbing;
+        }
+
+        .sort-handle {
+            color: #888;
+            cursor: grab;
+        }
+
+        .section-link {
+            cursor: pointer;
+            flex: 1;
+        }
+
+        .section-link:hover {
+            color: var(--color-primary);
+        }
+
+        .admin-panel {
+            display: none;
+        }
+
+        .admin-panel.active {
+            display: block;
+        }
+
+        .settings-section {
+            background: var(--color-bg);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-lg);
+            margin-bottom: var(--space-xl);
+            overflow: hidden;
+        }
+
+        .settings-section-title {
+            font-size: var(--font-lg);
+            font-weight: 600;
+            padding: var(--space-lg);
+            background: #333;
+            color: #fff;
+            margin: 0;
+        }
+
+        .settings-section-content {
+            padding: var(--space-xl);
+        }
+
+        .settings-row {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: var(--space-lg);
+        }
+
+        .settings-row-3 {
+            grid-template-columns: repeat(3, 1fr);
+        }
+
+        .settings-row-4 {
+            grid-template-columns: repeat(4, 1fr);
+        }
+
+        .item-card {
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+            padding: var(--space-md);
+            background: var(--color-bg-secondary);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-md);
+            margin-bottom: var(--space-sm);
+        }
+
+        .item-card-content {
+            flex: 1;
+        }
+
+        .item-card-title {
+            font-weight: 500;
+        }
+
+        .item-card-desc {
+            font-size: var(--font-sm);
+            color: var(--color-text-secondary);
+        }
+
+        .item-card-actions {
+            display: flex;
+            gap: var(--space-sm);
+        }
+
+        .add-btn {
+            width: 100%;
+            padding: var(--space-md);
+            border: 2px dashed var(--color-border);
+            border-radius: var(--radius-md);
+            color: var(--color-text-secondary);
+            background: transparent;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+        }
+
+        .add-btn:hover {
+            border-color: var(--color-primary);
+            color: var(--color-primary);
+        }
+
+        .sidebar-add-btn {
+            width: 100%;
+            padding: var(--space-md);
+            border: 2px dashed #555;
+            border-radius: var(--radius-md);
+            color: #888;
+            background: transparent;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+        }
+
+        .sidebar-add-btn:hover {
+            border-color: var(--color-primary);
+            color: var(--color-primary);
+        }
+
+        .display-mode-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: var(--space-md);
+        }
+
+        .display-mode-item {
+            padding: var(--space-lg);
+            border: 2px solid var(--color-border);
+            border-radius: var(--radius-lg);
+            text-align: center;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+        }
+
+        .display-mode-item:hover {
+            border-color: var(--color-primary);
+        }
+
+        .display-mode-item.active {
+            border-color: var(--color-primary);
+            background: rgba(52, 152, 219, 0.1);
+        }
+
+        .display-mode-icon {
+            font-size: var(--font-3xl);
+            margin-bottom: var(--space-sm);
+        }
+
+        .display-mode-label {
+            font-size: var(--font-sm);
+            font-weight: 500;
+        }
+
+        .color-input-group {
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+        }
+
+        .color-preview {
+            width: 40px;
+            height: 40px;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--color-border);
+            cursor: pointer;
+        }
+
+        .radar-inputs {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: var(--space-md);
+        }
+
+        .radar-input-item {
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+        }
+
+        .radar-input-item input[type="text"] {
+            flex: 1;
+        }
+
+        .radar-input-item input[type="number"] {
+            width: 80px;
+        }
+
+        /* Modal z-index override (above resize-handle) */
+        .modal {
+            z-index: 2000 !important;
+        }
+
+        /* Resize Handle */
+        .resize-handle {
+            position: fixed;
+            right: 430px;
+            top: 70px;
+            bottom: 10px;
+            width: 12px;
+            background: rgba(100, 100, 100, 0.3);
+            cursor: col-resize;
+            z-index: 1001;
+            transition: background 0.2s;
+            border-radius: 4px;
+        }
+
+        .resize-handle:hover,
+        .resize-handle.active {
+            background: var(--color-primary);
+            opacity: 0.7;
+        }
+
+        .resize-handle::before {
+            content: '⋮⋮';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #999;
+            font-size: 12px;
+            letter-spacing: -2px;
+        }
+
+        /* Right Panel (Minimap + Section Settings) */
+        .right-panel {
+            position: fixed;
+            right: 20px;
+            top: 70px;
+            bottom: 10px;
+            width: 400px;
+            display: flex;
+            gap: 10px;
+            z-index: calc(var(--z-fixed) - 1);
+        }
+
+        /* Site Preview Minimap */
+        .site-minimap {
+            flex: 1;
+            background: #1a1a2e;
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-lg);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Section Settings Panel */
+        .section-settings-panel {
+            width: 120px;
+            min-width: 120px;
+            flex-shrink: 0;
+            background: #1a1a2e;
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-lg);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .section-settings-title {
+            padding: 10px;
+            background: #222;
+            border-bottom: 1px solid #333;
+            font-size: 11px;
+            font-weight: 600;
+            color: #fff;
+            text-align: center;
+        }
+
+        .section-settings-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 8px;
+        }
+
+        .section-setting-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 4px;
+            font-size: 11px;
+            color: #ccc;
+            cursor: grab;
+            transition: background 0.2s;
+            border-radius: 4px;
+        }
+
+        .section-setting-item:active {
+            cursor: grabbing;
+        }
+
+        .section-setting-item.dragging {
+            opacity: 0.5;
+            background: rgba(52, 152, 219, 0.2);
+        }
+
+        .section-setting-item .drag-handle {
+            color: #bbb;
+            font-size: 12px;
+            cursor: grab;
+            user-select: none;
+        }
+
+        .section-setting-item:hover .drag-handle {
+            color: #fff;
+        }
+
+        .section-setting-item input[type="checkbox"] {
+            width: 13px;
+            height: 13px;
+            cursor: pointer;
+            accent-color: var(--color-primary);
+        }
+
+        .section-setting-item label {
+            cursor: pointer;
+            flex: 1;
+        }
+
+        .section-setting-item:hover {
+            color: #fff;
+        }
+
+        .section-setting-sub {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 3px 4px 5px 20px;
+            font-size: 10px;
+            color: #999;
+            border-bottom: 1px solid #333;
+            margin-bottom: 3px;
+        }
+
+        .section-setting-sub input[type="checkbox"] {
+            width: 11px;
+            height: 11px;
+            cursor: pointer;
+            accent-color: var(--color-secondary);
+        }
+
+        .section-setting-sub label {
+            cursor: pointer;
+        }
+
+        /* Font Size Setting with Preview */
+        .font-size-setting {
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+            margin-bottom: var(--space-md);
+            padding: 8px;
+            background: var(--color-bg-secondary);
+            border-radius: var(--radius-md);
+        }
+
+        .font-size-input {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .font-size-input .form-label {
+            margin-bottom: 4px;
+            font-size: 12px;
+        }
+
+        .font-size-input .form-input {
+            width: 100%;
+        }
+
+        .font-size-preview {
+            flex: 0 0 140px;
+            padding: 8px 12px;
+            background: #fff;
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-sm);
+            text-align: center;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+        }
+
+        /* Floating Theme Panel (center bottom of screen) */
+        .floating-theme-panel {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 8px;
+            padding: 8px 12px;
+            background: rgba(30, 30, 50, 0.95);
+            border: 1px solid var(--color-border);
+            border-radius: 30px;
+            box-shadow: var(--shadow-lg);
+            z-index: var(--z-fixed);
+        }
+
+        .floating-theme-btn {
+            display: block;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            flex-shrink: 0;
+        }
+
+        .floating-theme-btn:hover,
+        .floating-theme-btn.active {
+            border-color: #fff;
+            transform: scale(1.15);
+        }
+
+        .minimap-header {
+            padding: 10px 12px;
+            background: #222;
+            border-bottom: 1px solid #333;
+            font-size: 12px;
+            font-weight: 600;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .minimap-header-icon {
+            font-size: 14px;
+        }
+
+        .minimap-current-section {
+            color: var(--color-primary);
+            font-weight: 500;
+            margin-left: auto;
+            font-size: 11px;
+        }
+
+        .minimap-frame-container {
+            flex: 1;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .minimap-frame {
+            width: 400%;
+            height: 400%;
+            border: none;
+            transform: scale(0.25);
+            transform-origin: top left;
+            pointer-events: auto;
+            transition: transform 0.15s ease, width 0.15s ease, height 0.15s ease;
+        }
+
+        .minimap-overlay {
+            position: absolute;
+            inset: 0;
+            background: transparent;
+            cursor: pointer;
+            pointer-events: none;
+        }
+
+        .minimap-frame-container {
+            cursor: pointer;
+        }
+
+        .minimap-section-indicator {
+            position: absolute;
+            left: 0;
+            right: 0;
+            background: rgba(52, 152, 219, 0.3);
+            border: 2px solid var(--color-primary);
+            pointer-events: none;
+            transition: all 0.3s ease;
+        }
+
+        .minimap-refresh-hint {
+            position: absolute;
+            bottom: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 10px;
+            font-size: 10px;
+            opacity: 0.6;
+            transition: opacity 0.3s;
+            pointer-events: none;
+        }
+
+        .minimap-overlay:hover .minimap-refresh-hint {
+            opacity: 1;
+        }
+
+        /* Page Toggle Styles */
+        .page-toggle-list {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-md);
+        }
+
+        .page-toggle-item {
+            display: flex;
+            align-items: center;
+            gap: var(--space-lg);
+            padding: var(--space-md) var(--space-lg);
+            background: var(--color-bg-secondary);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-md);
+        }
+
+        .page-toggle-info {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .page-toggle-name {
+            font-weight: 600;
+            font-size: var(--font-base);
+        }
+
+        .page-toggle-desc {
+            font-size: var(--font-sm);
+            color: var(--color-text-muted);
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 28px;
+            flex-shrink: 0;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            inset: 0;
+            background: #ccc;
+            transition: 0.3s;
+            border-radius: 28px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 4px;
+            bottom: 4px;
+            background: white;
+            transition: 0.3s;
+            border-radius: 50%;
+        }
+
+        .toggle-switch input:checked + .toggle-slider {
+            background: var(--color-primary);
+        }
+
+        .toggle-switch input:checked + .toggle-slider:before {
+            transform: translateX(22px);
+        }
+
+        .preview-frame {
+            display: none;
+        }
+
+        .admin-main.with-preview {
+            margin-right: 400px;
+        }
+
+        .theme-color-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: var(--space-md);
+        }
+
+        .theme-color-item {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-xs);
+        }
+
+        .theme-color-item label {
+            font-size: var(--font-sm);
+            color: var(--color-text-secondary);
+        }
+
+        .image-upload-area {
+            border: 2px dashed var(--color-border);
+            border-radius: var(--radius-lg);
+            padding: var(--space-xl);
+            text-align: center;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+        }
+
+        .image-upload-area:hover {
+            border-color: var(--color-primary);
+            background: var(--color-bg-secondary);
+        }
+
+        .image-upload-preview {
+            max-width: 200px;
+            margin: 0 auto;
+        }
+
+        .image-upload-preview img {
+            width: 100%;
+            border-radius: var(--radius-md);
+        }
+
+        .portfolio-section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--space-lg);
+        }
+
+        .section-anchor {
+            scroll-margin-top: 80px;
+        }
+
+        @media (max-width: 1400px) {
+            .right-panel,
+            .resize-handle {
+                display: none;
+            }
+
+            .admin-main {
+                margin-right: 50px;
+            }
+        }
+
+        @media (max-width: 1200px) {
+            .preview-frame {
+                display: none !important;
+            }
+
+            .admin-main.with-preview {
+                margin-right: 50px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar-toggle-btn {
+                display: block;
+            }
+
+            .admin-header {
+                padding: 0 var(--space-sm);
+                gap: var(--space-xs);
+            }
+
+            .admin-header-title {
+                display: none;
+            }
+
+            .admin-user-email {
+                display: none;
+            }
+
+            .admin-header-actions {
+                gap: 4px;
+            }
+
+            .admin-header-actions .btn {
+                padding: 6px 8px;
+                font-size: var(--font-xs);
+            }
+
+            .btn-preset {
+                padding: 6px 8px;
+                font-size: var(--font-xs);
+            }
+
+            .full-label {
+                display: none;
+            }
+
+            .short-label {
+                display: inline;
+            }
+
+            .admin-sidebar {
+                position: fixed;
+                top: 60px;
+                left: 0;
+                bottom: 0;
+                width: 280px;
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+                z-index: 1000;
+            }
+
+            .admin-sidebar.open {
+                transform: translateX(0);
+            }
+
+            .sidebar-backdrop {
+                display: none;
+                position: fixed;
+                top: 60px;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0, 0, 0, 0.5);
+                z-index: 999;
+            }
+
+            .sidebar-backdrop.active {
+                display: block;
+            }
+
+            .admin-main {
+                margin-left: 0;
+            }
+
+            .settings-row,
+            .settings-row-3,
+            .settings-row-4,
+            .display-mode-grid,
+            .theme-color-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Toast animation */
+        @keyframes toastSlideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-50%) translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+
+        /* User Info in Header */
+        .admin-user-info {
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+            font-size: var(--font-sm);
+            color: var(--color-text-secondary);
+        }
+
+        .admin-user-email {
+            max-width: 180px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .btn-logout {
+            padding: 4px 10px;
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-md);
+            background: transparent;
+            color: var(--color-text-secondary);
+            font-size: var(--font-xs);
+            cursor: pointer;
+            transition: all var(--transition-fast);
+        }
+
+        .btn-logout:hover {
+            background: #e74c3c;
+            color: #fff;
+            border-color: #e74c3c;
+        }
+
+        /* Hidden Super Admin Link in Section Panel */
+        .secret-admin-link {
+            display: none;
+            margin-top: 8px;
+            padding: 4px 0;
+            text-align: center;
+            font-size: 9px;
+            color: var(--color-text-secondary);
+            opacity: 0.15;
+            transition: opacity 0.3s;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .secret-admin-link:hover {
+            opacity: 0.5;
+        }
+    </style>
+</head>
+<body>
+    <!-- Admin Header -->
+    <header class="admin-header">
+        <div class="admin-header-left">
+            <button class="sidebar-toggle-btn" id="btn-sidebar-toggle">☰</button>
+            <h1 class="admin-header-title" id="admin-title">포트폴리오 설정</h1>
+            <div class="admin-user-info" id="admin-user-info" style="display: none;">
+                <span class="admin-user-email" id="admin-user-email"></span>
+                <button class="btn-logout" id="btn-admin-logout">로그아웃</button>
+            </div>
+        </div>
+        <div class="admin-header-actions">
+            <button class="btn btn-secondary btn-theme-open" id="btn-theme-open">🎨 테마</button>
+            <div class="preset-group">
+                <button class="btn btn-preset" data-preset="1" title="프리셋 1">P1</button>
+                <button class="btn btn-preset" data-preset="2" title="프리셋 2">P2</button>
+            </div>
+            <button class="btn btn-primary" id="btn-save-all">저장&게시</button>
+            <a href="portfolio.html" class="btn btn-secondary" id="btn-site-view" target="_blank"><span class="full-label">사이트 보기</span><span class="short-label">보기</span></a>
+            <button class="btn btn-accent" id="btn-reset">초기화</button>
+        </div>
+    </header>
+
+    <!-- Theme Selection Modal -->
+    <div class="theme-modal-overlay" id="theme-modal-overlay">
+        <div class="theme-modal">
+            <h3 class="theme-modal-title">테마 선택</h3>
+            <div class="theme-modal-options">
+                <button class="theme-modal-btn active" data-theme-num="1">
+                    <span class="theme-modal-icon">🎨</span>
+                    <span>테마 1</span>
+                </button>
+                <button class="theme-modal-btn" data-theme-num="2">
+                    <span class="theme-modal-icon">🌙</span>
+                    <span>테마 2</span>
+                </button>
+                <button class="theme-modal-btn" data-theme-num="3">
+                    <span class="theme-modal-icon">☀️</span>
+                    <span>테마 3</span>
+                </button>
+            </div>
+            <button class="btn btn-secondary theme-modal-close" id="theme-modal-close">닫기</button>
+        </div>
+    </div>
+
+    <!-- Preset Action Modal -->
+    <div class="theme-modal-overlay" id="preset-modal-overlay">
+        <div class="theme-modal">
+            <h3 class="theme-modal-title" id="preset-modal-title">프리셋 1</h3>
+            <p id="preset-modal-desc" style="color: var(--color-text-secondary); margin-bottom: var(--space-lg); font-size: var(--font-sm);"></p>
+            <div class="preset-modal-actions">
+                <button class="btn btn-primary" id="preset-save-btn">현재 내용 저장</button>
+                <button class="btn btn-secondary" id="preset-load-btn">불러오기</button>
+                <button class="btn btn-accent" id="preset-delete-btn">삭제</button>
+            </div>
+            <button class="btn btn-secondary theme-modal-close" id="preset-modal-close" style="margin-top: var(--space-md); width: 100%;">닫기</button>
+        </div>
+    </div>
+
+    <!-- Admin Body -->
+    <div class="admin-body">
+        <!-- Sidebar Backdrop (mobile) -->
+        <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+        <!-- Sidebar -->
+        <aside class="admin-sidebar" id="admin-sidebar">
+            <div class="sidebar-section">
+                <div class="page-tabs">
+                    <button class="page-tab" data-page="skin" style="background: var(--color-accent); color: white; margin-bottom: var(--space-md);">🎨 스킨수정</button>
+                </div>
+            </div>
+
+            <div class="sidebar-section">
+                <h3 class="sidebar-title">페이지 선택</h3>
+                <div class="page-tabs">
+                    <button class="page-tab" data-page="intro" id="page-tab-intro" style="display: none; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; margin-bottom: var(--space-md);">🚀 인트로수정</button>
+                    <button class="page-tab active" data-page="solo">혼자제작</button>
+                    <button class="page-tab" data-page="ai">AI활용</button>
+                    <button class="page-tab" data-page="team">팀플</button>
+                </div>
+            </div>
+
+            <div class="sidebar-section" id="menu-management-section">
+                <h3 class="sidebar-title">메뉴 관리</h3>
+                <div id="menu-list">
+                    <!-- Menu items will be rendered here -->
+                </div>
+                <button class="sidebar-add-btn" id="btn-add-menu">+ 메뉴 추가</button>
+            </div>
+
+            <!-- Subscription Status (at bottom) -->
+            <div class="sidebar-section" id="subscription-section" style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border-radius: 8px; padding: 12px; margin-top: auto; border: 1px solid #333;">
+                <div id="subscription-status">
+                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                        <span style="font-size: 16px;">⏳</span>
+                        <span style="font-size: 12px; color: #888;">구독 상태 확인 중...</span>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="admin-main">
+            <!-- Solo Page Settings -->
+            <div class="admin-panel active" id="panel-solo">
+                <!-- Profile Settings -->
+                <div class="settings-section section-anchor" id="section-about">
+                    <h2 class="settings-section-title">자기소개</h2>
+                    <div class="settings-section-content">
+                        <div class="settings-row">
+                            <div class="form-group">
+                                <label class="form-label">이름</label>
+                                <input type="text" class="form-input" id="profile-name">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">이름 옆 제목</label>
+                                <input type="text" class="form-input" id="profile-kakao-label" placeholder="예: 카톡, 인스타, 연락처">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">이름 옆 내용</label>
+                                <input type="text" class="form-input" id="profile-kakao" placeholder="예: honggildong">
+                            </div>
+                        </div>
+
+                        <div class="settings-row">
+                            <div class="form-group">
+                                <label class="form-label">재직여부</label>
+                                <input type="text" class="form-input" id="profile-employment">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">희망연봉</label>
+                                <input type="text" class="form-input" id="profile-salary">
+                            </div>
+                            <div class="form-group" style="display: flex; align-items: center; padding-top: 24px;">
+                                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                    <input type="checkbox" id="profile-show-employment" checked>
+                                    재직/연봉 정보 노출
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">가능직무 (쉼표로 구분)</label>
+                            <input type="text" class="form-input" id="profile-roles">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">가능스킬 (쉼표로 구분)</label>
+                            <input type="text" class="form-input" id="profile-skills">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">자격증</label>
+                            <div id="certificates-list">
+                                <!-- 자격증 목록이 여기에 렌더링됩니다 -->
+                            </div>
+                            <button class="add-btn" id="btn-add-certificate">+ 자격증 추가</button>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">커스텀 링크 버튼</label>
+                            <div id="custom-links-list">
+                                <!-- 커스텀 링크 목록이 여기에 렌더링됩니다 -->
+                            </div>
+                            <button class="add-btn" id="btn-add-custom-link">+ 링크 버튼 추가</button>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">교육이수</label>
+                            <div id="educations-list">
+                                <!-- 교육이수 목록이 여기에 렌더링됩니다 -->
+                            </div>
+                            <button class="add-btn" id="btn-add-education">+ 교육이수 추가</button>
+                        </div>
+
+                        <div class="settings-row">
+                            <div class="form-group">
+                                <label class="form-label">거주지</label>
+                                <input type="text" class="form-input" id="profile-residence">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">나이</label>
+                                <input type="text" class="form-input" id="profile-age" placeholder="예: 28세">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">좌우명</label>
+                            <input type="text" class="form-input" id="profile-motto">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">프로필 사진</label>
+                            <div class="image-upload-area" id="profile-image-upload">
+                                <div class="image-upload-preview" id="profile-image-preview">
+                                    <p>클릭하여 이미지 선택<br>또는 URL 직접 입력</p>
+                                </div>
+                                <input type="file" id="profile-image-file" accept="image/*" style="display: none;">
+                            </div>
+                            <input type="text" class="form-input" id="profile-image" placeholder="이미지 URL 직접 입력" style="margin-top: var(--space-sm);">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- AI Tools Settings -->
+                <div class="settings-section">
+                    <h2 class="settings-section-title">사용해본 AI</h2>
+                    <div class="settings-section-content">
+                        <div id="ai-tools-list">
+                            <!-- AI tools will be rendered here -->
+                        </div>
+                        <button class="add-btn" id="btn-add-ai-tool">+ AI 도구 추가</button>
+                    </div>
+                </div>
+
+                <!-- Related Experience -->
+                <div class="settings-section">
+                    <h2 class="settings-section-title">관련경력</h2>
+                    <div class="settings-section-content">
+                        <div class="form-group">
+                            <label class="form-label">총 경력 기간</label>
+                            <input type="text" class="form-input" id="related-total">
+                        </div>
+                        <div id="related-experience-list">
+                            <!-- Experience items will be rendered here -->
+                        </div>
+                        <button class="add-btn" id="btn-add-related">+ 경력 추가</button>
+                    </div>
+                </div>
+
+                <!-- Other Experience -->
+                <div class="settings-section">
+                    <h2 class="settings-section-title">타업무경력</h2>
+                    <div class="settings-section-content">
+                        <div class="form-group">
+                            <label class="form-label">총 경력 기간</label>
+                            <input type="text" class="form-input" id="other-total">
+                        </div>
+                        <div id="other-experience-list">
+                            <!-- Experience items will be rendered here -->
+                        </div>
+                        <button class="add-btn" id="btn-add-other">+ 경력 추가</button>
+                    </div>
+                </div>
+
+                <!-- Self Evaluation -->
+                <div class="settings-section">
+                    <h2 class="settings-section-title">내가 생각하는 내평가</h2>
+                    <div class="settings-section-content">
+                        <div class="form-group">
+                            <label class="form-label">평가 내용</label>
+                            <textarea class="form-textarea" id="evaluation-text" rows="6"></textarea>
+                        </div>
+
+                        <h3 style="margin: var(--space-lg) 0 var(--space-md);">방사형 그래프 (제목과 값 0-100)</h3>
+                        <div class="radar-inputs" id="radar-inputs">
+                            <!-- Radar inputs will be rendered here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Video Section -->
+                <div class="settings-section">
+                    <h2 class="settings-section-title">영상</h2>
+                    <div class="settings-section-content">
+                        <div class="settings-row">
+                            <div class="form-group">
+                                <label class="form-label">영상 타입</label>
+                                <select class="form-select" id="video-type">
+                                    <option value="youtube">YouTube</option>
+                                    <option value="video">비디오 파일</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">영상 URL</label>
+                                <input type="text" class="form-input" id="video-url">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Portfolio Sections (Dynamic) -->
+                <div id="portfolio-sections-container">
+                    <!-- Portfolio sections will be rendered dynamically -->
+                </div>
+
+                <!-- Contact Settings -->
+                <div class="settings-section section-anchor" id="section-contact">
+                    <h2 class="settings-section-title">Contact</h2>
+                    <div class="settings-section-content">
+                        <div class="settings-row-3">
+                            <div class="form-group">
+                                <label class="form-label">이름</label>
+                                <input type="text" class="form-input" id="contact-name">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">전화번호</label>
+                                <input type="text" class="form-input" id="contact-phone">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">이메일</label>
+                                <input type="text" class="form-input" id="contact-email">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">감사 메시지</label>
+                            <input type="text" class="form-input" id="contact-message">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Interview Schedule -->
+                <div class="settings-section">
+                    <h2 class="settings-section-title">면접 일정</h2>
+                    <div class="settings-section-content">
+                        <div id="interview-list">
+                            <!-- Interview items will be rendered here -->
+                        </div>
+                        <button class="add-btn" id="btn-add-interview">+ 면접 일정 추가</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI Page Settings -->
+            <div class="admin-panel" id="panel-ai">
+                <div class="settings-section">
+                    <h2 class="settings-section-title">AI 활용 프로젝트 관리</h2>
+                    <div class="settings-section-content">
+                        <div id="portfolio-ai-list">
+                            <!-- AI portfolio items will be rendered here -->
+                        </div>
+                        <button class="add-btn" id="btn-add-portfolio-ai">+ AI 프로젝트 추가</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Team Page Settings -->
+            <div class="admin-panel" id="panel-team">
+                <div class="settings-section">
+                    <h2 class="settings-section-title">팀플 프로젝트 관리</h2>
+                    <div class="settings-section-content">
+                        <div id="portfolio-team-list">
+                            <!-- Team portfolio items will be rendered here -->
+                        </div>
+                        <button class="add-btn" id="btn-add-portfolio-team">+ 팀플 프로젝트 추가</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Intro Page Settings -->
+            <div class="admin-panel" id="panel-intro">
+                <div class="settings-section">
+                    <h2 class="settings-section-title">🚀 인트로 페이지 커스텀 설정</h2>
+                    <div class="settings-section-content">
+                        <div class="form-group">
+                            <label class="form-label">배경 이미지</label>
+                            <input type="text" class="form-input" id="intro-panel-bg-image" placeholder="배경 이미지 URL">
+                            <input type="file" id="intro-panel-bg-file" accept="image/*" style="display: none;">
+                            <button type="button" class="btn btn-secondary btn-sm" id="btn-intro-panel-bg-upload" style="margin-top: 8px;">이미지 업로드</button>
+                            <div id="intro-panel-bg-preview" style="margin-top: 8px; height: 80px; border: 1px solid var(--color-border); border-radius: 6px; overflow: hidden; display: flex; align-items: center; justify-content: center; background: var(--color-bg-secondary);">
+                                <span style="color: #888; font-size: 11px;">미리보기</span>
+                            </div>
+                        </div>
+
+                        <hr style="border: none; border-top: 1px solid var(--color-border); margin: var(--space-lg) 0;">
+
+                        <div class="form-group">
+                            <label class="form-label">텍스트 요소</label>
+                            <p style="font-size: 11px; color: var(--color-text-secondary); margin-bottom: 12px;">여러 개의 텍스트를 추가하고 각각 스타일을 지정할 수 있습니다.</p>
+                            <div id="intro-panel-texts-container">
+                                <!-- Text items will be rendered here -->
+                            </div>
+                            <button type="button" class="btn btn-secondary btn-sm" id="btn-add-intro-panel-text" style="margin-top: 8px;">+ 텍스트 추가</button>
+                        </div>
+
+                        <hr style="border: none; border-top: 1px solid var(--color-border); margin: var(--space-lg) 0;">
+
+                        <div class="form-group">
+                            <label class="form-label">기본 카드 표시</label>
+                            <p style="font-size: 11px; color: var(--color-text-secondary); margin-bottom: 12px;">인트로 페이지의 기본 카드(혼자제작 / AI활용제작 / 팀플제작)를 표시합니다.</p>
+                            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                <input type="checkbox" id="intro-panel-show-default-cards" checked>
+                                <span style="font-size: 13px;">기본 카드 표시</span>
+                            </label>
+                        </div>
+
+                        <hr style="border: none; border-top: 1px solid var(--color-border); margin: var(--space-lg) 0;">
+
+                        <div class="form-group">
+                            <label class="form-label">링크 버튼</label>
+                            <p style="font-size: 11px; color: var(--color-text-secondary); margin-bottom: 12px;">인트로 페이지에 표시할 버튼을 추가합니다.</p>
+                            <div id="intro-panel-buttons-container">
+                                <!-- Button items will be rendered here -->
+                            </div>
+                            <button type="button" class="btn btn-secondary btn-sm" id="btn-add-intro-panel-button" style="margin-top: 8px;">+ 버튼 추가</button>
+
+                            <!-- 버튼 공통 위치 설정 -->
+                            <div id="intro-panel-button-position-settings" style="margin-top: 16px; padding: 12px; background: var(--color-bg-tertiary); border-radius: 8px; display: none;">
+                                <div style="display: flex; gap: 16px; align-items: flex-start;">
+                                    <div>
+                                        <span style="font-size: 11px; color: var(--color-text-secondary); display: block; margin-bottom: 6px;">버튼 위치:</span>
+                                        <div id="intro-panel-button-position-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px; width: 72px; height: 48px; padding: 4px; background: var(--color-bg-primary); border: 2px solid var(--color-primary); border-radius: 4px;">
+                                            <!-- Position cells will be rendered by JS -->
+                                        </div>
+                                    </div>
+                                    <div style="flex: 1;">
+                                        <span style="font-size: 11px; color: var(--color-text-secondary); display: block; margin-bottom: 6px;">위아래 위치조정 위로 올리려면 마이너스 - 숫자 입력하면 됩니다:</span>
+                                        <input type="number" class="form-input" id="intro-panel-button-offsetY" placeholder="0" value="0" style="width: 100%; padding: 6px 8px; font-size: 12px;">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="display: flex; gap: var(--space-sm); margin-top: var(--space-xl);">
+                            <button class="btn btn-accent" id="btn-reset-intro-panel" style="margin-right: auto;">초기화</button>
+                            <button class="btn btn-primary" id="btn-save-intro-panel">저장</button>
+                            <button class="btn btn-secondary" id="btn-preview-intro-panel">미리보기</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Skin Settings -->
+            <div class="admin-panel" id="panel-skin">
+                <!-- Visual Editor Link -->
+                <div class="settings-section" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; margin-bottom: var(--space-xl);">
+                    <div class="settings-section-content" style="display: flex; align-items: center; justify-content: space-between; padding: var(--space-xl);">
+                        <div style="color: white;">
+                            <h2 style="font-size: 1.25rem; margin-bottom: 8px; color: white;">✨ 비주얼 에디터</h2>
+                            <p style="opacity: 0.9; font-size: 0.9rem; margin: 0;">실제 페이지처럼 보이면서 클릭해서 바로 수정하는 새로운 편집 방식</p>
+                        </div>
+                        <a href="skin-editor-v2.html" class="btn btn-primary" style="background: white; color: #667eea; font-weight: 600; padding: 12px 24px;">
+                            비주얼 에디터 열기 →
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Page Enable/Disable Settings -->
+                <div class="settings-section" id="section-page-settings">
+                    <h2 class="settings-section-title">페이지 사용 설정</h2>
+                    <div class="settings-section-content">
+                        <p style="color: var(--color-text-muted); margin-bottom: var(--space-lg); font-size: var(--font-sm);">
+                            사용하지 않을 페이지를 비활성화할 수 있습니다. 비활성화된 페이지는 인트로 화면과 메뉴에서 숨겨집니다.
+                        </p>
+                        <div class="page-toggle-list">
+                            <div class="page-toggle-item">
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="page-enable-intro" checked>
+                                    <span class="toggle-slider"></span>
+                                </label>
+                                <div class="page-toggle-info">
+                                    <span class="page-toggle-name">인트로 페이지</span>
+                                    <span class="page-toggle-desc">포트폴리오 진입 화면 (비활성화 시 portfolio.html로 바로 이동)</span>
+                                </div>
+                            </div>
+                            <div class="page-toggle-item">
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="page-enable-ai" checked>
+                                    <span class="toggle-slider"></span>
+                                </label>
+                                <div class="page-toggle-info">
+                                    <span class="page-toggle-name">AI 활용제작 페이지</span>
+                                    <span class="page-toggle-desc">AI를 활용한 프로젝트 페이지 (ai.html)</span>
+                                </div>
+                            </div>
+                            <div class="page-toggle-item">
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="page-enable-team" checked>
+                                    <span class="toggle-slider"></span>
+                                </label>
+                                <div class="page-toggle-info">
+                                    <span class="page-toggle-name">팀플 제작 페이지</span>
+                                    <span class="page-toggle-desc">팀 프로젝트 페이지 (team.html)</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Site Settings -->
+                <div class="settings-section" id="section-site">
+                    <h2 class="settings-section-title">사이트 설정</h2>
+                    <div class="settings-section-content">
+                        <h3 style="margin-bottom: var(--space-md);">로고 설정</h3>
+                        <div class="settings-row" style="margin-bottom: var(--space-lg);">
+                            <div class="form-group">
+                                <label class="form-label">로고 타입</label>
+                                <select class="form-select" id="logo-type">
+                                    <option value="text">텍스트</option>
+                                    <option value="image">이미지</option>
+                                </select>
+                            </div>
+                            <div class="form-group" id="logo-text-group">
+                                <label class="form-label">로고 텍스트</label>
+                                <input type="text" class="form-input" id="logo-text">
+                            </div>
+                            <div class="form-group" id="logo-text-color-group">
+                                <label class="form-label">로고 텍스트 색상</label>
+                                <div style="display: flex; gap: var(--space-md); align-items: center;">
+                                    <div style="display: flex; gap: 4px; align-items: center;">
+                                        <span style="font-size: 11px; color: #888;">라이트</span>
+                                        <input type="color" id="logo-text-color" value="#212529" style="width: 36px; height: 32px; border: none; cursor: pointer; border-radius: 4px;">
+                                    </div>
+                                    <div style="display: flex; gap: 4px; align-items: center;">
+                                        <span style="font-size: 11px; color: #888;">다크</span>
+                                        <input type="color" id="logo-text-color-dark" value="#ffffff" style="width: 36px; height: 32px; border: none; cursor: pointer; border-radius: 4px;">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="settings-row" id="logo-image-group" style="display: none; margin-bottom: var(--space-lg);">
+                            <div class="form-group">
+                                <label class="form-label">라이트 모드 로고</label>
+                                <div style="display: flex; gap: var(--space-md); align-items: flex-start;">
+                                    <div style="flex: 1;">
+                                        <input type="text" class="form-input" id="logo-image-url-light" placeholder="라이트 모드용 로고 이미지">
+                                        <input type="file" id="logo-image-file-light" accept="image/*" style="display: none;">
+                                        <button type="button" class="btn btn-secondary btn-sm" id="btn-logo-upload-light" style="margin-top: var(--space-sm);">파일 선택</button>
+                                    </div>
+                                    <div id="logo-preview-light" style="width: 80px; height: 40px; border: 1px solid var(--color-border); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; overflow: hidden; background: #fff;">
+                                        <span style="color: #999; font-size: 10px;">Light</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">다크 모드 로고</label>
+                                <div style="display: flex; gap: var(--space-md); align-items: flex-start;">
+                                    <div style="flex: 1;">
+                                        <input type="text" class="form-input" id="logo-image-url-dark" placeholder="다크 모드용 로고 이미지">
+                                        <input type="file" id="logo-image-file-dark" accept="image/*" style="display: none;">
+                                        <button type="button" class="btn btn-secondary btn-sm" id="btn-logo-upload-dark" style="margin-top: var(--space-sm);">파일 선택</button>
+                                    </div>
+                                    <div id="logo-preview-dark" style="width: 80px; height: 40px; border: 1px solid var(--color-border); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; overflow: hidden; background: #1a1a2e;">
+                                        <span style="color: #666; font-size: 10px;">Dark</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <h3 style="margin-bottom: var(--space-md);">섹션 제목 설정</h3>
+                        <p style="font-size: 12px; color: #888; margin-bottom: var(--space-md);">각 섹션의 제목을 원하는 대로 수정할 수 있습니다.</p>
+                        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-md); margin-bottom: var(--space-md);">
+                            <div class="form-group">
+                                <label class="form-label">AI 도구</label>
+                                <input type="text" class="form-input" id="section-title-aitools" placeholder="사용해본 AI">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">관련경력</label>
+                                <input type="text" class="form-input" id="section-title-related" placeholder="관련경력">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">기타경력</label>
+                                <input type="text" class="form-input" id="section-title-other" placeholder="기타경력">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">자기평가 제목</label>
+                                <input type="text" class="form-input" id="section-title-evaluation" placeholder="내가 생각하는 내평가">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">그래프 제목</label>
+                                <input type="text" class="form-input" id="section-title-radarchart" placeholder="자신 있는 부분과 없는 부분 그래프">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">연락처</label>
+                                <input type="text" class="form-input" id="section-title-contact" placeholder="연락처">
+                            </div>
+                        </div>
+                        <p style="font-size: 12px; color: #a78bfa; margin-bottom: var(--space-md);">📂 포트폴리오 섹션 제목</p>
+                        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-md); margin-bottom: var(--space-xl);">
+                            <div class="form-group">
+                                <label class="form-label">웹 & 모바일</label>
+                                <input type="text" class="form-input" id="section-title-webmobile" placeholder="웹 & 모바일">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">팝업 & 배너</label>
+                                <input type="text" class="form-input" id="section-title-popupbanner" placeholder="팝업 & 배너">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">상세페이지</label>
+                                <input type="text" class="form-input" id="section-title-detailpage" placeholder="상세페이지">
+                            </div>
+                        </div>
+
+                        <h3 style="margin-bottom: var(--space-md);">폰트 설정</h3>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-xl); margin-bottom: var(--space-lg);">
+                            <!-- 왼쪽: Font-face 코드 -->
+                            <div class="font-setting-column">
+                                <h4 style="margin-bottom: var(--space-md); color: var(--color-primary);">@font-face 코드</h4>
+                                <p style="font-size: 12px; color: #888; margin-bottom: var(--space-md);">사용할 웹폰트의 @font-face 코드를 모두 입력하세요. 여러 폰트를 한번에 관리할 수 있습니다.</p>
+                                <div class="form-group">
+                                    <textarea class="form-textarea" id="font-face-all" rows="18" style="font-family: monospace; font-size: 12px;" placeholder="@font-face {
+    font-family: 'Paperozi';
+    src: url('https://...') format('woff2');
+    font-weight: 400;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Pretendard';
+    src: url('https://...') format('woff2');
+    font-weight: 400;
+    font-display: swap;
+}"></textarea>
+                                </div>
+                                <div class="form-group" style="margin-top: var(--space-md);">
+                                    <label class="form-label">제목 폰트명</label>
+                                    <input type="text" class="form-input" id="font-title" placeholder="예: Paperozi">
+                                    <span style="font-size: 11px; color: #888;">섹션 제목, 대제목에 적용</span>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">본문 폰트명</label>
+                                    <input type="text" class="form-input" id="font-content" placeholder="예: Pretendard">
+                                    <span style="font-size: 11px; color: #888;">일반 텍스트, 설명에 적용</span>
+                                </div>
+                            </div>
+                            <!-- 오른쪽: 글자 크기 및 색상 조절 -->
+                            <div class="font-setting-column">
+                                <h4 style="margin-bottom: var(--space-md); color: var(--color-secondary);">글자 크기 & 색상 설정</h4>
+                                <p style="font-size: 12px; color: #888; margin-bottom: var(--space-md);">각 글자 크기와 색상을 조절하세요. 실제 포트폴리오에서 사용되는 텍스트입니다.</p>
+
+                                <div class="font-size-setting">
+                                    <div class="font-size-input">
+                                        <label class="form-label">히어로 제목</label>
+                                        <div style="display: flex; gap: 6px; align-items: center;">
+                                            <input type="text" class="form-input" id="font-size-5xl" placeholder="3rem" style="width: 210px;">
+                                            <input type="color" id="font-color-5xl" value="#212529" title="라이트 모드" style="width: 32px; height: 32px; border: none; cursor: pointer; border-radius: 4px;">
+                                            <input type="color" id="font-color-5xl-dark" value="#eaeaea" title="다크 모드" style="width: 32px; height: 32px; border: none; cursor: pointer; border-radius: 4px; border: 1px solid #444;">
+                                        </div>
+                                    </div>
+                                    <div class="font-size-preview" id="preview-5xl" style="font-size: 2rem; line-height: 1.2; font-weight: bold;">김강모</div>
+                                </div>
+                                <div class="font-size-setting">
+                                    <div class="font-size-input">
+                                        <label class="form-label">대제목 (직무)</label>
+                                        <div style="display: flex; gap: 6px; align-items: center;">
+                                            <input type="text" class="form-input" id="font-size-4xl" placeholder="2.25rem" style="width: 210px;">
+                                            <input type="color" id="font-color-4xl" value="#212529" title="라이트 모드" style="width: 32px; height: 32px; border: none; cursor: pointer; border-radius: 4px;">
+                                            <input type="color" id="font-color-4xl-dark" value="#eaeaea" title="다크 모드" style="width: 32px; height: 32px; border: none; cursor: pointer; border-radius: 4px; border: 1px solid #444;">
+                                        </div>
+                                    </div>
+                                    <div class="font-size-preview" id="preview-4xl" style="font-size: 1.5rem; line-height: 1.2; font-weight: bold;">UIUX 디자이너</div>
+                                </div>
+                                <div class="font-size-setting">
+                                    <div class="font-size-input">
+                                        <label class="form-label">섹션 제목</label>
+                                        <div style="display: flex; gap: 6px; align-items: center;">
+                                            <input type="text" class="form-input" id="font-size-3xl" placeholder="1.875rem" style="width: 210px;">
+                                            <input type="color" id="font-color-3xl" value="#212529" title="라이트 모드" style="width: 32px; height: 32px; border: none; cursor: pointer; border-radius: 4px;">
+                                            <input type="color" id="font-color-3xl-dark" value="#eaeaea" title="다크 모드" style="width: 32px; height: 32px; border: none; cursor: pointer; border-radius: 4px; border: 1px solid #444;">
+                                        </div>
+                                    </div>
+                                    <div class="font-size-preview" id="preview-3xl" style="font-size: 1.25rem; line-height: 1.2; font-weight: 600;">사용해본 AI (13가지)</div>
+                                </div>
+                                <div class="font-size-setting">
+                                    <div class="font-size-input">
+                                        <label class="form-label">소제목 (가능직무)</label>
+                                        <div style="display: flex; gap: 6px; align-items: center;">
+                                            <input type="text" class="form-input" id="font-size-2xl" placeholder="1.5rem" style="width: 210px;">
+                                            <input type="color" id="font-color-2xl" value="#495057" title="라이트 모드" style="width: 32px; height: 32px; border: none; cursor: pointer; border-radius: 4px;">
+                                            <input type="color" id="font-color-2xl-dark" value="#b8b8b8" title="다크 모드" style="width: 32px; height: 32px; border: none; cursor: pointer; border-radius: 4px; border: 1px solid #444;">
+                                        </div>
+                                    </div>
+                                    <div class="font-size-preview" id="preview-2xl" style="font-size: 1.1rem; line-height: 1.2; font-weight: 500;">쇼핑몰 디자이너, 퍼블리셔</div>
+                                </div>
+                                <div class="font-size-setting">
+                                    <div class="font-size-input">
+                                        <label class="form-label">기본 본문</label>
+                                        <div style="display: flex; gap: 6px; align-items: center;">
+                                            <input type="text" class="form-input" id="font-size-base" placeholder="1rem" style="width: 210px;">
+                                            <input type="color" id="font-color-base" value="#495057" title="라이트 모드" style="width: 32px; height: 32px; border: none; cursor: pointer; border-radius: 4px;">
+                                            <input type="color" id="font-color-base-dark" value="#b8b8b8" title="다크 모드" style="width: 32px; height: 32px; border: none; cursor: pointer; border-radius: 4px; border: 1px solid #444;">
+                                        </div>
+                                    </div>
+                                    <div class="font-size-preview" id="preview-base" style="font-size: 1rem; line-height: 1.4;">안녕하세요, UIUX 디자이너입니다</div>
+                                </div>
+                                <div class="font-size-setting">
+                                    <div class="font-size-input">
+                                        <label class="form-label">작은 텍스트 (날짜)</label>
+                                        <div style="display: flex; gap: 6px; align-items: center;">
+                                            <input type="text" class="form-input" id="font-size-sm" placeholder="0.875rem" style="width: 210px;">
+                                            <input type="color" id="font-color-sm" value="#6c757d" title="라이트 모드" style="width: 32px; height: 32px; border: none; cursor: pointer; border-radius: 4px;">
+                                            <input type="color" id="font-color-sm-dark" value="#888888" title="다크 모드" style="width: 32px; height: 32px; border: none; cursor: pointer; border-radius: 4px; border: 1px solid #444;">
+                                        </div>
+                                    </div>
+                                    <div class="font-size-preview" id="preview-sm" style="font-size: 0.85rem; line-height: 1.4; color: #666;">2024.01 - 2024.12 (1년)</div>
+                                </div>
+                                <div class="font-size-setting">
+                                    <div class="font-size-input">
+                                        <label class="form-label">중간 제목 (좌우명, 로고)</label>
+                                        <div style="display: flex; gap: 6px; align-items: center;">
+                                            <input type="text" class="form-input" id="font-size-xl" placeholder="1.25rem" style="width: 210px;">
+                                            <input type="color" id="font-color-xl" value="#495057" title="라이트 모드" style="width: 32px; height: 32px; border: none; cursor: pointer; border-radius: 4px;">
+                                            <input type="color" id="font-color-xl-dark" value="#b8b8b8" title="다크 모드" style="width: 32px; height: 32px; border: none; cursor: pointer; border-radius: 4px; border: 1px solid #444;">
+                                        </div>
+                                    </div>
+                                    <div class="font-size-preview" id="preview-xl" style="font-size: 1.1rem; line-height: 1.3; font-style: italic;">"부지런히 하면 세상에 어려울 것 없다"</div>
+                                </div>
+                                <div class="font-size-setting">
+                                    <div class="font-size-input">
+                                        <label class="form-label">서브 제목 (경력, AI, 포트폴리오)</label>
+                                        <div style="display: flex; gap: 6px; align-items: center;">
+                                            <input type="text" class="form-input" id="font-size-lg" placeholder="1.125rem" style="width: 210px;">
+                                            <input type="color" id="font-color-lg" value="#495057" title="라이트 모드" style="width: 32px; height: 32px; border: none; cursor: pointer; border-radius: 4px;">
+                                            <input type="color" id="font-color-lg-dark" value="#b8b8b8" title="다크 모드" style="width: 32px; height: 32px; border: none; cursor: pointer; border-radius: 4px; border: 1px solid #444;">
+                                        </div>
+                                    </div>
+                                    <div class="font-size-preview" id="preview-lg" style="font-size: 1rem; line-height: 1.3; font-weight: 600;">관련경력 / 사용해본 AI</div>
+                                </div>
+                                <div class="font-size-setting">
+                                    <div class="font-size-input">
+                                        <label class="form-label">아주 작은 텍스트 (기여도, 뱃지)</label>
+                                        <div style="display: flex; gap: 6px; align-items: center;">
+                                            <input type="text" class="form-input" id="font-size-xs" placeholder="0.75rem" style="width: 210px;">
+                                            <input type="color" id="font-color-xs" value="#6c757d" title="라이트 모드" style="width: 32px; height: 32px; border: none; cursor: pointer; border-radius: 4px;">
+                                            <input type="color" id="font-color-xs-dark" value="#888888" title="다크 모드" style="width: 32px; height: 32px; border: none; cursor: pointer; border-radius: 4px; border: 1px solid #444;">
+                                        </div>
+                                    </div>
+                                    <div class="font-size-preview" id="preview-xs" style="font-size: 0.75rem; line-height: 1.4; color: #888;">기여도: 80% / 재직중</div>
+                                </div>
+                                <p style="font-size: 11px; color: #888; margin-top: var(--space-sm);">* 각 행: 크기 입력 / 라이트 색상 / 다크 색상 (어두운 테두리)</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Background Image Settings -->
+                <div class="settings-section">
+                    <h2 class="settings-section-title">배경 이미지 설정</h2>
+                    <div class="settings-section-content">
+                        <p style="color: var(--color-text-muted); margin-bottom: var(--space-lg); font-size: var(--font-sm);">
+                            전체 페이지와 각 섹션에 배경 이미지를 설정할 수 있습니다.
+                        </p>
+
+                        <h3 style="margin-bottom: var(--space-md);">전체 페이지 배경</h3>
+                        <div class="settings-row" style="margin-bottom: var(--space-xl);">
+                            <div class="form-group">
+                                <label class="form-label">배경 이미지</label>
+                                <div style="display: flex; gap: var(--space-sm); align-items: flex-start;">
+                                    <div style="flex: 1;">
+                                        <input type="text" class="form-input" id="bg-body-image" placeholder="이미지 URL 또는 파일 업로드">
+                                        <input type="file" id="bg-body-file" accept="image/*" style="display: none;">
+                                        <div style="display: flex; gap: var(--space-sm); margin-top: var(--space-sm);">
+                                            <button type="button" class="btn btn-secondary btn-sm" id="btn-bg-body-upload">이미지 선택</button>
+                                            <button type="button" class="btn btn-danger btn-sm" id="btn-bg-body-clear">배경 삭제</button>
+                                        </div>
+                                    </div>
+                                    <div id="bg-body-preview" style="width: 80px; height: 60px; border: 1px solid var(--color-border); border-radius: var(--radius-sm); overflow: hidden; display: flex; align-items: center; justify-content: center; background: var(--color-bg-secondary);">
+                                        <span style="color: var(--color-text-muted); font-size: 10px;">미리보기</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">배경 설정</label>
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-sm);">
+                                    <select class="form-select" id="bg-body-size">
+                                        <option value="cover">Cover (꽉 채움)</option>
+                                        <option value="contain">Contain (맞춤)</option>
+                                        <option value="auto">Auto (원본)</option>
+                                    </select>
+                                    <select class="form-select" id="bg-body-position">
+                                        <option value="center center">중앙</option>
+                                        <option value="top center">상단</option>
+                                        <option value="bottom center">하단</option>
+                                        <option value="center left">좌측</option>
+                                        <option value="center right">우측</option>
+                                    </select>
+                                    <select class="form-select" id="bg-body-repeat">
+                                        <option value="no-repeat">반복 안함</option>
+                                        <option value="repeat">반복</option>
+                                        <option value="repeat-x">가로 반복</option>
+                                        <option value="repeat-y">세로 반복</option>
+                                    </select>
+                                    <select class="form-select" id="bg-body-attachment">
+                                        <option value="scroll">스크롤</option>
+                                        <option value="fixed">고정</option>
+                                    </select>
+                                </div>
+                                <div style="margin-top: var(--space-sm);">
+                                    <label class="form-label">투명도 (0-1)</label>
+                                    <input type="number" class="form-input" id="bg-body-opacity" min="0" max="1" step="0.1" value="1" style="width: 80px;">
+                                </div>
+                            </div>
+                        </div>
+
+                        <h3 style="margin-bottom: var(--space-md);">섹션별 배경</h3>
+                        <div id="section-backgrounds-list" style="display: flex; flex-direction: column; gap: var(--space-lg);">
+                            <!-- About Section -->
+                            <div class="section-bg-item" data-section="about">
+                                <div class="settings-row">
+                                    <div class="form-group">
+                                        <label class="form-label">자기소개 배경</label>
+                                        <div style="display: flex; gap: var(--space-sm); align-items: center;">
+                                            <input type="text" class="form-input" id="bg-about-image" placeholder="이미지 URL" style="flex: 1;">
+                                            <input type="file" id="bg-about-file" accept="image/*" style="display: none;">
+                                            <button type="button" class="btn btn-secondary btn-sm section-bg-upload" data-section="about">📁</button>
+                                            <button type="button" class="btn btn-danger btn-sm section-bg-clear" data-section="about" data-type="image" title="이미지 삭제">✕</button>
+                                            <div id="bg-about-preview" style="width: 40px; height: 40px; border: 1px solid var(--color-border); border-radius: 4px; overflow: hidden; background: var(--color-bg-secondary);"></div>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">배경색 (대체)</label>
+                                        <div style="display: flex; gap: var(--space-sm); align-items: center;">
+                                            <input type="color" id="bg-about-color" value="#ffffff" style="width: 40px; height: 32px; border: none; cursor: pointer;">
+                                            <input type="text" class="form-input" id="bg-about-color-text" placeholder="#ffffff" style="flex: 1;">
+                                            <button type="button" class="btn btn-danger btn-sm section-bg-clear" data-section="about" data-type="color" title="배경색 삭제">✕</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Portfolio Sections -->
+                            <div class="section-bg-item" data-section="portfolio">
+                                <div class="settings-row">
+                                    <div class="form-group">
+                                        <label class="form-label">작품 섹션 배경</label>
+                                        <div style="display: flex; gap: var(--space-sm); align-items: center;">
+                                            <input type="text" class="form-input" id="bg-portfolio-image" placeholder="이미지 URL" style="flex: 1;">
+                                            <input type="file" id="bg-portfolio-file" accept="image/*" style="display: none;">
+                                            <button type="button" class="btn btn-secondary btn-sm section-bg-upload" data-section="portfolio">📁</button>
+                                            <button type="button" class="btn btn-danger btn-sm section-bg-clear" data-section="portfolio" data-type="image" title="이미지 삭제">✕</button>
+                                            <div id="bg-portfolio-preview" style="width: 40px; height: 40px; border: 1px solid var(--color-border); border-radius: 4px; overflow: hidden; background: var(--color-bg-secondary);"></div>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">배경색 (대체)</label>
+                                        <div style="display: flex; gap: var(--space-sm); align-items: center;">
+                                            <input type="color" id="bg-portfolio-color" value="#f8f9fa" style="width: 40px; height: 32px; border: none; cursor: pointer;">
+                                            <input type="text" class="form-input" id="bg-portfolio-color-text" placeholder="#f8f9fa" style="flex: 1;">
+                                            <button type="button" class="btn btn-danger btn-sm section-bg-clear" data-section="portfolio" data-type="color" title="배경색 삭제">✕</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Contact Section -->
+                            <div class="section-bg-item" data-section="contact">
+                                <div class="settings-row">
+                                    <div class="form-group">
+                                        <label class="form-label">연락처 배경</label>
+                                        <div style="display: flex; gap: var(--space-sm); align-items: center;">
+                                            <input type="text" class="form-input" id="bg-contact-image" placeholder="이미지 URL" style="flex: 1;">
+                                            <input type="file" id="bg-contact-file" accept="image/*" style="display: none;">
+                                            <button type="button" class="btn btn-secondary btn-sm section-bg-upload" data-section="contact">📁</button>
+                                            <button type="button" class="btn btn-danger btn-sm section-bg-clear" data-section="contact" data-type="image" title="이미지 삭제">✕</button>
+                                            <div id="bg-contact-preview" style="width: 40px; height: 40px; border: 1px solid var(--color-border); border-radius: 4px; overflow: hidden; background: var(--color-bg-secondary);"></div>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">배경색 (대체)</label>
+                                        <div style="display: flex; gap: var(--space-sm); align-items: center;">
+                                            <input type="color" id="bg-contact-color" value="#f8f9fa" style="width: 40px; height: 32px; border: none; cursor: pointer;">
+                                            <input type="text" class="form-input" id="bg-contact-color-text" placeholder="#f8f9fa" style="flex: 1;">
+                                            <button type="button" class="btn btn-danger btn-sm section-bg-clear" data-section="contact" data-type="color" title="배경색 삭제">✕</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button class="btn btn-primary" id="btn-save-backgrounds" style="margin-top: var(--space-lg);">배경 설정 저장</button>
+                    </div>
+                </div>
+
+                <!-- Theme Modes -->
+                <div class="settings-section">
+                    <h2 class="settings-section-title">테마 모드 관리</h2>
+                    <div class="settings-section-content">
+                        <div id="theme-modes-container">
+                            <!-- Theme modes will be rendered here -->
+                        </div>
+                        <button class="add-btn" id="btn-add-theme" style="margin-top: var(--space-lg);">+ 새 테마 추가</button>
+                    </div>
+                </div>
+
+                <!-- CSS Variables -->
+                <div class="settings-section">
+                    <h2 class="settings-section-title">레이아웃 설정</h2>
+                    <div class="settings-section-content">
+                        <h3 style="margin-bottom: var(--space-md);">Border Radius</h3>
+                        <div class="settings-row-3" style="margin-bottom: var(--space-xl);">
+                            <div class="form-group">
+                                <label class="form-label">작은 (sm)</label>
+                                <input type="text" class="form-input" id="css-radius-sm" placeholder="4px">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">중간 (md)</label>
+                                <input type="text" class="form-input" id="css-radius-md" placeholder="8px">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">큰 (lg)</label>
+                                <input type="text" class="form-input" id="css-radius-lg" placeholder="12px">
+                            </div>
+                        </div>
+
+                        <h3 style="margin-bottom: var(--space-md);">여백 설정</h3>
+                        <div class="settings-row" style="margin-bottom: var(--space-xl);">
+                            <div class="form-group">
+                                <label class="form-label">섹션 여백</label>
+                                <input type="text" class="form-input" id="css-space-section" placeholder="6rem">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">컨텐츠 여백</label>
+                                <input type="text" class="form-input" id="css-space-content" placeholder="1.5rem">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Icon Settings -->
+                <div class="settings-section">
+                    <h2 class="settings-section-title">아이콘 설정</h2>
+                    <div class="settings-section-content">
+                        <h3 style="margin-bottom: var(--space-md);">인트로 페이지 아이콘</h3>
+                        <div class="icon-settings-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-lg); margin-bottom: var(--space-xl);">
+                            <div class="icon-setting-item">
+                                <label class="form-label">혼자제작</label>
+                                <div id="icon-intro-solo-preview" class="icon-preview" style="width: 64px; height: 64px; font-size: 2.5rem; display: flex; align-items: center; justify-content: center; border: 1px solid var(--color-border); border-radius: var(--radius-md); margin-bottom: var(--space-sm);"></div>
+                                <div style="display: flex; gap: var(--space-sm);">
+                                    <input type="text" class="form-input" id="emoji-intro-solo" placeholder="👤" style="flex: 1;">
+                                    <input type="file" id="icon-intro-solo-file" accept="image/*" style="display: none;">
+                                    <button type="button" class="btn btn-secondary btn-sm icon-file-btn" data-target="icon-intro-solo-file" data-prefix="intro-solo">🖼️</button>
+                                </div>
+                            </div>
+                            <div class="icon-setting-item">
+                                <label class="form-label">AI활용</label>
+                                <div id="icon-intro-ai-preview" class="icon-preview" style="width: 64px; height: 64px; font-size: 2.5rem; display: flex; align-items: center; justify-content: center; border: 1px solid var(--color-border); border-radius: var(--radius-md); margin-bottom: var(--space-sm);"></div>
+                                <div style="display: flex; gap: var(--space-sm);">
+                                    <input type="text" class="form-input" id="emoji-intro-ai" placeholder="🤖" style="flex: 1;">
+                                    <input type="file" id="icon-intro-ai-file" accept="image/*" style="display: none;">
+                                    <button type="button" class="btn btn-secondary btn-sm icon-file-btn" data-target="icon-intro-ai-file" data-prefix="intro-ai">🖼️</button>
+                                </div>
+                            </div>
+                            <div class="icon-setting-item">
+                                <label class="form-label">팀플제작</label>
+                                <div id="icon-intro-team-preview" class="icon-preview" style="width: 64px; height: 64px; font-size: 2.5rem; display: flex; align-items: center; justify-content: center; border: 1px solid var(--color-border); border-radius: var(--radius-md); margin-bottom: var(--space-sm);"></div>
+                                <div style="display: flex; gap: var(--space-sm);">
+                                    <input type="text" class="form-input" id="emoji-intro-team" placeholder="👥" style="flex: 1;">
+                                    <input type="file" id="icon-intro-team-file" accept="image/*" style="display: none;">
+                                    <button type="button" class="btn btn-secondary btn-sm icon-file-btn" data-target="icon-intro-team-file" data-prefix="intro-team">🖼️</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <h3 style="margin-bottom: var(--space-md);">Contact 아이콘</h3>
+                        <div class="icon-settings-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-lg);">
+                            <div class="icon-setting-item">
+                                <label class="form-label">이름</label>
+                                <div id="icon-contact-name-preview" class="icon-preview" style="width: 48px; height: 48px; font-size: 1.75rem; display: flex; align-items: center; justify-content: center; border: 1px solid var(--color-border); border-radius: var(--radius-md); margin-bottom: var(--space-sm);"></div>
+                                <div style="display: flex; gap: var(--space-sm);">
+                                    <input type="text" class="form-input" id="emoji-contact-name" placeholder="👤" style="flex: 1;">
+                                    <input type="file" id="icon-contact-name-file" accept="image/*" style="display: none;">
+                                    <button type="button" class="btn btn-secondary btn-sm icon-file-btn" data-target="icon-contact-name-file" data-prefix="contact-name">🖼️</button>
+                                </div>
+                            </div>
+                            <div class="icon-setting-item">
+                                <label class="form-label">전화</label>
+                                <div id="icon-contact-phone-preview" class="icon-preview" style="width: 48px; height: 48px; font-size: 1.75rem; display: flex; align-items: center; justify-content: center; border: 1px solid var(--color-border); border-radius: var(--radius-md); margin-bottom: var(--space-sm);"></div>
+                                <div style="display: flex; gap: var(--space-sm);">
+                                    <input type="text" class="form-input" id="emoji-contact-phone" placeholder="📞" style="flex: 1;">
+                                    <input type="file" id="icon-contact-phone-file" accept="image/*" style="display: none;">
+                                    <button type="button" class="btn btn-secondary btn-sm icon-file-btn" data-target="icon-contact-phone-file" data-prefix="contact-phone">🖼️</button>
+                                </div>
+                            </div>
+                            <div class="icon-setting-item">
+                                <label class="form-label">이메일</label>
+                                <div id="icon-contact-email-preview" class="icon-preview" style="width: 48px; height: 48px; font-size: 1.75rem; display: flex; align-items: center; justify-content: center; border: 1px solid var(--color-border); border-radius: var(--radius-md); margin-bottom: var(--space-sm);"></div>
+                                <div style="display: flex; gap: var(--space-sm);">
+                                    <input type="text" class="form-input" id="emoji-contact-email" placeholder="✉️" style="flex: 1;">
+                                    <input type="file" id="icon-contact-email-file" accept="image/*" style="display: none;">
+                                    <button type="button" class="btn btn-secondary btn-sm icon-file-btn" data-target="icon-contact-email-file" data-prefix="contact-email">🖼️</button>
+                                </div>
+                            </div>
+                        </div>
+                        <button class="btn btn-primary" id="btn-save-emoji" style="margin-top: var(--space-lg);">아이콘 설정 저장</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Resize Handle -->
+        <div class="resize-handle" id="resize-handle"></div>
+
+        <!-- Right Panel: Minimap + Section Settings -->
+        <div class="right-panel" id="right-panel">
+            <!-- Site Preview Minimap -->
+            <div class="site-minimap" id="site-minimap">
+                <div class="minimap-header">
+                    <span class="minimap-header-icon">🗺️</span>
+                    <span>미리보기</span>
+                </div>
+
+                <div class="minimap-frame-container">
+                    <iframe class="minimap-frame" id="minimap-frame" src="portfolio.html"></iframe>
+                    <div class="minimap-overlay" id="minimap-overlay">
+                        <span class="minimap-refresh-hint">클릭: 해당 설정으로 이동</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section Visibility Settings -->
+            <div class="section-settings-panel" id="section-settings-panel">
+                <div class="section-settings-title">섹션 표시</div>
+                <div class="section-settings-list" id="section-settings-list">
+                    <!-- Dynamically generated by JS -->
+                </div>
+                <a href="superadmin.html" class="secret-admin-link" id="secret-admin-link">...</a>
+            </div>
+        </div>
+
+        <!-- Floating Theme Panel (center bottom of screen) -->
+        <div class="floating-theme-panel" id="floating-theme-panel">
+            <!-- Theme buttons will be rendered dynamically -->
+        </div>
+
+        <!-- Preview Frame -->
+        <iframe class="preview-frame" id="preview-frame" src="portfolio.html" scrolling="yes" style="pointer-events: auto;"></iframe>
+    </div>
+
+    <!-- Intro Page Editor Panel (Overlay) -->
+    <div class="intro-editor-overlay" id="intro-editor-overlay" style="display: none;">
+        <div class="intro-editor-panel">
+            <div class="intro-editor-header">
+                <h3>🚀 인트로 페이지 커스텀 설정</h3>
+                <button class="intro-editor-close" id="intro-editor-close">&times;</button>
+            </div>
+            <div class="intro-editor-body">
+                <div class="intro-editor-section">
+                    <h4>배경 이미지</h4>
+                    <p style="font-size: 11px; color: #888; margin-bottom: 12px;">PC와 모바일에서 각각 다른 이미지를 사용할 수 있습니다.</p>
+
+                    <!-- PC 배경 이미지 -->
+                    <div class="form-group" style="margin-bottom: 16px;">
+                        <label style="font-size: 12px; color: #aaa; margin-bottom: 6px; display: block;">💻 PC용 배경 이미지</label>
+                        <input type="text" class="form-input" id="intro-bg-image" placeholder="PC용 배경 이미지 URL">
+                        <input type="file" id="intro-bg-file" accept="image/*" style="display: none;">
+                        <button type="button" class="btn btn-secondary btn-sm" id="btn-intro-bg-upload" style="margin-top: 8px;">이미지 업로드</button>
+                        <div id="intro-bg-preview" style="margin-top: 8px; height: 80px; border: 1px solid #333; border-radius: 6px; overflow: hidden; display: flex; align-items: center; justify-content: center; background: #1a1a2e;">
+                            <span style="color: #666; font-size: 11px;">미리보기</span>
+                        </div>
+                    </div>
+
+                    <!-- 모바일 배경 이미지 -->
+                    <div class="form-group">
+                        <label style="font-size: 12px; color: #aaa; margin-bottom: 6px; display: block;">📱 모바일용 배경 이미지</label>
+                        <input type="text" class="form-input" id="intro-bg-image-mobile" placeholder="모바일용 배경 이미지 URL (미설정 시 PC 이미지 사용)">
+                        <input type="file" id="intro-bg-file-mobile" accept="image/*" style="display: none;">
+                        <button type="button" class="btn btn-secondary btn-sm" id="btn-intro-bg-upload-mobile" style="margin-top: 8px;">이미지 업로드</button>
+                        <div id="intro-bg-preview-mobile" style="margin-top: 8px; height: 80px; border: 1px solid #333; border-radius: 6px; overflow: hidden; display: flex; align-items: center; justify-content: center; background: #1a1a2e;">
+                            <span style="color: #666; font-size: 11px;">미리보기</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="intro-editor-section">
+                    <h4>텍스트 요소</h4>
+                    <p style="font-size: 11px; color: #888; margin-bottom: 12px;">여러 개의 텍스트를 추가하고 각각 스타일을 지정할 수 있습니다.</p>
+                    <div id="intro-texts-container">
+                        <!-- Text items will be rendered here -->
+                    </div>
+                    <button type="button" class="btn btn-secondary btn-sm" id="btn-add-intro-text" style="margin-top: 8px;">+ 텍스트 추가</button>
+                </div>
+
+                <div class="intro-editor-section">
+                    <h4>링크 버튼</h4>
+                    <p style="font-size: 11px; color: #888; margin-bottom: 12px;">인트로 페이지에 표시할 버튼을 추가합니다.</p>
+                    <div id="intro-buttons-container">
+                        <!-- Button items will be rendered here -->
+                    </div>
+                    <button type="button" class="btn btn-secondary btn-sm" id="btn-add-intro-button" style="margin-top: 8px;">+ 버튼 추가</button>
+
+                    <!-- 버튼 공통 위치 설정 -->
+                    <div id="intro-button-position-settings" style="margin-top: 16px; padding: 12px; background: #1a1a2e; border-radius: 8px; display: none;">
+                        <div style="display: flex; gap: 16px; align-items: flex-start;">
+                            <div>
+                                <span style="font-size: 11px; color: #888; display: block; margin-bottom: 6px;">버튼 위치:</span>
+                                <div id="intro-button-position-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px; width: 72px; height: 48px; padding: 4px; background: #0d0d1a; border: 2px solid #3498db; border-radius: 4px;">
+                                    <!-- Position cells will be rendered by JS -->
+                                </div>
+                            </div>
+                            <div style="flex: 1;">
+                                <span style="font-size: 11px; color: #888; display: block; margin-bottom: 6px;">위아래 위치조정 위로 올리려면 마이너스 - 숫자 입력하면 됩니다:</span>
+                                <input type="number" class="form-input" id="intro-button-offsetY" placeholder="0" value="0" style="width: 100%; padding: 6px 8px; font-size: 12px;">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="intro-editor-actions">
+                    <button class="btn btn-accent" id="btn-reset-intro" style="margin-right: auto;">초기화</button>
+                    <button class="btn btn-primary" id="btn-save-intro">저장</button>
+                    <button class="btn btn-secondary" id="btn-preview-intro">미리보기</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .intro-editor-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 3000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .intro-editor-panel {
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            background: #1e1e2f;
+            border-radius: 12px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .intro-editor-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 20px;
+            background: #16162a;
+            border-bottom: 1px solid #333;
+        }
+
+        .intro-editor-header h3 {
+            margin: 0;
+            font-size: 16px;
+            color: #fff;
+        }
+
+        .intro-editor-close {
+            background: none;
+            border: none;
+            color: #888;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 0;
+            line-height: 1;
+        }
+
+        .intro-editor-close:hover {
+            color: #fff;
+        }
+
+        .intro-editor-body {
+            padding: 20px;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .intro-editor-section {
+            margin-bottom: 24px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #333;
+        }
+
+        .intro-editor-section:last-child {
+            border-bottom: none;
+        }
+
+        .intro-editor-section h4 {
+            margin: 0 0 12px 0;
+            font-size: 14px;
+            color: #a78bfa;
+        }
+
+        .intro-text-item, .intro-button-item {
+            background: #262640;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+
+        .intro-text-item .form-row,
+        .intro-button-item .form-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .intro-text-item .form-row:last-child,
+        .intro-button-item .form-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .intro-text-item .form-input,
+        .intro-button-item .form-input,
+        .intro-text-item .form-select,
+        .intro-button-item .form-select {
+            flex: 1;
+            padding: 8px;
+            font-size: 12px;
+        }
+
+        .intro-text-item textarea {
+            width: 100%;
+            min-height: 60px;
+            resize: vertical;
+        }
+
+        .intro-item-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .intro-item-actions button {
+            padding: 4px 8px;
+            font-size: 11px;
+        }
+
+        .intro-editor-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            padding-top: 16px;
+            border-top: 1px solid #333;
+            margin-top: 16px;
+        }
+    </style>
+
+    <!-- Modal Template -->
+    <div class="modal" id="modal">
+        <div class="modal-backdrop"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="modal-title">제목</h3>
+                <button class="modal-close" id="modal-close">&times;</button>
+            </div>
+            <div class="modal-body" id="modal-body">
+                <!-- Modal content will be rendered here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- super admin link removed from here, moved to section panel -->
+
+    <!-- Scripts -->
+    <script type="module">
+        // Check authentication before loading admin
+        import { AuthManager, AnalyticsManager, CouponManager } from './js/firebase-config.js';
+
+        // Make CouponManager available globally
+        window.CouponManager = CouponManager;
+
+        // Super admin emails
+        const SUPER_ADMIN_EMAILS = ['1215kkm@naver.com'];
+
+        async function checkAuth() {
+            await AuthManager.init();
+
+            if (!AuthManager.isLoggedIn()) {
+                // Redirect to login
+                window.location.href = 'login.html';
+                return;
+            }
+
+            const user = AuthManager.getUser();
+
+            // Show user info in header
+            const userInfoEl = document.getElementById('admin-user-info');
+            const userEmailEl = document.getElementById('admin-user-email');
+            if (userInfoEl && userEmailEl && user) {
+                userEmailEl.textContent = user.displayName || user.email;
+                userInfoEl.style.display = 'flex';
+            }
+
+            // Logout button
+            const logoutBtn = document.getElementById('btn-admin-logout');
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', async () => {
+                    await AuthManager.signOut();
+                    window.location.href = 'login.html';
+                });
+            }
+
+            // Show secret super admin link for super admins only
+            if (user && SUPER_ADMIN_EMAILS.includes(user.email)) {
+                const secretLink = document.getElementById('secret-admin-link');
+                if (secretLink) {
+                    secretLink.style.display = 'block';
+                }
+            }
+
+            // Track login
+            if (window.AnalyticsManager) {
+                AnalyticsManager.trackLogin(user.uid);
+            }
+
+            // User is logged in, load admin scripts
+            const dataScript = document.createElement('script');
+            dataScript.src = 'js/data.js';
+
+            let adminLoaded = false;
+            function loadAdmin() {
+                if (adminLoaded) return;
+                adminLoaded = true;
+
+                const adminScript = document.createElement('script');
+                adminScript.src = 'js/admin.js';
+                document.body.appendChild(adminScript);
+            }
+
+            dataScript.onload = async () => {
+                // Wait for dataManager to be ready
+                window.addEventListener('dataManagerReady', loadAdmin);
+
+                // data.js가 동적 로드되면 DOMContentLoaded가 이미 발생했을 수 있음
+                // 그래서 직접 init을 호출
+                if (window.dataManager) {
+                    try {
+                        await window.dataManager.init();
+                        loadAdmin();
+                    } catch (e) {
+                        console.error('Error initializing dataManager:', e);
+                        // Fallback
+                        setTimeout(loadAdmin, 500);
+                    }
+                } else {
+                    // Fallback
+                    setTimeout(loadAdmin, 500);
+                }
+            };
+            document.body.appendChild(dataScript);
+        }
+
+        checkAuth();
+    </script>
+</body>
+</html>
