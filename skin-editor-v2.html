@@ -1,0 +1,1998 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>스킨 에디터 v2 - 비주얼 편집</title>
+
+    <!-- Preload Firebase SDK -->
+    <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js">
+    <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js">
+    <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js">
+    <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js">
+    <link rel="modulepreload" href="js/firebase-config.js">
+
+    <!-- Main CSS -->
+    <link rel="stylesheet" href="css/style.css">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #0d0d1a;
+            color: #fff;
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        /* ===== 전체 레이아웃 ===== */
+        .editor-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        /* ===== 헤더 ===== */
+        .editor-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 20px;
+            background: #16162a;
+            border-bottom: 1px solid #2a2a4a;
+            z-index: 100;
+        }
+
+        .editor-header-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .editor-logo {
+            font-size: 18px;
+            font-weight: 700;
+            color: #a78bfa;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .editor-logo span {
+            font-size: 20px;
+        }
+
+        .editor-title {
+            font-size: 14px;
+            color: #888;
+            padding-left: 16px;
+            border-left: 1px solid #333;
+        }
+
+        .editor-header-center {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .editor-header-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-primary {
+            background: #3498db;
+            color: #fff;
+        }
+
+        .btn-primary:hover {
+            background: #2980b9;
+        }
+
+        .btn-secondary {
+            background: #2a2a4a;
+            color: #ccc;
+        }
+
+        .btn-secondary:hover {
+            background: #3a3a5a;
+        }
+
+        .btn-ghost {
+            background: transparent;
+            color: #888;
+        }
+
+        .btn-ghost:hover {
+            color: #fff;
+            background: #2a2a4a;
+        }
+
+        /* ===== 메인 영역 (3분할) ===== */
+        .editor-main {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        /* ===== 왼쪽 패널 ===== */
+        .left-panel {
+            width: 220px;
+            background: #16162a;
+            border-right: 1px solid #2a2a4a;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+
+        .panel-section {
+            padding: 16px;
+            border-bottom: 1px solid #2a2a4a;
+        }
+
+        .panel-section-title {
+            font-size: 11px;
+            font-weight: 600;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 12px;
+        }
+
+        /* 섹션 토글 리스트 */
+        .section-toggle-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .section-toggle-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 10px;
+            background: #1e1e38;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .section-toggle-item:hover {
+            background: #2a2a4a;
+        }
+
+        .section-toggle-item.active {
+            background: #2a2a5a;
+            border: 1px solid #3498db;
+        }
+
+        .section-toggle-item input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            accent-color: #3498db;
+            cursor: pointer;
+        }
+
+        .section-toggle-label {
+            font-size: 13px;
+            flex: 1;
+        }
+
+        .section-toggle-icon {
+            font-size: 14px;
+        }
+
+        /* 스타일 버튼 그룹 */
+        .style-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .style-btn {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            background: #1e1e38;
+            border: none;
+            border-radius: 6px;
+            color: #ccc;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: left;
+        }
+
+        .style-btn:hover {
+            background: #2a2a4a;
+            color: #fff;
+        }
+
+        .style-btn-icon {
+            font-size: 16px;
+        }
+
+        /* ===== 가운데 패널 (미리보기) ===== */
+        .center-panel {
+            width: 280px;
+            background: #1a1a2e;
+            border-right: 1px solid #2a2a4a;
+            display: flex;
+            flex-direction: column;
+            padding: 16px;
+        }
+
+        .preview-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+
+        .preview-title {
+            font-size: 12px;
+            color: #888;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .preview-title span {
+            font-size: 14px;
+        }
+
+        .preview-refresh-btn {
+            padding: 4px 8px;
+            background: #2a2a4a;
+            border: none;
+            border-radius: 4px;
+            color: #888;
+            font-size: 11px;
+            cursor: pointer;
+        }
+
+        .preview-refresh-btn:hover {
+            background: #3a3a5a;
+            color: #fff;
+        }
+
+        .preview-container {
+            flex: 1;
+            background: #fff;
+            border-radius: 8px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .preview-iframe {
+            width: 400%;
+            height: 400%;
+            border: none;
+            transform: scale(0.25);
+            transform-origin: top left;
+        }
+
+        .preview-status {
+            margin-top: 12px;
+            padding: 8px 12px;
+            background: #1e1e38;
+            border-radius: 6px;
+            font-size: 11px;
+            color: #888;
+        }
+
+        .preview-status strong {
+            color: #a78bfa;
+        }
+
+        /* ===== 오른쪽 패널 (편집 영역) ===== */
+        .right-panel {
+            flex: 1;
+            background: #f8f9fa;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .edit-panel-placeholder {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: #888;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .edit-panel-placeholder-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        .edit-panel-placeholder-text {
+            font-size: 16px;
+            margin-bottom: 8px;
+        }
+
+        .edit-panel-placeholder-hint {
+            font-size: 13px;
+            color: #aaa;
+        }
+
+        /* ===== 편집 영역 (오른쪽 패널 내부) ===== */
+        .edit-content {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px;
+        }
+
+        /* ===== 로딩 오버레이 ===== */
+        .loading-overlay {
+            position: fixed;
+            inset: 0;
+            background: #0d0d1a;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .loading-overlay.hidden {
+            display: none;
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #2a2a4a;
+            border-top-color: #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        .loading-text {
+            margin-top: 16px;
+            color: #888;
+            font-size: 14px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* ===== 토스트 메시지 ===== */
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: #1e1e38;
+            color: #fff;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            opacity: 0;
+            transition: all 0.3s;
+            z-index: 1000;
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+
+        .toast.success {
+            border-left: 4px solid #27ae60;
+        }
+
+        .toast.error {
+            border-left: 4px solid #e74c3c;
+        }
+
+        /* ===== 편집 섹션 스타일 ===== */
+        .edit-section {
+            margin-bottom: 32px;
+            padding-bottom: 32px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .edit-section:last-child {
+            border-bottom: none;
+        }
+
+        .edit-section-header {
+            margin-bottom: 20px;
+        }
+
+        .edit-section-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #1a1a2e;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* 프로필 카드 */
+        .edit-profile-card {
+            display: flex;
+            gap: 24px;
+            background: #fff;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            margin-bottom: 20px;
+        }
+
+        .edit-profile-image-wrapper {
+            flex-shrink: 0;
+        }
+
+        .edit-profile-image {
+            width: 150px;
+            height: 150px;
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+            cursor: pointer;
+            background: #f0f0f0;
+        }
+
+        .edit-profile-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .edit-profile-image-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 13px;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .edit-profile-image:hover .edit-profile-image-overlay {
+            opacity: 1;
+        }
+
+        .edit-profile-info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        /* 카드 */
+        .edit-card {
+            background: #fff;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            margin-bottom: 16px;
+        }
+
+        .edit-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .edit-card-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .edit-add-btn {
+            padding: 6px 12px;
+            background: #3498db;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .edit-add-btn:hover {
+            background: #2980b9;
+        }
+
+        /* 필드 그룹 */
+        .edit-field-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .edit-field-label {
+            font-size: 12px;
+            font-weight: 500;
+            color: #666;
+        }
+
+        .edit-field-row {
+            display: flex;
+            gap: 12px;
+            align-items: flex-end;
+        }
+
+        /* 입력 필드 */
+        .edit-input {
+            padding: 10px 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            width: 100%;
+        }
+
+        .edit-input:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+
+        .edit-input-large {
+            font-size: 18px;
+            font-weight: 600;
+            padding: 12px 14px;
+        }
+
+        .edit-textarea {
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            resize: vertical;
+            min-height: 100px;
+            width: 100%;
+            font-family: inherit;
+            line-height: 1.6;
+        }
+
+        .edit-textarea:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+
+        /* 체크박스 */
+        .edit-checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            color: #666;
+            cursor: pointer;
+            padding: 10px 0;
+        }
+
+        .edit-checkbox-label input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            accent-color: #3498db;
+        }
+
+        /* 태그 컨테이너 */
+        .edit-tags-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .edit-tag {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 12px;
+            background: #e8f4fc;
+            border: 1px solid #bee3f8;
+            border-radius: 20px;
+            font-size: 13px;
+            color: #2c5282;
+        }
+
+        .edit-tag input {
+            border: none;
+            background: transparent;
+            font-size: 13px;
+            color: inherit;
+            width: auto;
+            min-width: 60px;
+            padding: 0;
+        }
+
+        .edit-tag input:focus {
+            outline: none;
+        }
+
+        .edit-tag-remove {
+            background: none;
+            border: none;
+            color: #718096;
+            cursor: pointer;
+            padding: 0;
+            font-size: 14px;
+            line-height: 1;
+        }
+
+        .edit-tag-remove:hover {
+            color: #e53e3e;
+        }
+
+        /* 리스트 아이템 */
+        .edit-list-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .edit-list-item {
+            display: flex;
+            gap: 12px;
+            padding: 12px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            align-items: flex-start;
+        }
+
+        .edit-list-item-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .edit-list-item-row {
+            display: flex;
+            gap: 8px;
+        }
+
+        .edit-list-item-input {
+            flex: 1;
+            padding: 8px 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 13px;
+        }
+
+        .edit-list-item-input:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        .edit-list-item-remove {
+            padding: 8px;
+            background: #fee2e2;
+            border: none;
+            border-radius: 6px;
+            color: #dc2626;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .edit-list-item-remove:hover {
+            background: #fecaca;
+        }
+
+        /* 영상 미리보기 */
+        .edit-video-preview {
+            margin-top: 16px;
+            border-radius: 8px;
+            overflow: hidden;
+            background: #000;
+            aspect-ratio: 16/9;
+        }
+
+        .edit-video-preview iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .edit-video-placeholder {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: #666;
+            font-size: 14px;
+        }
+
+        /* 섹션 숨김 상태 */
+        .edit-section.hidden {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        .edit-section.hidden::after {
+            content: '이 섹션은 숨겨져 있습니다';
+            display: block;
+            text-align: center;
+            padding: 8px;
+            background: #fef3cd;
+            color: #856404;
+            border-radius: 4px;
+            font-size: 12px;
+            margin-top: -20px;
+        }
+
+        /* AI 도구 아이템 */
+        .edit-ai-item {
+            display: flex;
+            gap: 12px;
+            padding: 16px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            align-items: center;
+        }
+
+        .edit-ai-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 8px;
+            overflow: hidden;
+            background: #e0e0e0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            flex-shrink: 0;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .edit-ai-icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .edit-ai-icon-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 16px;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .edit-ai-icon:hover .edit-ai-icon-overlay {
+            opacity: 1;
+        }
+
+        .edit-ai-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        /* 경력 아이템 */
+        .edit-exp-item {
+            padding: 16px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .edit-exp-header {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .edit-exp-details {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .edit-exp-task {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .edit-exp-add-task {
+            padding: 4px 8px;
+            background: #e0e0e0;
+            border: none;
+            border-radius: 4px;
+            font-size: 11px;
+            cursor: pointer;
+            color: #666;
+        }
+
+        .edit-exp-add-task:hover {
+            background: #d0d0d0;
+        }
+
+        /* ===== 반응형 ===== */
+        @media (max-width: 1024px) {
+            .center-panel {
+                display: none;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .left-panel {
+                position: fixed;
+                left: -220px;
+                top: 0;
+                bottom: 0;
+                z-index: 200;
+                transition: left 0.3s;
+            }
+
+            .left-panel.open {
+                left: 0;
+            }
+
+            .editor-title {
+                display: none;
+            }
+
+            .edit-profile-card {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .edit-field-row {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 로딩 오버레이 -->
+    <div class="loading-overlay" id="loading-overlay">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">에디터를 불러오는 중...</div>
+    </div>
+
+    <div class="editor-container">
+        <!-- 헤더 -->
+        <header class="editor-header">
+            <div class="editor-header-left">
+                <div class="editor-logo">
+                    <span>✨</span>
+                    비주얼 에디터
+                </div>
+                <div class="editor-title">실시간으로 수정하고 미리보기</div>
+            </div>
+
+            <div class="editor-header-center">
+                <!-- 나중에 Undo/Redo 버튼 추가 예정 -->
+            </div>
+
+            <div class="editor-header-right">
+                <button class="btn btn-ghost" id="btn-undo" title="되돌리기 (Ctrl+Z)" disabled>
+                    ↩️ 되돌리기
+                </button>
+                <button class="btn btn-primary" id="btn-save">
+                    💾 저장
+                </button>
+                <a href="admin.html" class="btn btn-secondary">
+                    ← 관리자
+                </a>
+            </div>
+        </header>
+
+        <!-- 메인 영역 -->
+        <main class="editor-main">
+            <!-- 왼쪽 패널: 섹션 토글 & 스타일 -->
+            <aside class="left-panel" id="left-panel">
+                <!-- 섹션 토글 -->
+                <div class="panel-section">
+                    <div class="panel-section-title">섹션 표시</div>
+                    <div class="section-toggle-list" id="section-toggle-list">
+                        <!-- JS로 동적 생성 -->
+                    </div>
+                </div>
+
+                <!-- 스타일 설정 -->
+                <div class="panel-section">
+                    <div class="panel-section-title">스타일</div>
+                    <div class="style-buttons">
+                        <button class="style-btn" id="btn-theme">
+                            <span class="style-btn-icon">🎨</span>
+                            테마 변경
+                        </button>
+                        <button class="style-btn" id="btn-font">
+                            <span class="style-btn-icon">🔤</span>
+                            폰트 설정
+                        </button>
+                        <button class="style-btn" id="btn-background">
+                            <span class="style-btn-icon">🖼️</span>
+                            배경 설정
+                        </button>
+                        <button class="style-btn" id="btn-colors">
+                            <span class="style-btn-icon">🌈</span>
+                            색상 설정
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 빠른 링크 -->
+                <div class="panel-section">
+                    <div class="panel-section-title">빠른 이동</div>
+                    <div class="style-buttons">
+                        <a href="portfolio.html" target="_blank" class="style-btn">
+                            <span class="style-btn-icon">👁️</span>
+                            실제 페이지 보기
+                        </a>
+                        <a href="admin.html#panel-skin" class="style-btn">
+                            <span class="style-btn-icon">⚙️</span>
+                            고급 설정
+                        </a>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- 가운데 패널: 축소 미리보기 -->
+            <div class="center-panel" id="center-panel">
+                <div class="preview-header">
+                    <div class="preview-title">
+                        <span>🔍</span>
+                        미리보기
+                    </div>
+                    <button class="preview-refresh-btn" id="btn-refresh-preview">
+                        🔄 새로고침
+                    </button>
+                </div>
+                <div class="preview-container">
+                    <iframe class="preview-iframe" id="preview-iframe" src="portfolio.html"></iframe>
+                </div>
+                <div class="preview-status" id="preview-status">
+                    편집 대기 중...
+                </div>
+            </div>
+
+            <!-- 오른쪽 패널: 편집 영역 -->
+            <div class="right-panel" id="right-panel">
+                <div class="edit-panel-placeholder" id="edit-placeholder" style="display: none;">
+                    <div class="edit-panel-placeholder-icon">✏️</div>
+                    <div class="edit-panel-placeholder-text">편집할 준비가 되었습니다</div>
+                    <div class="edit-panel-placeholder-hint">왼쪽에서 섹션을 선택하거나, 아래에서 직접 수정하세요</div>
+                </div>
+
+                <!-- 편집 콘텐츠 -->
+                <div class="edit-content" id="edit-content">
+                    <!-- ===== 자기소개 섹션 ===== -->
+                    <section class="edit-section" id="edit-about" data-section="about">
+                        <div class="edit-section-header">
+                            <h2 class="edit-section-title">👤 자기소개</h2>
+                        </div>
+
+                        <!-- 프로필 카드 -->
+                        <div class="edit-profile-card">
+                            <!-- 프로필 이미지 -->
+                            <div class="edit-profile-image-wrapper" data-section="aboutPhoto">
+                                <div class="edit-profile-image" id="edit-profile-image">
+                                    <img src="" alt="프로필" id="profile-image-preview">
+                                    <div class="edit-profile-image-overlay">
+                                        <span>📷 클릭하여 변경</span>
+                                    </div>
+                                </div>
+                                <input type="file" id="profile-image-input" accept="image/*" style="display: none;">
+                            </div>
+
+                            <!-- 기본 정보 -->
+                            <div class="edit-profile-info">
+                                <!-- 이름 -->
+                                <div class="edit-field-group">
+                                    <label class="edit-field-label">이름</label>
+                                    <input type="text" class="edit-input edit-input-large"
+                                           data-field="profile.name" placeholder="이름을 입력하세요">
+                                </div>
+
+                                <!-- 카톡 -->
+                                <div class="edit-field-row">
+                                    <div class="edit-field-group" style="flex: 1;">
+                                        <label class="edit-field-label">카톡 라벨</label>
+                                        <input type="text" class="edit-input"
+                                               data-field="profile.kakaoLabel" placeholder="카톡">
+                                    </div>
+                                    <div class="edit-field-group" style="flex: 2;">
+                                        <label class="edit-field-label">카카오톡 ID</label>
+                                        <input type="text" class="edit-input"
+                                               data-field="profile.kakaoId" placeholder="카카오톡 아이디">
+                                    </div>
+                                </div>
+
+                                <!-- 고용상태 & 희망연봉 -->
+                                <div class="edit-field-row">
+                                    <div class="edit-field-group" style="flex: 1;">
+                                        <label class="edit-field-label">고용상태</label>
+                                        <input type="text" class="edit-input"
+                                               data-field="profile.employmentStatus" placeholder="재직중/구직중">
+                                    </div>
+                                    <div class="edit-field-group" style="flex: 1;">
+                                        <label class="edit-field-label">희망연봉</label>
+                                        <input type="text" class="edit-input"
+                                               data-field="profile.desiredSalary" placeholder="연봉 3,000">
+                                    </div>
+                                    <div class="edit-field-group">
+                                        <label class="edit-field-label">표시</label>
+                                        <label class="edit-checkbox-label">
+                                            <input type="checkbox" data-field="profile.showEmployment">
+                                            <span>보이기</span>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <!-- 거주지 & 나이 -->
+                                <div class="edit-field-row">
+                                    <div class="edit-field-group" style="flex: 2;">
+                                        <label class="edit-field-label">거주지</label>
+                                        <input type="text" class="edit-input"
+                                               data-field="profile.residence" placeholder="거주지">
+                                    </div>
+                                    <div class="edit-field-group" style="flex: 1;">
+                                        <label class="edit-field-label">나이</label>
+                                        <input type="text" class="edit-input"
+                                               data-field="profile.age" placeholder="나이">
+                                    </div>
+                                </div>
+
+                                <!-- 좌우명 -->
+                                <div class="edit-field-group">
+                                    <label class="edit-field-label">좌우명</label>
+                                    <input type="text" class="edit-input"
+                                           data-field="profile.motto" placeholder="좌우명을 입력하세요">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 가능직무 -->
+                        <div class="edit-card">
+                            <div class="edit-card-header">
+                                <h3 class="edit-card-title">💼 가능직무</h3>
+                                <button class="edit-add-btn" data-add="jobRoles">+ 추가</button>
+                            </div>
+                            <div class="edit-tags-container" id="edit-job-roles">
+                                <!-- JS로 렌더링 -->
+                            </div>
+                        </div>
+
+                        <!-- 가능스킬 -->
+                        <div class="edit-card">
+                            <div class="edit-card-header">
+                                <h3 class="edit-card-title">⚡ 가능스킬</h3>
+                                <button class="edit-add-btn" data-add="skills">+ 추가</button>
+                            </div>
+                            <div class="edit-tags-container" id="edit-skills">
+                                <!-- JS로 렌더링 -->
+                            </div>
+                        </div>
+
+                        <!-- 자격증 -->
+                        <div class="edit-card" data-section="certificates">
+                            <div class="edit-card-header">
+                                <h3 class="edit-card-title">📜 자격증</h3>
+                                <button class="edit-add-btn" data-add="certificates">+ 추가</button>
+                            </div>
+                            <div class="edit-list-container" id="edit-certificates">
+                                <!-- JS로 렌더링 -->
+                            </div>
+                        </div>
+
+                        <!-- 교육이수 -->
+                        <div class="edit-card" data-section="educations">
+                            <div class="edit-card-header">
+                                <h3 class="edit-card-title">🎓 교육이수</h3>
+                                <button class="edit-add-btn" data-add="educations">+ 추가</button>
+                            </div>
+                            <div class="edit-list-container" id="edit-educations">
+                                <!-- JS로 렌더링 -->
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- ===== AI 도구 섹션 ===== -->
+                    <section class="edit-section" id="edit-aitools" data-section="aitools">
+                        <div class="edit-section-header">
+                            <h2 class="edit-section-title">🤖 사용해본 AI</h2>
+                        </div>
+
+                        <div class="edit-card">
+                            <div class="edit-card-header">
+                                <h3 class="edit-card-title">AI 도구 목록</h3>
+                                <button class="edit-add-btn" data-add="aiTools">+ 추가</button>
+                            </div>
+                            <div class="edit-list-container" id="edit-ai-tools">
+                                <!-- JS로 렌더링 -->
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- ===== 경력 섹션 ===== -->
+                    <section class="edit-section" id="edit-experience">
+                        <!-- 관련 경력 -->
+                        <div class="edit-card" data-section="related">
+                            <div class="edit-card-header">
+                                <h3 class="edit-card-title">💼 관련 경력</h3>
+                                <button class="edit-add-btn" data-add="relatedExperience">+ 추가</button>
+                            </div>
+                            <div class="edit-field-group" style="margin-bottom: 16px;">
+                                <label class="edit-field-label">총 기간</label>
+                                <input type="text" class="edit-input"
+                                       data-field="relatedExperience.totalPeriod" placeholder="총 2년 3개월">
+                            </div>
+                            <div class="edit-list-container" id="edit-related-experience">
+                                <!-- JS로 렌더링 -->
+                            </div>
+                        </div>
+
+                        <!-- 기타 경력 -->
+                        <div class="edit-card" data-section="other">
+                            <div class="edit-card-header">
+                                <h3 class="edit-card-title">📋 기타 경력</h3>
+                                <button class="edit-add-btn" data-add="otherExperience">+ 추가</button>
+                            </div>
+                            <div class="edit-field-group" style="margin-bottom: 16px;">
+                                <label class="edit-field-label">총 기간</label>
+                                <input type="text" class="edit-input"
+                                       data-field="otherExperience.totalPeriod" placeholder="총 5년">
+                            </div>
+                            <div class="edit-list-container" id="edit-other-experience">
+                                <!-- JS로 렌더링 -->
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- ===== 자기평가 섹션 ===== -->
+                    <section class="edit-section" id="edit-evaluation" data-section="evaluation">
+                        <div class="edit-section-header">
+                            <h2 class="edit-section-title">📝 자기평가</h2>
+                        </div>
+
+                        <div class="edit-card">
+                            <div class="edit-field-group">
+                                <label class="edit-field-label">평가 내용</label>
+                                <textarea class="edit-textarea" data-field="evaluation.text"
+                                          rows="8" placeholder="자기평가 내용을 입력하세요"></textarea>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- ===== 영상 섹션 ===== -->
+                    <section class="edit-section" id="edit-video" data-section="video">
+                        <div class="edit-section-header">
+                            <h2 class="edit-section-title">🎬 영상</h2>
+                        </div>
+
+                        <div class="edit-card">
+                            <div class="edit-field-group">
+                                <label class="edit-field-label">YouTube URL</label>
+                                <input type="text" class="edit-input"
+                                       data-field="video.url" placeholder="https://youtu.be/...">
+                            </div>
+                            <div class="edit-video-preview" id="edit-video-preview">
+                                <!-- 영상 미리보기 -->
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- ===== 연락처 섹션 ===== -->
+                    <section class="edit-section" id="edit-contact" data-section="contact">
+                        <div class="edit-section-header">
+                            <h2 class="edit-section-title">📞 연락처</h2>
+                        </div>
+
+                        <div class="edit-card">
+                            <div class="edit-field-row">
+                                <div class="edit-field-group" style="flex: 1;">
+                                    <label class="edit-field-label">이름</label>
+                                    <input type="text" class="edit-input"
+                                           data-field="contact.name" placeholder="이름">
+                                </div>
+                                <div class="edit-field-group" style="flex: 1;">
+                                    <label class="edit-field-label">전화번호</label>
+                                    <input type="text" class="edit-input"
+                                           data-field="contact.phone" placeholder="010-0000-0000">
+                                </div>
+                            </div>
+                            <div class="edit-field-group">
+                                <label class="edit-field-label">이메일</label>
+                                <input type="email" class="edit-input"
+                                       data-field="contact.email" placeholder="email@example.com">
+                            </div>
+                            <div class="edit-field-group">
+                                <label class="edit-field-label">인사말</label>
+                                <textarea class="edit-textarea" data-field="contact.message"
+                                          rows="3" placeholder="감사합니다"></textarea>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- 토스트 -->
+    <div class="toast" id="toast"></div>
+
+    <!-- Scripts -->
+    <script src="js/data.js"></script>
+    <script type="module">
+        import { AuthManager, StorageManager } from './js/firebase-config.js';
+
+        // ===== 전역 변수 =====
+        let currentData = null;
+        let unsavedChanges = false;
+
+        // ===== 초기화 =====
+        async function init() {
+            // 로그인 확인
+            await AuthManager.init();
+            if (!AuthManager.isLoggedIn()) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            // 데이터 로드 대기
+            if (window.dataManager && window.dataManager.data) {
+                onDataReady();
+            } else {
+                window.addEventListener('dataManagerReady', onDataReady);
+            }
+        }
+
+        function onDataReady() {
+            currentData = dataManager.getData();
+
+            // UI 초기화
+            renderSectionToggles();
+            renderAllEditSections();
+            hideLoading();
+
+            // 이벤트 리스너 설정
+            setupEventListeners();
+            setupEditFieldListeners();
+
+            // 미리보기 상태 업데이트
+            updatePreviewStatus('편집 준비 완료');
+        }
+
+        // ===== 모든 편집 섹션 렌더링 =====
+        function renderAllEditSections() {
+            renderProfileData();
+            renderJobRoles();
+            renderSkills();
+            renderCertificates();
+            renderEducations();
+            renderAITools();
+            renderExperience('related');
+            renderExperience('other');
+            renderEvaluation();
+            renderVideo();
+            renderContact();
+            updateSectionVisibility();
+        }
+
+        // ===== 프로필 데이터 렌더링 =====
+        function renderProfileData() {
+            const profile = currentData.profile || {};
+
+            // 프로필 이미지
+            const imgPreview = document.getElementById('profile-image-preview');
+            if (profile.profileImage) {
+                imgPreview.src = profile.profileImage;
+            } else {
+                imgPreview.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect fill="%23e0e0e0" width="100" height="100"/><text x="50" y="55" text-anchor="middle" fill="%23999" font-size="14">사진</text></svg>';
+            }
+
+            // 텍스트 필드들
+            setInputValue('profile.name', profile.name);
+            setInputValue('profile.kakaoLabel', profile.kakaoLabel || '카톡');
+            setInputValue('profile.kakaoId', profile.kakaoId);
+            setInputValue('profile.employmentStatus', profile.employmentStatus);
+            setInputValue('profile.desiredSalary', profile.desiredSalary);
+            setCheckboxValue('profile.showEmployment', profile.showEmployment !== false);
+            setInputValue('profile.residence', profile.residence);
+            setInputValue('profile.age', profile.age);
+            setInputValue('profile.motto', profile.motto);
+        }
+
+        // ===== 태그 렌더링 (직무, 스킬) =====
+        function renderJobRoles() {
+            const container = document.getElementById('edit-job-roles');
+            const jobRoles = currentData.profile?.jobRoles || [];
+            renderTags(container, jobRoles, 'jobRoles');
+        }
+
+        function renderSkills() {
+            const container = document.getElementById('edit-skills');
+            const skills = currentData.profile?.skills || [];
+            renderTags(container, skills, 'skills');
+        }
+
+        function renderTags(container, items, fieldName) {
+            container.innerHTML = items.map((item, index) => `
+                <div class="edit-tag">
+                    <input type="text" value="${escapeHtml(item)}"
+                           data-field="${fieldName}" data-index="${index}"
+                           onblur="updateTagValue('${fieldName}', ${index}, this.value)">
+                    <button class="edit-tag-remove" onclick="removeTag('${fieldName}', ${index})">×</button>
+                </div>
+            `).join('');
+        }
+
+        window.updateTagValue = function(fieldName, index, value) {
+            const profile = currentData.profile || {};
+            if (!profile[fieldName]) profile[fieldName] = [];
+            profile[fieldName][index] = value;
+            dataManager.updateProfile({ [fieldName]: profile[fieldName] });
+            markUnsaved();
+            refreshPreview();
+        };
+
+        window.removeTag = function(fieldName, index) {
+            const profile = currentData.profile || {};
+            if (!profile[fieldName]) return;
+            profile[fieldName].splice(index, 1);
+            dataManager.updateProfile({ [fieldName]: profile[fieldName] });
+            markUnsaved();
+            if (fieldName === 'jobRoles') renderJobRoles();
+            else if (fieldName === 'skills') renderSkills();
+            refreshPreview();
+        };
+
+        // ===== 자격증 렌더링 =====
+        function renderCertificates() {
+            const container = document.getElementById('edit-certificates');
+            const certificates = currentData.profile?.certificates || [];
+
+            container.innerHTML = certificates.map((cert, index) => `
+                <div class="edit-list-item">
+                    <div class="edit-list-item-content">
+                        <div class="edit-list-item-row">
+                            <input type="text" class="edit-list-item-input" placeholder="자격증명"
+                                   value="${escapeHtml(cert.name || '')}"
+                                   onblur="updateCertificate(${index}, 'name', this.value)">
+                            <input type="text" class="edit-list-item-input" placeholder="취득일" style="width: 120px;"
+                                   value="${escapeHtml(cert.date || '')}"
+                                   onblur="updateCertificate(${index}, 'date', this.value)">
+                        </div>
+                    </div>
+                    <button class="edit-list-item-remove" onclick="removeCertificate(${index})">🗑️</button>
+                </div>
+            `).join('') || '<div style="color: #999; font-size: 13px;">자격증이 없습니다. + 추가 버튼을 눌러 추가하세요.</div>';
+        }
+
+        window.updateCertificate = function(index, field, value) {
+            const profile = currentData.profile || {};
+            if (!profile.certificates) profile.certificates = [];
+            if (!profile.certificates[index]) profile.certificates[index] = {};
+            profile.certificates[index][field] = value;
+            dataManager.updateProfile({ certificates: profile.certificates });
+            markUnsaved();
+            refreshPreview();
+        };
+
+        window.removeCertificate = function(index) {
+            const profile = currentData.profile || {};
+            if (!profile.certificates) return;
+            profile.certificates.splice(index, 1);
+            dataManager.updateProfile({ certificates: profile.certificates });
+            markUnsaved();
+            renderCertificates();
+            refreshPreview();
+        };
+
+        // ===== 교육이수 렌더링 =====
+        function renderEducations() {
+            const container = document.getElementById('edit-educations');
+            const educations = currentData.profile?.educations || [];
+
+            container.innerHTML = educations.map((edu, index) => `
+                <div class="edit-list-item">
+                    <div class="edit-list-item-content">
+                        <div class="edit-list-item-row">
+                            <input type="text" class="edit-list-item-input" placeholder="교육명"
+                                   value="${escapeHtml(edu.name || '')}"
+                                   onblur="updateEducation(${index}, 'name', this.value)">
+                            <input type="text" class="edit-list-item-input" placeholder="기간" style="width: 150px;"
+                                   value="${escapeHtml(edu.period || '')}"
+                                   onblur="updateEducation(${index}, 'period', this.value)">
+                        </div>
+                    </div>
+                    <button class="edit-list-item-remove" onclick="removeEducation(${index})">🗑️</button>
+                </div>
+            `).join('') || '<div style="color: #999; font-size: 13px;">교육이수 내역이 없습니다.</div>';
+        }
+
+        window.updateEducation = function(index, field, value) {
+            const profile = currentData.profile || {};
+            if (!profile.educations) profile.educations = [];
+            if (!profile.educations[index]) profile.educations[index] = {};
+            profile.educations[index][field] = value;
+            dataManager.updateProfile({ educations: profile.educations });
+            markUnsaved();
+            refreshPreview();
+        };
+
+        window.removeEducation = function(index) {
+            const profile = currentData.profile || {};
+            if (!profile.educations) return;
+            profile.educations.splice(index, 1);
+            dataManager.updateProfile({ educations: profile.educations });
+            markUnsaved();
+            renderEducations();
+            refreshPreview();
+        };
+
+        // ===== AI 도구 렌더링 =====
+        function renderAITools() {
+            const container = document.getElementById('edit-ai-tools');
+            const aiTools = currentData.aiTools || [];
+
+            container.innerHTML = aiTools.map((tool, index) => `
+                <div class="edit-ai-item">
+                    <div class="edit-ai-icon" onclick="uploadAIIcon(${index})">
+                        ${tool.icon ? `<img src="${escapeHtml(tool.icon)}" alt="">` : '🤖'}
+                        <div class="edit-ai-icon-overlay">📷</div>
+                        <input type="file" id="ai-icon-input-${index}" accept="image/*" style="display:none"
+                               onchange="handleAIIconUpload(${index}, this)">
+                    </div>
+                    <div class="edit-ai-content">
+                        <input type="text" class="edit-list-item-input" placeholder="AI 도구 이름"
+                               value="${escapeHtml(tool.name || '')}"
+                               onblur="updateAITool(${index}, 'name', this.value)">
+                        <input type="text" class="edit-list-item-input" placeholder="설명"
+                               value="${escapeHtml(tool.description || '')}"
+                               onblur="updateAITool(${index}, 'description', this.value)">
+                    </div>
+                    <button class="edit-list-item-remove" onclick="removeAITool(${index})">🗑️</button>
+                </div>
+            `).join('') || '<div style="color: #999; font-size: 13px;">AI 도구가 없습니다.</div>';
+        }
+
+        window.uploadAIIcon = function(index) {
+            document.getElementById(`ai-icon-input-${index}`).click();
+        };
+
+        window.handleAIIconUpload = async function(index, input) {
+            const file = input.files[0];
+            if (!file) return;
+
+            try {
+                const base64 = await fileToBase64(file);
+                updateAITool(index, 'icon', base64);
+                renderAITools();
+            } catch (error) {
+                showToast('이미지 업로드 실패', 'error');
+            }
+        };
+
+        window.updateAITool = function(index, field, value) {
+            if (!currentData.aiTools) currentData.aiTools = [];
+            if (!currentData.aiTools[index]) currentData.aiTools[index] = {};
+            currentData.aiTools[index][field] = value;
+            dataManager.set('aiTools', currentData.aiTools);
+            markUnsaved();
+            refreshPreview();
+        };
+
+        window.removeAITool = function(index) {
+            if (!currentData.aiTools) return;
+            currentData.aiTools.splice(index, 1);
+            dataManager.set('aiTools', currentData.aiTools);
+            markUnsaved();
+            renderAITools();
+            refreshPreview();
+        };
+
+        // ===== 경력 렌더링 =====
+        function renderExperience(type) {
+            const containerId = type === 'related' ? 'edit-related-experience' : 'edit-other-experience';
+            const container = document.getElementById(containerId);
+            const dataKey = type === 'related' ? 'relatedExperience' : 'otherExperience';
+            const expData = currentData[dataKey] || { items: [] };
+            const items = expData.items || [];
+
+            container.innerHTML = items.map((item, index) => `
+                <div class="edit-exp-item">
+                    <div class="edit-exp-header">
+                        <input type="text" class="edit-list-item-input" placeholder="회사명" style="flex: 2;"
+                               value="${escapeHtml(item.company || '')}"
+                               onblur="updateExperience('${type}', ${index}, 'company', this.value)">
+                        <input type="text" class="edit-list-item-input" placeholder="직책" style="flex: 1;"
+                               value="${escapeHtml(item.position || '')}"
+                               onblur="updateExperience('${type}', ${index}, 'position', this.value)">
+                        <input type="text" class="edit-list-item-input" placeholder="기간" style="width: 150px;"
+                               value="${escapeHtml(item.period || '')}"
+                               onblur="updateExperience('${type}', ${index}, 'period', this.value)">
+                        <button class="edit-list-item-remove" onclick="removeExperience('${type}', ${index})">🗑️</button>
+                    </div>
+                    <div class="edit-exp-details" id="exp-tasks-${type}-${index}">
+                        ${(item.tasks || []).map((task, taskIndex) => `
+                            <div class="edit-exp-task">
+                                <input type="text" class="edit-list-item-input" placeholder="업무 내용"
+                                       value="${escapeHtml(task)}"
+                                       onblur="updateExpTask('${type}', ${index}, ${taskIndex}, this.value)">
+                                <button class="edit-tag-remove" onclick="removeExpTask('${type}', ${index}, ${taskIndex})">×</button>
+                            </div>
+                        `).join('')}
+                        <button class="edit-exp-add-task" onclick="addExpTask('${type}', ${index})">+ 업무 추가</button>
+                    </div>
+                </div>
+            `).join('') || '<div style="color: #999; font-size: 13px;">경력이 없습니다.</div>';
+        }
+
+        window.updateExperience = function(type, index, field, value) {
+            const dataKey = type === 'related' ? 'relatedExperience' : 'otherExperience';
+            if (!currentData[dataKey]) currentData[dataKey] = { items: [] };
+            if (!currentData[dataKey].items) currentData[dataKey].items = [];
+            if (!currentData[dataKey].items[index]) currentData[dataKey].items[index] = {};
+            currentData[dataKey].items[index][field] = value;
+            dataManager.set(dataKey, currentData[dataKey]);
+            markUnsaved();
+            refreshPreview();
+        };
+
+        window.removeExperience = function(type, index) {
+            const dataKey = type === 'related' ? 'relatedExperience' : 'otherExperience';
+            if (!currentData[dataKey]?.items) return;
+            currentData[dataKey].items.splice(index, 1);
+            dataManager.set(dataKey, currentData[dataKey]);
+            markUnsaved();
+            renderExperience(type);
+            refreshPreview();
+        };
+
+        window.updateExpTask = function(type, expIndex, taskIndex, value) {
+            const dataKey = type === 'related' ? 'relatedExperience' : 'otherExperience';
+            if (!currentData[dataKey]?.items?.[expIndex]?.tasks) return;
+            currentData[dataKey].items[expIndex].tasks[taskIndex] = value;
+            dataManager.set(dataKey, currentData[dataKey]);
+            markUnsaved();
+            refreshPreview();
+        };
+
+        window.addExpTask = function(type, expIndex) {
+            const dataKey = type === 'related' ? 'relatedExperience' : 'otherExperience';
+            if (!currentData[dataKey]?.items?.[expIndex]) return;
+            if (!currentData[dataKey].items[expIndex].tasks) {
+                currentData[dataKey].items[expIndex].tasks = [];
+            }
+            currentData[dataKey].items[expIndex].tasks.push('');
+            dataManager.set(dataKey, currentData[dataKey]);
+            renderExperience(type);
+        };
+
+        window.removeExpTask = function(type, expIndex, taskIndex) {
+            const dataKey = type === 'related' ? 'relatedExperience' : 'otherExperience';
+            if (!currentData[dataKey]?.items?.[expIndex]?.tasks) return;
+            currentData[dataKey].items[expIndex].tasks.splice(taskIndex, 1);
+            dataManager.set(dataKey, currentData[dataKey]);
+            markUnsaved();
+            renderExperience(type);
+            refreshPreview();
+        };
+
+        // ===== 자기평가 렌더링 =====
+        function renderEvaluation() {
+            const evaluation = currentData.evaluation || {};
+            setTextareaValue('evaluation.text', evaluation.text || '');
+        }
+
+        // ===== 영상 렌더링 =====
+        function renderVideo() {
+            const video = currentData.video || {};
+            setInputValue('video.url', video.url || '');
+            updateVideoPreview(video.url);
+        }
+
+        function updateVideoPreview(url) {
+            const container = document.getElementById('edit-video-preview');
+            if (!url) {
+                container.innerHTML = '<div class="edit-video-placeholder">YouTube URL을 입력하면 미리보기가 표시됩니다</div>';
+                return;
+            }
+
+            // YouTube URL에서 ID 추출
+            let videoId = '';
+            if (url.includes('youtu.be/')) {
+                videoId = url.split('youtu.be/')[1]?.split('?')[0];
+            } else if (url.includes('youtube.com/watch')) {
+                const urlParams = new URLSearchParams(url.split('?')[1]);
+                videoId = urlParams.get('v');
+            } else if (url.includes('youtube.com/embed/')) {
+                videoId = url.split('youtube.com/embed/')[1]?.split('?')[0];
+            }
+
+            if (videoId) {
+                container.innerHTML = `<iframe src="https://www.youtube.com/embed/${videoId}" allowfullscreen></iframe>`;
+            } else {
+                container.innerHTML = '<div class="edit-video-placeholder">올바른 YouTube URL을 입력해주세요</div>';
+            }
+        }
+
+        // ===== 연락처 렌더링 =====
+        function renderContact() {
+            const contact = currentData.contact || {};
+            setInputValue('contact.name', contact.name || '');
+            setInputValue('contact.phone', contact.phone || '');
+            setInputValue('contact.email', contact.email || '');
+            setTextareaValue('contact.message', contact.message || '');
+        }
+
+        // ===== 섹션 표시/숨김 업데이트 =====
+        function updateSectionVisibility() {
+            const sectionSettings = currentData.sectionSettings || {};
+
+            document.querySelectorAll('.edit-section[data-section], .edit-card[data-section], .edit-profile-image-wrapper[data-section]').forEach(el => {
+                const sectionId = el.dataset.section;
+                const isVisible = sectionSettings[sectionId] !== false;
+                el.classList.toggle('hidden', !isVisible);
+            });
+        }
+
+        // ===== 섹션 토글 렌더링 =====
+        function renderSectionToggles() {
+            const container = document.getElementById('section-toggle-list');
+            const sectionSettings = currentData.sectionSettings || {};
+
+            const sections = [
+                { id: 'about', label: '자기소개', icon: '👤' },
+                { id: 'aboutPhoto', label: '프로필 사진', icon: '📷' },
+                { id: 'aitools', label: 'AI 도구', icon: '🤖' },
+                { id: 'related', label: '관련 경력', icon: '💼' },
+                { id: 'other', label: '기타 경력', icon: '📋' },
+                { id: 'evaluation', label: '자기 평가', icon: '📝' },
+                { id: 'video', label: '영상', icon: '🎬' },
+                { id: 'contact', label: '연락처', icon: '📞' }
+            ];
+
+            container.innerHTML = sections.map(section => {
+                const isChecked = sectionSettings[section.id] !== false;
+                return `
+                    <label class="section-toggle-item ${isChecked ? 'active' : ''}">
+                        <input type="checkbox"
+                               data-section="${section.id}"
+                               ${isChecked ? 'checked' : ''}>
+                        <span class="section-toggle-label">${section.label}</span>
+                        <span class="section-toggle-icon">${section.icon}</span>
+                    </label>
+                `;
+            }).join('');
+
+            // 체크박스 이벤트
+            container.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+                checkbox.addEventListener('change', (e) => {
+                    const sectionId = e.target.dataset.section;
+                    const isChecked = e.target.checked;
+
+                    // 시각적 피드백
+                    e.target.closest('.section-toggle-item').classList.toggle('active', isChecked);
+
+                    // 데이터 저장
+                    if (!currentData.sectionSettings) {
+                        currentData.sectionSettings = {};
+                    }
+                    currentData.sectionSettings[sectionId] = isChecked;
+                    dataManager.set('sectionSettings', currentData.sectionSettings);
+
+                    // 미리보기 갱신
+                    refreshPreview();
+                    updatePreviewStatus(`'${sectionId}' 섹션 ${isChecked ? '표시' : '숨김'}`);
+                    markUnsaved();
+                });
+            });
+        }
+
+        // ===== 이벤트 리스너 =====
+        function setupEventListeners() {
+            // 저장 버튼
+            document.getElementById('btn-save').addEventListener('click', saveAll);
+
+            // 미리보기 새로고침
+            document.getElementById('btn-refresh-preview').addEventListener('click', () => {
+                refreshPreview();
+                showToast('미리보기 새로고침됨', 'success');
+            });
+
+            // 테마 버튼
+            document.getElementById('btn-theme').addEventListener('click', () => {
+                // 테마 토글 (라이트 <-> 다크)
+                const currentTheme = currentData.theme?.current || 'light';
+                const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+                dataManager.setTheme(newTheme);
+                currentData.theme.current = newTheme;
+                refreshPreview();
+                showToast(`테마: ${newTheme === 'light' ? '라이트' : '다크'} 모드`, 'success');
+                markUnsaved();
+            });
+
+            // 키보드 단축키
+            document.addEventListener('keydown', (e) => {
+                if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+                    e.preventDefault();
+                    saveAll();
+                }
+            });
+
+            // 페이지 이탈 경고
+            window.addEventListener('beforeunload', (e) => {
+                if (unsavedChanges) {
+                    e.preventDefault();
+                    e.returnValue = '';
+                }
+            });
+
+            // 프로필 이미지 클릭
+            document.getElementById('edit-profile-image').addEventListener('click', () => {
+                document.getElementById('profile-image-input').click();
+            });
+
+            // 프로필 이미지 업로드
+            document.getElementById('profile-image-input').addEventListener('change', async (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                try {
+                    // Firebase Storage 또는 base64로 저장
+                    if (window.StorageManager && AuthManager.isLoggedIn()) {
+                        updatePreviewStatus('이미지 업로드 중...');
+                        const url = await StorageManager.uploadProfileImage(file, AuthManager.getCurrentUser().uid);
+                        dataManager.updateProfile({ profileImage: url });
+                    } else {
+                        const base64 = await fileToBase64(file);
+                        dataManager.updateProfile({ profileImage: base64 });
+                    }
+
+                    renderProfileData();
+                    markUnsaved();
+                    refreshPreview();
+                    showToast('프로필 이미지 변경됨', 'success');
+                } catch (error) {
+                    console.error('Image upload error:', error);
+                    showToast('이미지 업로드 실패', 'error');
+                }
+            });
+
+            // 추가 버튼들
+            document.querySelectorAll('[data-add]').forEach(btn => {
+                btn.addEventListener('click', () => handleAddItem(btn.dataset.add));
+            });
+        }
+
+        // ===== 입력 필드 이벤트 리스너 =====
+        function setupEditFieldListeners() {
+            // 일반 입력 필드 (debounce 적용)
+            document.querySelectorAll('.edit-input[data-field], .edit-textarea[data-field]').forEach(input => {
+                let debounceTimer;
+
+                input.addEventListener('input', (e) => {
+                    clearTimeout(debounceTimer);
+                    debounceTimer = setTimeout(() => {
+                        handleFieldChange(e.target);
+                    }, 500);
+                });
+
+                input.addEventListener('blur', (e) => {
+                    clearTimeout(debounceTimer);
+                    handleFieldChange(e.target);
+                });
+            });
+
+            // 체크박스
+            document.querySelectorAll('input[type="checkbox"][data-field]').forEach(checkbox => {
+                checkbox.addEventListener('change', (e) => {
+                    handleFieldChange(e.target);
+                });
+            });
+        }
+
+        function handleFieldChange(input) {
+            const field = input.dataset.field;
+            if (!field) return;
+
+            const value = input.type === 'checkbox' ? input.checked : input.value;
+            const [category, key] = field.split('.');
+
+            if (category === 'profile') {
+                dataManager.updateProfile({ [key]: value });
+            } else if (category === 'contact') {
+                if (!currentData.contact) currentData.contact = {};
+                currentData.contact[key] = value;
+                dataManager.set('contact', currentData.contact);
+            } else if (category === 'evaluation') {
+                if (!currentData.evaluation) currentData.evaluation = {};
+                currentData.evaluation[key] = value;
+                dataManager.set('evaluation', currentData.evaluation);
+            } else if (category === 'video') {
+                if (!currentData.video) currentData.video = {};
+                currentData.video[key] = value;
+                dataManager.set('video', currentData.video);
+                if (key === 'url') updateVideoPreview(value);
+            } else if (category === 'relatedExperience') {
+                if (!currentData.relatedExperience) currentData.relatedExperience = {};
+                currentData.relatedExperience[key] = value;
+                dataManager.set('relatedExperience', currentData.relatedExperience);
+            } else if (category === 'otherExperience') {
+                if (!currentData.otherExperience) currentData.otherExperience = {};
+                currentData.otherExperience[key] = value;
+                dataManager.set('otherExperience', currentData.otherExperience);
+            }
+
+            markUnsaved();
+            refreshPreview();
+        }
+
+        // ===== 아이템 추가 핸들러 =====
+        function handleAddItem(type) {
+            switch(type) {
+                case 'jobRoles':
+                    if (!currentData.profile.jobRoles) currentData.profile.jobRoles = [];
+                    currentData.profile.jobRoles.push('새 직무');
+                    dataManager.updateProfile({ jobRoles: currentData.profile.jobRoles });
+                    renderJobRoles();
+                    break;
+
+                case 'skills':
+                    if (!currentData.profile.skills) currentData.profile.skills = [];
+                    currentData.profile.skills.push('새 스킬');
+                    dataManager.updateProfile({ skills: currentData.profile.skills });
+                    renderSkills();
+                    break;
+
+                case 'certificates':
+                    if (!currentData.profile.certificates) currentData.profile.certificates = [];
+                    currentData.profile.certificates.push({ name: '', date: '' });
+                    dataManager.updateProfile({ certificates: currentData.profile.certificates });
+                    renderCertificates();
+                    break;
+
+                case 'educations':
+                    if (!currentData.profile.educations) currentData.profile.educations = [];
+                    currentData.profile.educations.push({ name: '', period: '' });
+                    dataManager.updateProfile({ educations: currentData.profile.educations });
+                    renderEducations();
+                    break;
+
+                case 'aiTools':
+                    if (!currentData.aiTools) currentData.aiTools = [];
+                    currentData.aiTools.push({ name: '새 AI 도구', description: '', icon: '' });
+                    dataManager.set('aiTools', currentData.aiTools);
+                    renderAITools();
+                    break;
+
+                case 'relatedExperience':
+                    if (!currentData.relatedExperience) currentData.relatedExperience = { items: [] };
+                    if (!currentData.relatedExperience.items) currentData.relatedExperience.items = [];
+                    currentData.relatedExperience.items.push({ company: '', position: '', period: '', tasks: [] });
+                    dataManager.set('relatedExperience', currentData.relatedExperience);
+                    renderExperience('related');
+                    break;
+
+                case 'otherExperience':
+                    if (!currentData.otherExperience) currentData.otherExperience = { items: [] };
+                    if (!currentData.otherExperience.items) currentData.otherExperience.items = [];
+                    currentData.otherExperience.items.push({ company: '', position: '', period: '', tasks: [] });
+                    dataManager.set('otherExperience', currentData.otherExperience);
+                    renderExperience('other');
+                    break;
+            }
+
+            markUnsaved();
+            refreshPreview();
+        }
+
+        // ===== 저장 =====
+        async function saveAll() {
+            try {
+                await dataManager.saveData();
+                unsavedChanges = false;
+                showToast('✓ 저장 완료!', 'success');
+                updatePreviewStatus('저장됨');
+            } catch (error) {
+                console.error('Save error:', error);
+                showToast('저장 실패: ' + error.message, 'error');
+            }
+        }
+
+        function markUnsaved() {
+            unsavedChanges = true;
+            document.getElementById('btn-save').textContent = '💾 저장 *';
+        }
+
+        // ===== 미리보기 =====
+        function refreshPreview() {
+            const iframe = document.getElementById('preview-iframe');
+            iframe.src = iframe.src;
+        }
+
+        function updatePreviewStatus(message) {
+            document.getElementById('preview-status').innerHTML = `<strong>상태:</strong> ${message}`;
+        }
+
+        // ===== 유틸리티 =====
+        function hideLoading() {
+            document.getElementById('loading-overlay').classList.add('hidden');
+        }
+
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = `toast ${type} show`;
+
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // ===== 헬퍼 함수들 =====
+        function setInputValue(field, value) {
+            const input = document.querySelector(`input[data-field="${field}"]`);
+            if (input) input.value = value || '';
+        }
+
+        function setTextareaValue(field, value) {
+            const textarea = document.querySelector(`textarea[data-field="${field}"]`);
+            if (textarea) textarea.value = value || '';
+        }
+
+        function setCheckboxValue(field, value) {
+            const checkbox = document.querySelector(`input[type="checkbox"][data-field="${field}"]`);
+            if (checkbox) checkbox.checked = value;
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        }
+
+        // ===== 시작 =====
+        init();
+    </script>
+</body>
+</html>
