@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>포트폴리오 편집 (v3) - 화면 그대로 수정</title>
+
+    <!-- Preload Firebase SDK for faster initialization -->
+    <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js">
+    <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js">
+    <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js">
+    <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js">
+    <link rel="modulepreload" href="js/firebase-config.js">
+
+    <!-- Swiper CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css">
+
+    <!-- Main CSS (사용자 페이지와 동일) -->
+    <link rel="stylesheet" href="css/style.css">
+
+    <!-- Editor v3 CSS -->
+    <link rel="stylesheet" href="css/editor-v3.css">
+
+    <style>
+        /* Keep Korean words from breaking mid-word */
+        body {
+            word-break: keep-all;
+        }
+        /* Hide content until data is loaded */
+        body.loading .main,
+        body.loading .header,
+        body.loading .section-nav {
+            opacity: 0;
+            visibility: hidden;
+        }
+        body:not(.loading) .main,
+        body:not(.loading) .header,
+        body:not(.loading) .section-nav {
+            opacity: 1;
+            visibility: visible;
+            transition: opacity 0.3s ease;
+        }
+        .page-loading-overlay {
+            position: fixed; inset: 0;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            background: var(--color-bg, #ffffff);
+            z-index: 9999;
+        }
+        .page-loading-overlay.hidden { display: none; }
+        .page-loading-spinner {
+            width: 48px; height: 48px;
+            border: 4px solid var(--color-border, #dee2e6);
+            border-top-color: var(--color-primary, #3498db);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        .page-loading-text {
+            margin-top: 16px;
+            color: var(--color-text-secondary, #6c757d);
+            font-size: 1rem;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body class="loading edit-mode">
+    <!-- Loading Overlay -->
+    <div class="page-loading-overlay" id="page-loading">
+        <div class="page-loading-spinner"></div>
+        <div class="page-loading-text">편집 화면을 준비하는 중...</div>
+    </div>
+
+    <!-- ===== Editor v3 Toolbar (편집 전용) ===== -->
+    <div class="ev3-toolbar" id="ev3-toolbar">
+        <div class="ev3-toolbar-left">
+            <span class="ev3-logo">✏️ 편집모드 <small>v3</small></span>
+            <span class="ev3-hint">파란 점선 영역을 클릭하면 그 자리에서 바로 수정됩니다</span>
+        </div>
+        <div class="ev3-toolbar-right">
+            <span class="ev3-save-status" id="ev3-save-status">●&nbsp;자동저장 켜짐</span>
+            <button class="ev3-btn ev3-btn-ghost" id="ev3-settings-btn" title="전역 설정">⚙ 설정</button>
+            <a class="ev3-btn ev3-btn-ghost" id="ev3-preview-btn" href="portfolio.html" target="_blank" title="실제 사용자 화면 새 탭으로 보기">👁 미리보기</a>
+            <button class="ev3-btn ev3-btn-ghost" id="ev3-logout-btn" title="로그아웃">로그아웃</button>
+        </div>
+    </div>
+
+    <!-- ===== Header (사용자 페이지와 동일) ===== -->
+    <header class="header">
+        <div class="header-inner">
+            <a href="javascript:void(0)" class="logo">Portfolio</a>
+
+            <nav class="nav">
+                <ul class="nav-menu" data-content="menu">
+                    <li><a href="#about" class="nav-link">자기소개</a></li>
+                    <li><a href="#web-mobile" class="nav-link">웹&모바일</a></li>
+                    <li><a href="#popup-banner" class="nav-link">팝업&배너</a></li>
+                    <li><a href="#detail-page" class="nav-link">상세페이지</a></li>
+                    <li><a href="#contact" class="nav-link">contact</a></li>
+                </ul>
+                <div class="nav-buttons">
+                    <a href="ai.html" class="btn btn-secondary" data-page-link="ai">AI활용제작</a>
+                    <a href="team.html" class="btn btn-secondary" data-page-link="team">팀플제작</a>
+                </div>
+            </nav>
+
+            <button class="menu-toggle" aria-label="메뉴 열기">
+                <span></span><span></span><span></span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Section Navigation Dots -->
+    <nav class="section-nav">
+        <button class="section-nav-dot active" data-section="about" data-label="자기소개"></button>
+        <button class="section-nav-dot" data-section="web-mobile" data-label="웹&모바일"></button>
+        <button class="section-nav-dot" data-section="popup-banner" data-label="팝업&배너"></button>
+        <button class="section-nav-dot" data-section="detail-page" data-label="상세페이지"></button>
+        <button class="section-nav-dot" data-section="contact" data-label="contact"></button>
+    </nav>
+
+    <!-- Main Content (사용자 페이지와 동일한 구조) -->
+    <main class="main">
+        <!-- About Section -->
+        <section id="about" class="section about-section">
+            <div class="container">
+                <div class="about-grid about-grid-top">
+                    <div class="about-info">
+                        <div class="about-header">
+                            <div class="about-tag" style="flex: 1;">
+                                <span class="about-tag-label">가능직무 :</span>
+                                <span data-content="job-roles" class="about-job-roles-list"></span>
+                            </div>
+                        </div>
+
+                        <div class="about-header">
+                            <div class="about-tag" style="flex: 1;">
+                                <span class="about-tag-label">가능스킬 :</span>
+                                <span data-content="skills" class="about-skills-list"></span>
+                            </div>
+                        </div>
+
+                        <div class="about-header" data-section="certificates">
+                            <div class="about-tag" style="flex: 1;">
+                                <span class="about-tag-label">자격증 :</span>
+                                <span data-content="certificates" class="about-certificates-list"></span>
+                            </div>
+                        </div>
+
+                        <div class="about-header" data-section="custom-links" style="display: none;">
+                            <div class="about-tag custom-links-container" style="flex: 1; gap: 8px; flex-wrap: wrap;"></div>
+                        </div>
+
+                        <div class="about-header" data-section="educations">
+                            <div class="about-tag" style="flex: 1;">
+                                <span class="about-tag-label">교육이수 :</span>
+                                <span data-content="educations" class="about-educations-list"></span>
+                            </div>
+                        </div>
+
+                        <div class="about-header">
+                            <div class="about-tag">
+                                <span class="about-tag-label">거주 :</span>
+                                <span data-content="residence"></span>
+                            </div>
+                        </div>
+
+                        <div class="about-header" style="display:none">
+                            <div class="about-tag">
+                                <span class="about-tag-label">나이 :</span>
+                                <span data-content="age"></span>
+                            </div>
+                        </div>
+
+                        <div class="about-name">
+                            <span data-content="name"></span>
+                            <span data-content="kakao"></span>
+                            <span class="about-badge" data-content="employment"></span>
+                        </div>
+
+                        <blockquote class="about-motto" data-content="motto"></blockquote>
+                    </div>
+
+                    <div class="about-profile">
+                        <div data-content="profile-image">
+                            <div class="profile-image-placeholder">사진</div>
+                        </div>
+                        <button class="btn btn-primary download-btn" data-action="download-pdf">
+                            PDF로 보기
+                        </button>
+                    </div>
+                </div>
+
+                <div class="about-full-width">
+                    <div class="about-skills" data-section="aitools">
+                        <h3 class="about-skills-title" data-content="ai-tools-title">사용해본 AI</h3>
+                        <div class="ai-list" data-content="ai-tools"></div>
+                    </div>
+
+                    <div class="experience-grid" style="margin-top: var(--space-xl);" data-section="experience">
+                        <div class="experience-block" data-content="related-experience" data-section="related"></div>
+                        <div class="experience-block" data-content="other-experience" data-section="other"></div>
+                    </div>
+
+                    <div class="evaluation-grid" style="margin-top: var(--space-xl);" data-section="evaluation">
+                        <div class="evaluation-text" data-content="evaluation-text"></div>
+                        <div class="evaluation-chart">
+                            <h3 class="evaluation-text-title">자신 있는 부분과 없는 부분 그래프</h3>
+                            <canvas id="radar-chart" class="radar-chart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="video-section" style="margin-top: var(--space-2xl);" data-section="video">
+                        <div class="video-container" data-content="video"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Web & Mobile Section -->
+        <section id="web-mobile" class="section portfolio-section">
+            <div class="container">
+                <h2 class="section-title">웹 & 모바일</h2>
+                <div class="portfolio-container"></div>
+            </div>
+        </section>
+
+        <!-- Popup & Banner Section -->
+        <section id="popup-banner" class="section portfolio-section">
+            <div class="container">
+                <h2 class="section-title">팝업 & 배너</h2>
+                <div class="portfolio-container"></div>
+            </div>
+        </section>
+
+        <!-- Detail Page Section -->
+        <section id="detail-page" class="section portfolio-section">
+            <div class="container">
+                <h2 class="section-title">상세페이지</h2>
+                <div class="portfolio-container"></div>
+            </div>
+        </section>
+
+        <!-- Contact Section -->
+        <section id="contact" class="section contact-section">
+            <div class="container">
+                <h2 class="section-title">Contact</h2>
+                <div class="contact-grid">
+                    <div class="contact-info">
+                        <h3 class="contact-info-title">연락처</h3>
+                        <div class="contact-list">
+                            <div class="contact-item">
+                                <div class="contact-icon" data-emoji="contact-name">👤</div>
+                                <div>
+                                    <div class="contact-item-label">이름</div>
+                                    <div class="contact-item-value" data-content="contact-name"></div>
+                                </div>
+                            </div>
+                            <div class="contact-item">
+                                <div class="contact-icon" data-emoji="contact-phone">📞</div>
+                                <div>
+                                    <div class="contact-item-label">전화</div>
+                                    <div class="contact-item-value" data-content="contact-phone"></div>
+                                </div>
+                            </div>
+                            <div class="contact-item">
+                                <div class="contact-icon" data-emoji="contact-email">✉️</div>
+                                <div>
+                                    <div class="contact-item-label">이메일</div>
+                                    <div class="contact-item-value" data-content="contact-email"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="contact-thanks" data-content="contact-message"></div>
+                    </div>
+                    <div class="calendar-container"></div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; <span id="footer-year"></span> Portfolio. All rights reserved.</p>
+            <script>document.getElementById('footer-year').textContent = new Date().getFullYear();</script>
+        </div>
+    </footer>
+
+    <!-- ===== Editor v3 Settings Drawer (전역 설정 = admin 전체 기능) ===== -->
+    <div class="ev3-drawer-backdrop" id="ev3-drawer-backdrop"></div>
+    <aside class="ev3-drawer" id="ev3-drawer" aria-hidden="true">
+        <div class="ev3-drawer-header">
+            <h2>⚙ 전역 설정</h2>
+            <button class="ev3-drawer-close" id="ev3-drawer-close">&times;</button>
+        </div>
+        <nav class="ev3-drawer-tabs" id="ev3-drawer-tabs">
+            <button class="ev3-tab active" data-tab="sections">표시</button>
+            <button class="ev3-tab" data-tab="menu">메뉴</button>
+            <button class="ev3-tab" data-tab="theme">테마</button>
+            <button class="ev3-tab" data-tab="font">폰트</button>
+            <button class="ev3-tab" data-tab="background">배경</button>
+            <button class="ev3-tab" data-tab="logo">로고</button>
+            <button class="ev3-tab" data-tab="icons">이모지</button>
+            <button class="ev3-tab" data-tab="data">데이터</button>
+        </nav>
+        <div class="ev3-drawer-body" id="ev3-drawer-body">
+            <!-- 탭 내용은 editor-v3.js가 렌더링 -->
+        </div>
+    </aside>
+
+    <!-- Hidden file input for uploads -->
+    <input type="file" id="ev3-file-input" accept="image/*" style="display:none">
+
+    <!-- External libs (사용자 페이지와 동일) -->
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+    <!-- ===== Auth guard + script loader (admin 패턴과 동일) ===== -->
+    <script type="module">
+        import { AuthManager } from './js/firebase-config.js';
+
+        function loadScript(src) {
+            return new Promise((resolve, reject) => {
+                const s = document.createElement('script');
+                s.src = src;
+                s.onload = resolve;
+                s.onerror = reject;
+                document.body.appendChild(s);
+            });
+        }
+
+        async function boot() {
+            try {
+                await AuthManager.init();
+
+                if (!AuthManager.isLoggedIn()) {
+                    // 편집은 로그인 필요
+                    window.location.href = 'login.html';
+                    return;
+                }
+
+                // 1) 데이터 매니저 로드 + 내 데이터(편집모드) 로드
+                await loadScript('js/data.js');
+                await window.dataManager.init();   // viewUserId 없음 → 내 포트폴리오 편집
+
+                // 2) PDF 폰트 + 렌더러(app.js) 로드 후 사용자 화면 렌더
+                await loadScript('js/pdf-font.js').catch(() => {});
+                await loadScript('js/app.js');
+
+                // app.js의 DOMContentLoaded는 이미 지났으므로 직접 렌더
+                if (window.PageInitializer && !window.__ev3PageInit) {
+                    window.__ev3PageInit = new window.PageInitializer();
+                }
+
+                // 3) 편집 레이어 로드
+                await loadScript('js/editor-v3.js');
+
+                document.body.classList.remove('loading');
+                document.getElementById('page-loading')?.classList.add('hidden');
+            } catch (e) {
+                console.error('[editor-v3] boot 실패:', e);
+                alert('편집 화면 로딩 중 오류가 발생했습니다. 콘솔을 확인해주세요.');
+            }
+        }
+
+        boot();
+    </script>
+</body>
+</html>

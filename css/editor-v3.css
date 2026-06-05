@@ -1,0 +1,360 @@
+/* =========================================================
+   Editor v3 — 사용자 페이지(portfolio.html) 위에 얹는 편집 레이어
+   화면 자체는 css/style.css 그대로. 여기서는 편집 도구만 스타일링.
+   ========================================================= */
+
+:root {
+    --ev3-accent: #6c5ce7;
+    --ev3-accent-soft: rgba(108, 92, 231, 0.12);
+    --ev3-bar-h: 48px;
+}
+
+/* ---- 상단 편집 툴바 ---- */
+body.edit-mode { padding-top: var(--ev3-bar-h); }
+body.edit-mode .header { top: var(--ev3-bar-h); }
+
+.ev3-toolbar {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: var(--ev3-bar-h);
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px;
+    background: #16162a;
+    color: #fff;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.25);
+    font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+.ev3-toolbar-left { display: flex; align-items: center; gap: 14px; min-width: 0; }
+.ev3-toolbar-right { display: flex; align-items: center; gap: 8px; }
+.ev3-logo { font-weight: 700; color: #c4b5fd; white-space: nowrap; }
+.ev3-logo small { font-size: 11px; opacity: 0.7; }
+.ev3-hint { font-size: 12px; color: #9aa0b5; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ev3-save-status { font-size: 12px; color: #6ee7b7; white-space: nowrap; }
+.ev3-save-status.saving { color: #fbbf24; }
+.ev3-save-status.error { color: #fca5a5; }
+
+.ev3-btn {
+    padding: 7px 12px;
+    border: none;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all .15s;
+    background: var(--ev3-accent);
+    color: #fff;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    line-height: 1;
+}
+.ev3-btn:hover { filter: brightness(1.1); }
+.ev3-btn-ghost { background: #2a2a4a; color: #d7d7ea; }
+.ev3-btn-ghost:hover { background: #3a3a5a; }
+.ev3-btn-danger { background: #e74c3c; }
+
+@media (max-width: 720px) {
+    .ev3-hint { display: none; }
+    .ev3-save-status { display: none; }
+}
+
+/* ---- 인라인 편집 가능한 영역 표시 ---- */
+.ev3-editable {
+    position: relative;
+    cursor: text;
+    border-radius: 4px;
+    transition: background .12s, box-shadow .12s;
+    outline: 1px dashed transparent;
+    outline-offset: 2px;
+}
+body.edit-mode .ev3-editable:hover {
+    background: var(--ev3-accent-soft);
+    outline-color: var(--ev3-accent);
+}
+.ev3-editable.ev3-img { cursor: pointer; }
+.ev3-editable.ev3-img:hover::after {
+    content: "📷 클릭하여 이미지 변경";
+    position: absolute;
+    left: 50%; top: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0,0,0,.7);
+    color: #fff;
+    font-size: 12px;
+    padding: 6px 10px;
+    border-radius: 6px;
+    white-space: nowrap;
+    pointer-events: none;
+    z-index: 5;
+}
+
+/* 편집 중 인라인 입력 필드 */
+.ev3-input, .ev3-textarea {
+    font: inherit;
+    color: inherit;
+    background: #fff;
+    border: 2px solid var(--ev3-accent);
+    border-radius: 4px;
+    padding: 2px 6px;
+    max-width: 100%;
+    box-shadow: 0 4px 14px rgba(0,0,0,.12);
+}
+.ev3-textarea { width: 100%; min-height: 120px; resize: vertical; line-height: 1.6; }
+
+/* 항목 추가/삭제 버튼 (인라인) */
+.ev3-mini {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    border: 1px dashed var(--ev3-accent);
+    color: var(--ev3-accent);
+    background: var(--ev3-accent-soft);
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 3px 8px;
+    cursor: pointer;
+    vertical-align: middle;
+    margin: 2px;
+    line-height: 1.4;
+}
+.ev3-mini:hover { background: var(--ev3-accent); color: #fff; }
+.ev3-mini-del {
+    border-color: #e74c3c; color: #e74c3c; background: rgba(231,76,60,.1);
+}
+.ev3-mini-del:hover { background: #e74c3c; color: #fff; }
+
+/* 항목을 감싸는 편집 래퍼 (삭제 버튼 노출용) */
+.ev3-item-wrap { position: relative; }
+body.edit-mode .ev3-item-wrap:hover { outline: 1px dashed var(--ev3-accent); outline-offset: 3px; border-radius: 6px; }
+.ev3-item-del {
+    position: absolute;
+    top: -10px; right: -10px;
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    border: none;
+    background: #e74c3c;
+    color: #fff;
+    font-size: 14px;
+    line-height: 1;
+    cursor: pointer;
+    display: none;
+    z-index: 6;
+    box-shadow: 0 2px 6px rgba(0,0,0,.25);
+}
+body.edit-mode .ev3-item-wrap:hover > .ev3-item-del { display: block; }
+
+/* 섹션마다 "+ 추가" 바 */
+.ev3-add-row {
+    text-align: center;
+    margin: 16px 0;
+}
+.ev3-add-btn {
+    border: 2px dashed var(--ev3-accent);
+    color: var(--ev3-accent);
+    background: var(--ev3-accent-soft);
+    border-radius: 8px;
+    padding: 10px 18px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+}
+.ev3-add-btn:hover { background: var(--ev3-accent); color: #fff; }
+
+/* ---- 설정 서랍 ---- */
+.ev3-drawer-backdrop {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,.4);
+    z-index: 10001;
+    opacity: 0; visibility: hidden;
+    transition: opacity .2s;
+}
+.ev3-drawer-backdrop.open { opacity: 1; visibility: visible; }
+
+.ev3-drawer {
+    position: fixed;
+    top: 0; right: 0; bottom: 0;
+    width: 420px;
+    max-width: 92vw;
+    background: var(--color-bg, #fff);
+    color: var(--color-text, #212529);
+    z-index: 10002;
+    transform: translateX(100%);
+    transition: transform .25s ease;
+    display: flex;
+    flex-direction: column;
+    box-shadow: -6px 0 24px rgba(0,0,0,.18);
+    font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+.ev3-drawer.open { transform: translateX(0); }
+.ev3-drawer-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--color-border, #dee2e6);
+}
+.ev3-drawer-header h2 { font-size: 17px; margin: 0; }
+.ev3-drawer-close {
+    border: none; background: none; font-size: 26px; line-height: 1;
+    cursor: pointer; color: var(--color-text-secondary, #6c757d);
+}
+.ev3-drawer-tabs {
+    display: flex; flex-wrap: wrap; gap: 4px;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--color-border, #dee2e6);
+}
+.ev3-tab {
+    border: 1px solid var(--color-border, #dee2e6);
+    background: var(--color-bg-secondary, #f8f9fa);
+    color: var(--color-text-secondary, #6c757d);
+    border-radius: 999px;
+    padding: 5px 12px;
+    font-size: 13px;
+    cursor: pointer;
+}
+.ev3-tab.active { background: var(--ev3-accent); color: #fff; border-color: var(--ev3-accent); }
+.ev3-drawer-body { flex: 1; overflow-y: auto; padding: 18px 20px; }
+
+/* 설정 폼 공통 */
+.ev3-field { margin-bottom: 16px; }
+.ev3-field > label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 6px;
+    color: var(--color-text, #212529);
+}
+.ev3-field input[type="text"],
+.ev3-field input[type="url"],
+.ev3-field input[type="number"],
+.ev3-field select,
+.ev3-field textarea {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid var(--color-border, #dee2e6);
+    border-radius: 6px;
+    font: inherit;
+    background: var(--color-bg, #fff);
+    color: var(--color-text, #212529);
+}
+.ev3-field textarea { min-height: 90px; resize: vertical; font-family: monospace; font-size: 12px; }
+.ev3-row { display: flex; gap: 8px; align-items: center; }
+.ev3-row > * { flex: 1; }
+.ev3-check { display: flex; align-items: center; gap: 8px; padding: 8px 0; font-size: 14px; }
+.ev3-check input { width: 18px; height: 18px; flex: none; }
+.ev3-color-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+.ev3-color-row label { flex: 1; font-size: 13px; }
+.ev3-color-row input[type="color"] { width: 44px; height: 30px; border: 1px solid var(--color-border,#dee2e6); border-radius: 6px; padding: 0; }
+.ev3-sec-title { font-size: 14px; font-weight: 700; margin: 22px 0 10px; padding-bottom: 6px; border-bottom: 2px solid var(--ev3-accent); }
+.ev3-sec-title:first-child { margin-top: 0; }
+.ev3-help { font-size: 12px; color: var(--color-text-secondary,#6c757d); margin: -2px 0 8px; }
+
+.ev3-list-card {
+    border: 1px solid var(--color-border, #dee2e6);
+    border-radius: 8px;
+    padding: 10px;
+    margin-bottom: 8px;
+    background: var(--color-bg-secondary, #f8f9fa);
+}
+.ev3-list-card .ev3-row { margin-bottom: 6px; }
+.ev3-fullbtn {
+    width: 100%;
+    padding: 9px;
+    border: none;
+    border-radius: 6px;
+    background: var(--ev3-accent);
+    color: #fff;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 13px;
+}
+.ev3-fullbtn.secondary { background: var(--color-bg-tertiary,#e9ecef); color: var(--color-text,#212529); }
+.ev3-fullbtn.danger { background: #e74c3c; }
+
+@media (max-width: 720px) {
+    .ev3-drawer { width: 100vw; }
+}
+
+/* ---- 항목 수정/삭제 컨트롤 (리스트 아이템 위) ---- */
+.ev3-item-wrap { position: relative; }
+.ev3-item-ctrls {
+    position: absolute;
+    top: 6px; right: 6px;
+    display: none;
+    gap: 4px;
+    z-index: 6;
+}
+body.edit-mode .ev3-item-wrap:hover > .ev3-item-ctrls { display: flex; }
+.ev3-ctrl-btn {
+    border: none;
+    border-radius: 6px;
+    width: 26px; height: 26px;
+    font-size: 13px;
+    line-height: 1;
+    cursor: pointer;
+    color: #fff;
+    box-shadow: 0 2px 6px rgba(0,0,0,.25);
+    display: flex; align-items: center; justify-content: center;
+}
+.ev3-ctrl-edit { background: var(--ev3-accent); }
+.ev3-ctrl-del { background: #e74c3c; }
+
+/* ---- 중앙 모달 (복잡한 항목 편집) ---- */
+.ev3-modal-backdrop {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,.5);
+    z-index: 10050;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+.ev3-modal-backdrop.open { display: flex; }
+.ev3-modal {
+    background: var(--color-bg, #fff);
+    color: var(--color-text, #212529);
+    border-radius: 12px;
+    width: 520px;
+    max-width: 100%;
+    max-height: 88vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 20px 60px rgba(0,0,0,.35);
+}
+.ev3-modal-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--color-border, #dee2e6);
+}
+.ev3-modal-header h3 { margin: 0; font-size: 16px; }
+.ev3-modal-close { border: none; background: none; font-size: 24px; cursor: pointer; line-height: 1; color: var(--color-text-secondary,#6c757d); }
+.ev3-modal-body { padding: 18px 20px; overflow-y: auto; }
+.ev3-modal-footer {
+    display: flex; gap: 8px; justify-content: flex-end;
+    padding: 14px 20px;
+    border-top: 1px solid var(--color-border, #dee2e6);
+}
+
+/* 영상/이미지 위 작은 편집 버튼 */
+.ev3-float-edit {
+    position: absolute;
+    top: 8px; right: 8px;
+    z-index: 6;
+    background: rgba(0,0,0,.7);
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 6px 10px;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+/* 인쇄/미리보기 시 편집 도구 숨김 안전장치 */
+@media print {
+    .ev3-toolbar, .ev3-drawer, .ev3-drawer-backdrop, .ev3-mini, .ev3-add-row, .ev3-item-del { display: none !important; }
+    body.edit-mode { padding-top: 0; }
+}
