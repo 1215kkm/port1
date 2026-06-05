@@ -262,8 +262,8 @@
     <!-- Analytics Tracking -->
     <script type="module">
         import { AnalyticsManager } from './js/firebase-config.js';
-        // Track page visit
-        if (window.AnalyticsManager) {
+        // Track page visit (편집기 미리보기 iframe 안에서는 카운트 제외)
+        if (window.self === window.top && window.AnalyticsManager) {
             AnalyticsManager.trackVisit('portfolio');
         }
     </script>

@@ -753,6 +753,9 @@ class PageInitializer {
             window.radarChart = new RadarChart(radarCanvas, this.data.evaluation.radarChart);
         }
 
+        // Create/remove dynamic portfolio sections to match menu items
+        this.syncSections();
+
         // Initialize portfolio renderers
         this.initPortfolios();
 
@@ -774,6 +777,9 @@ class PageInitializer {
 
         // Apply section and page visibility settings
         this.applySectionVisibility();
+
+        // Per-menu section show/hide (메뉴에서 섹션 숨김)
+        this.applyMenuVisibility();
 
         // Listen for data updates
         window.addEventListener('dataUpdated', () => {
@@ -800,9 +806,11 @@ class PageInitializer {
         this.renderEvaluation();
         this.renderVideo();
         this.renderContact();
+        this.syncSections();
         this.renderMenu();
         this.initPortfolios();
         this.applySectionVisibility();
+        this.applyMenuVisibility();
 
         if (window.radarChart) {
             window.radarChart.update(this.data.evaluation.radarChart);
@@ -1347,6 +1355,45 @@ class PageInitializer {
 
         // Apply section order to DOM
         this.applySectionOrder();
+    }
+
+    // 메뉴 항목(isPortfolio)에 맞춰 실제 <section>을 생성/삭제/제목동기화
+    syncSections() {
+        const main = document.querySelector('.main');
+        if (!main) return;
+
+        const menuById = {};
+        (this.data.menuItems || []).forEach(m => { menuById[m.id] = m; });
+
+        // 1) 포트폴리오 메뉴에 해당하는 섹션이 없으면 생성 (contact 앞에 삽입)
+        const contactSection = document.getElementById('contact');
+        (this.data.menuItems || []).filter(m => m.isPortfolio).forEach(menu => {
+            let sec = document.getElementById(menu.id);
+            if (!sec) {
+                sec = document.createElement('section');
+                sec.id = menu.id;
+                sec.className = 'section portfolio-section';
+                sec.innerHTML = '<div class="container"><h2 class="section-title"></h2><div class="portfolio-container"></div></div>';
+                if (contactSection) main.insertBefore(sec, contactSection);
+                else main.appendChild(sec);
+            }
+            const title = sec.querySelector('.section-title');
+            if (title) title.textContent = menu.label;
+        });
+
+        // 2) 메뉴에서 삭제된 포트폴리오 섹션은 DOM에서도 제거 (about/contact 등 비포트폴리오는 유지)
+        main.querySelectorAll(':scope > section.portfolio-section').forEach(sec => {
+            const m = menuById[sec.id];
+            if (!m || !m.isPortfolio) sec.remove();
+        });
+    }
+
+    // 메뉴 항목의 visible=false 면 해당 섹션 전체를 숨김
+    applyMenuVisibility() {
+        (this.data.menuItems || []).forEach(m => {
+            const sec = document.getElementById(m.id);
+            if (sec && m.visible === false) sec.style.display = 'none';
+        });
     }
 
     applySectionOrder() {

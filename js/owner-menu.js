@@ -2,6 +2,9 @@
 // 대시보드, 편집, 미리보기, PDF 등 링크 제공
 
 (async function() {
+    // 편집기 미리보기(iframe) 안에서는 플로팅 메뉴 표시 안 함
+    if (window.self !== window.top) return;
+
     // 스타일 삽입
     const style = document.createElement('style');
     style.textContent = `
@@ -373,7 +376,7 @@
     const shareBtn = document.getElementById('owner-share-btn');
     shareBtn.addEventListener('click', async () => {
         const baseUrl = window.location.origin + window.location.pathname.replace(/[^/]*$/, '');
-        const shareUrl = `${baseUrl}intro.html?u=${userId}`;
+        const shareUrl = `${baseUrl}portfolio.html?u=${userId}`;
 
         let copied = false;
         try {

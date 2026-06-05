@@ -545,64 +545,98 @@
     }
 
     // =====================================================
-    //  좌측 섹션맵 (전체 축소 보기 + 드래그로 섹션 순서 변경)
+    //  좌측 섹션맵 — [전체 미리보기(iframe)] + [섹션 제목/추가/삭제/드래그]
     // =====================================================
+    let __dockReloadTimer = null;
+    function dockAvailHeight() { return Math.max(220, window.innerHeight - 150); }
+
     function buildDock() {
         let dock = $('#ev3-dock');
-        if (!dock) { dock = document.createElement('aside'); dock.id = 'ev3-dock'; dock.className = 'ev3-dock'; document.body.appendChild(dock); }
-        const main = $('.main');
-        if (!main) return;
+        let first = false;
+        if (!dock) {
+            first = true;
+            dock = document.createElement('aside'); dock.id = 'ev3-dock'; dock.className = 'ev3-dock';
+            dock.innerHTML =
+                '<div class="ev3-dock-head"><span class="ttl">🗺 섹션맵</span><button class="ev3-dock-refresh" type="button" title="미리보기 새로고침">↻</button></div>' +
+                '<div class="ev3-dock-body">' +
+                '  <div class="ev3-dock-preview"><iframe class="ev3-dock-frame" title="전체 미리보기"></iframe></div>' +
+                '  <div class="ev3-dock-cards"></div>' +
+                '</div>' +
+                '<button class="ev3-dock-add" type="button">＋ 섹션 추가</button>';
+            document.body.appendChild(dock);
+            const frame = dock.querySelector('.ev3-dock-frame');
+            frame.addEventListener('load', () => scaleDockFrame(dock));
+            frame.src = 'portfolio.html';
+            dock.querySelector('.ev3-dock-refresh').onclick = () => reloadDockFrame(dock);
+            dock.querySelector('.ev3-dock-add').onclick = addSectionModal;
+        }
+        renderDockCards(dock);
+        scaleDockFrame(dock);
+        if (!first) scheduleFrameReload();   // 내용이 바뀌면 미리보기도 갱신(디바운스)
+    }
 
+    function renderDockCards(dock) {
+        const cards = dock.querySelector('.ev3-dock-cards');
+        const main = $('.main');
+        if (!cards || !main) return;
         const order = data().sectionOrder || [];
         const labelMap = {};
-        (data().menuItems || []).forEach(m => { labelMap[m.id] = m.label; });
-
+        (data().menuItems || []).forEach(m => { labelMap[m.id] = m; });
         const secs = Array.from(main.querySelectorAll(':scope > section[id]'));
-        secs.sort((a, b) => {
-            const ia = order.indexOf(a.id), ib = order.indexOf(b.id);
-            return (ia < 0 ? 999 : ia) - (ib < 0 ? 999 : ib);
-        });
+        secs.sort((a, b) => { const ia = order.indexOf(a.id), ib = order.indexOf(b.id); return (ia < 0 ? 999 : ia) - (ib < 0 ? 999 : ib); });
+        const total = secs.reduce((s, el) => s + (el.offsetHeight || 200), 0) || 1;
+        const availH = dockAvailHeight();
 
-        dock.innerHTML = '<div class="ev3-dock-title">🗺 섹션 위치<br><small>드래그로 순서 변경 · 클릭 이동</small></div>';
-        const list = document.createElement('div'); list.className = 'ev3-dock-list';
-
+        cards.innerHTML = '';
         secs.forEach(sec => {
+            const m = labelMap[sec.id] || { label: sec.id };
             const card = document.createElement('div');
-            card.className = 'ev3-dock-card';
-            card.draggable = true;
-            card.dataset.id = sec.id;
-            const hpx = Math.max(28, Math.min(96, Math.round((sec.offsetHeight || 300) / 36)));
-            card.style.height = hpx + 'px';
-            const lbl = document.createElement('span'); lbl.className = 'ev3-dock-label';
-            lbl.textContent = labelMap[sec.id] || sec.id;
-            card.appendChild(lbl);
-
-            card.addEventListener('click', () => {
-                const hh = (document.querySelector('.header') && document.querySelector('.header').offsetHeight) || 70;
-                window.scrollTo({ top: sec.offsetTop - hh - 56, behavior: 'smooth' });
-            });
-            card.addEventListener('dragstart', e => { card.classList.add('dragging'); try { e.dataTransfer.setData('text/plain', sec.id); } catch (x) { } });
+            card.className = 'ev3-dock-card'; card.draggable = true; card.dataset.id = sec.id;
+            card.style.height = Math.max(20, (sec.offsetHeight || 200) / total * availH) + 'px';
+            const lab = document.createElement('span'); lab.className = 'ev3-dock-label'; lab.textContent = m.label || sec.id;
+            card.appendChild(lab);
+            if (sec.id !== 'about' && sec.id !== 'contact') {
+                const x = document.createElement('button'); x.type = 'button'; x.className = 'ev3-dock-x'; x.textContent = '×'; x.title = '삭제';
+                x.onclick = e => { e.stopPropagation(); confirmDel('"' + (m.label || sec.id) + '" 섹션을 삭제할까요? (작품도 함께 삭제됩니다)', () => dm.deleteMenuItem(sec.id)); };
+                card.appendChild(x);
+            }
+            card.addEventListener('click', () => { const hh = (document.querySelector('.header') && document.querySelector('.header').offsetHeight) || 70; window.scrollTo({ top: sec.offsetTop - hh - 56, behavior: 'smooth' }); });
+            card.addEventListener('dragstart', e => { card.classList.add('dragging'); try { e.dataTransfer.setData('text/plain', sec.id); } catch (z) { } });
             card.addEventListener('dragend', () => card.classList.remove('dragging'));
-            list.appendChild(card);
+            cards.appendChild(card);
         });
-
-        list.addEventListener('dragover', e => {
-            e.preventDefault();
-            const dragging = list.querySelector('.dragging');
-            if (!dragging) return;
-            const after = getDragAfter(list, e.clientY);
-            if (after == null) list.appendChild(dragging);
-            else list.insertBefore(dragging, after);
-        });
-        list.addEventListener('drop', e => {
-            e.preventDefault();
-            const ids = Array.from(list.querySelectorAll('.ev3-dock-card')).map(c => c.dataset.id);
-            const rest = (data().sectionOrder || []).filter(x => ids.indexOf(x) < 0);
-            dm.reorderSections(ids.concat(rest));   // 저장 → app.js가 실제 섹션 DOM 재정렬
-        });
-
-        dock.appendChild(list);
+        // 리스너는 1회만 (on* 으로 덮어쓰기 → 중복 방지)
+        cards.ondragover = e => { e.preventDefault(); const dragging = cards.querySelector('.dragging'); if (!dragging) return; const after = getDragAfter(cards, e.clientY); if (after == null) cards.appendChild(dragging); else cards.insertBefore(dragging, after); };
+        cards.ondrop = e => { e.preventDefault(); const ids = Array.from(cards.querySelectorAll('.ev3-dock-card')).map(c => c.dataset.id); const rest = (data().sectionOrder || []).filter(x => ids.indexOf(x) < 0); dm.reorderSections(ids.concat(rest)); };
     }
+
+    function scaleDockFrame(dock) {
+        const frame = dock.querySelector('.ev3-dock-frame');
+        const prev = dock.querySelector('.ev3-dock-preview');
+        if (!frame || !prev) return;
+        const baseW = 1200;
+        let fullH = 3000;
+        try { const doc = frame.contentDocument; if (doc && doc.body) fullH = Math.max(doc.body.scrollHeight, doc.documentElement.scrollHeight) || 3000; } catch (e) { }
+        const availH = dockAvailHeight();
+        const scale = availH / fullH;
+        frame.style.width = baseW + 'px';
+        frame.style.height = fullH + 'px';
+        frame.style.transform = 'scale(' + scale + ')';
+        prev.style.width = Math.round(baseW * scale) + 'px';
+        prev.style.height = availH + 'px';
+    }
+
+    function reloadDockFrame(dock) {
+        const f = dock.querySelector('.ev3-dock-frame');
+        if (!f) return;
+        try { f.contentWindow.location.reload(); } catch (e) { f.src = f.src; }
+    }
+    function scheduleFrameReload() {
+        if (!document.body.classList.contains('ev3-dock-open')) return;
+        clearTimeout(__dockReloadTimer);
+        __dockReloadTimer = setTimeout(() => { const d = $('#ev3-dock'); if (d) reloadDockFrame(d); }, 1500);
+    }
+
     function getDragAfter(container, y) {
         const els = Array.from(container.querySelectorAll('.ev3-dock-card:not(.dragging)'));
         let closest = { offset: -Infinity, element: null };
@@ -699,43 +733,82 @@
         return b;
     }
 
+    function miniBtn(label, onClick, extraClass) {
+        const x = document.createElement('button'); x.type = 'button';
+        x.className = 'ev3-mini' + (extraClass ? ' ' + extraClass : '');
+        x.textContent = label; x.style.flex = 'none'; x.onclick = onClick; return x;
+    }
+    const SECTION_STYLES = [['grid', '그리드 (격자)'], ['single', '한 줄 (크게)'], ['masonry', '벽돌형'], ['slider', '슬라이더']];
+
     function tabMenu() {
         const b = frag();
-        secTitle(b, '메뉴 / 섹션 관리');
-        helpLine(b, '이름·표시여부·순서를 관리합니다. (순서는 상단 메뉴에 반영)');
+        secTitle(b, '섹션 관리');
+        helpLine(b, '섹션 이름·표시 스타일·숨김·순서·삭제를 관리합니다.');
         const order = data().sectionOrder || [];
         const menus = [...(data().menuItems || [])].sort((a, c) => order.indexOf(a.id) - order.indexOf(c.id));
         menus.forEach(m => {
             const card = document.createElement('div'); card.className = 'ev3-list-card';
+
+            // 1줄: 이름 + 순서이동
             const row1 = document.createElement('div'); row1.className = 'ev3-row';
             const nameI = document.createElement('input'); nameI.type = 'text'; nameI.value = m.label;
             nameI.onchange = () => dm.updateMenuItem(m.id, { label: nameI.value });
             row1.appendChild(nameI);
-            const up = document.createElement('button'); up.type = 'button'; up.className = 'ev3-mini'; up.textContent = '↑'; up.style.flex = 'none';
-            up.onclick = () => { moveMenu(m.id, -1); };
-            const down = document.createElement('button'); down.type = 'button'; down.className = 'ev3-mini'; down.textContent = '↓'; down.style.flex = 'none';
-            down.onclick = () => { moveMenu(m.id, 1); };
-            row1.appendChild(up); row1.appendChild(down);
+            row1.appendChild(miniBtn('↑', () => moveMenu(m.id, -1)));
+            row1.appendChild(miniBtn('↓', () => moveMenu(m.id, 1)));
             card.appendChild(row1);
-            const row2 = document.createElement('div'); row2.style.marginTop = '6px'; row2.style.display = 'flex'; row2.style.justifyContent = 'space-between'; row2.style.alignItems = 'center';
+
+            // 2줄: 표시 스타일 (포트폴리오 섹션만)
+            if (m.isPortfolio) {
+                const styleSel = document.createElement('select');
+                styleSel.style.marginTop = '6px';
+                const cur = (data().sectionDisplayModes || {})[m.id] || 'grid';
+                SECTION_STYLES.forEach(o => { const op = document.createElement('option'); op.value = o[0]; op.textContent = '스타일: ' + o[1]; if (o[0] === cur) op.selected = true; styleSel.appendChild(op); });
+                styleSel.onchange = () => dm.setSectionDisplayMode(m.id, styleSel.value);
+                card.appendChild(styleSel);
+            }
+
+            // 3줄: 표시 토글 + 삭제
+            const row3 = document.createElement('div');
+            row3.style.cssText = 'margin-top:8px;display:flex;justify-content:space-between;align-items:center;';
             const vis = document.createElement('label'); vis.className = 'ev3-check'; vis.style.padding = '0';
             const vi = document.createElement('input'); vi.type = 'checkbox'; vi.checked = m.visible !== false;
             vi.onchange = () => dm.updateMenuItem(m.id, { visible: vi.checked });
-            vis.appendChild(vi); vis.appendChild(document.createTextNode(' 메뉴에 표시'));
-            row2.appendChild(vis);
+            vis.appendChild(vi); vis.appendChild(document.createTextNode(' 이 섹션 표시'));
+            row3.appendChild(vis);
             if (m.id !== 'about' && m.id !== 'contact') {
-                const del = document.createElement('button'); del.type = 'button'; del.className = 'ev3-mini ev3-mini-del'; del.textContent = '삭제';
-                del.onclick = () => confirmDel('"' + m.label + '" 섹션을 삭제할까요? (해당 작품들도 함께 삭제됩니다)', () => { dm.deleteMenuItem(m.id); rerenderDrawer(); });
-                row2.appendChild(del);
+                row3.appendChild(miniBtn('삭제', () => confirmDel('"' + m.label + '" 섹션을 삭제할까요? (해당 작품들도 함께 삭제됩니다)', () => { dm.deleteMenuItem(m.id); rerenderDrawer(); }), 'ev3-mini-del'));
             }
-            card.appendChild(row2);
+            card.appendChild(row3);
             b.appendChild(card);
         });
-        fullBtn(b, '+ 포트폴리오 섹션 추가', '', () => {
-            const label = prompt('새 섹션 이름', '새 섹션');
-            if (label) { dm.addMenuItem({ label: label, isPortfolio: true }); rerenderDrawer(); alert('섹션이 추가되었습니다. (이 페이지에 새 섹션 영역이 보이려면 페이지 구조 추가가 필요합니다)'); }
-        });
+        fullBtn(b, '＋ 새 섹션 추가', '', addSectionModal);
         return b;
+    }
+
+    function addSectionModal() {
+        openFormModal('새 섹션 추가', [
+            { key: 'label', label: '섹션 이름', value: '', placeholder: '예: 웹디자인' },
+            {
+                key: 'mode', label: '표시 스타일', type: 'select', value: 'grid', options: [
+                    { value: 'grid', label: '그리드 (격자로 여러 개)' },
+                    { value: 'single', label: '한 줄 (크게 한 개씩)' },
+                    { value: 'masonry', label: '벽돌형 (높이 자동)' },
+                    { value: 'slider', label: '슬라이더 (좌우 넘김)' }
+                ]
+            }
+        ], v => {
+            if (!v.label || !v.label.trim()) { alert('섹션 이름을 입력하세요'); return false; }
+            const id = 'sec-' + Date.now();
+            dm.addMenuItem({ id: id, label: v.label.trim(), isPortfolio: true });
+            dm.setSectionDisplayMode(id, v.mode);
+            // 새 섹션을 연락처 바로 앞에 배치
+            const ord = (data().sectionOrder || []).filter(x => x !== id);
+            const ci = ord.indexOf('contact');
+            if (ci >= 0) ord.splice(ci, 0, id); else ord.push(id);
+            dm.reorderSections(ord);
+            rerenderDrawer();
+        });
     }
     function moveMenu(id, dir) {
         const order = [...(data().sectionOrder || data().menuItems.map(m => m.id))];
@@ -869,7 +942,11 @@
         // 툴바
         $('#ev3-settings-btn').onclick = () => openDrawer();
         const mapBtn = $('#ev3-map-btn');
-        if (mapBtn) mapBtn.onclick = () => document.body.classList.toggle('ev3-dock-open');
+        if (mapBtn) mapBtn.onclick = () => {
+            const open = document.body.classList.toggle('ev3-dock-open');
+            const d = $('#ev3-dock');
+            if (open && d) { renderDockCards(d); scaleDockFrame(d); reloadDockFrame(d); }
+        };
         document.body.classList.add('ev3-dock-open');   // 기본 표시
         $('#ev3-drawer-close').onclick = closeDrawer;
         drawerBackdrop.onclick = closeDrawer;
@@ -877,6 +954,9 @@
             if (window.AuthManager) { try { await window.AuthManager.signOut(); } catch (e) { } }
             location.href = 'login.html';
         };
+        // 미리보기: 내 고유 주소(?u=내 uid)로 — 공용 주소가 아니라 실제 공유되는 내 포트폴리오
+        const previewBtn = $('#ev3-preview-btn');
+        if (previewBtn && dm.userId) previewBtn.href = 'portfolio.html?u=' + encodeURIComponent(dm.userId);
         $$('.ev3-tab', drawer).forEach(t => t.onclick = () => { activeTab = t.dataset.tab; setActiveTabBtn(); renderTab(); });
 
         // 로고 클릭 → 로고 설정 탭
