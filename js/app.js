@@ -1104,6 +1104,14 @@ class PageInitializer {
             }
         }
 
+        // Certificates (자격증) - comma-joined list
+        const certEl = document.querySelector('[data-content="certificates"]');
+        if (certEl) certEl.textContent = (profile.certificates || []).join(', ');
+
+        // Educations (교육이수) - comma-joined list
+        const eduListEl = document.querySelector('[data-content="educations"]');
+        if (eduListEl) eduListEl.textContent = (profile.educations || []).join(', ');
+
         // Motto
         const mottoEl = document.querySelector('[data-content="motto"]');
         if (mottoEl) mottoEl.textContent = `"${profile.motto}"`;
@@ -1338,14 +1346,20 @@ class PageInitializer {
     }
 
     applySectionOrder() {
-        // Note: Section order reordering is currently disabled
-        // The admin's section settings panel controls visibility, not DOM order
-        // The actual page section order is determined by the HTML structure
-        // To enable section reordering, the sectionOrder should contain actual section IDs
-        // like 'about', 'web-mobile', 'popup-banner', 'detail-page', 'contact'
+        // Reorder the top-level <section id="..."> elements inside .main
+        // according to data.sectionOrder. Only moves sections that actually
+        // exist in the DOM; unknown ids are ignored.
+        const order = this.data.sectionOrder || [];
+        if (!order.length) return;
+        const main = document.querySelector('.main');
+        if (!main) return;
 
-        // For now, we skip DOM reordering to prevent layout issues
-        return;
+        const sectionMap = {};
+        main.querySelectorAll(':scope > section[id]').forEach(s => { sectionMap[s.id] = s; });
+
+        order.forEach(id => {
+            if (sectionMap[id]) main.appendChild(sectionMap[id]);
+        });
     }
 }
 

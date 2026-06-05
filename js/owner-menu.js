@@ -116,11 +116,11 @@
 
         .owner-menu-info-btn {
             display: inline-block;
-            padding: 6px 12px;
+            padding: 7px 14px;
             background: rgba(52, 152, 219, 0.8);
             color: white;
-            font-size: 11px;
-            font-weight: 500;
+            font-size: 13px;
+            font-weight: 600;
             border-radius: 6px;
             text-decoration: none;
             transition: all 0.2s ease;
@@ -239,8 +239,8 @@
         'portfolio.html': {
             title: '혼자제작 포트폴리오',
             desc: '프로필, 경력, 스킬, 작품을 보여주는<br>메인 포트폴리오 페이지입니다.',
-            settingsUrl: 'admin.html',
-            settingsLabel: '프로필/작품 설정하기'
+            settingsUrl: 'portfolio-edit.html',
+            settingsLabel: '편집하기'
         },
         'ai.html': {
             title: 'AI 활용 작품',
@@ -288,46 +288,6 @@
             </div>
             <div class="owner-menu-divider"></div>
         ` : ''}
-
-        <a href="dashboard.html" class="owner-menu-item ${currentPage === 'dashboard.html' ? 'active' : ''}" title="대시보드">
-            <span class="owner-menu-icon">🏠</span>
-            <span class="owner-menu-label">대시보드</span>
-        </a>
-
-        <a href="admin.html" class="owner-menu-item" title="편집">
-            <span class="owner-menu-icon">✏️</span>
-            <span class="owner-menu-label">편집</span>
-        </a>
-
-        <div class="owner-menu-divider"></div>
-
-        ${pageSettings.intro !== false ? `
-        <a href="intro.html" class="owner-menu-item ${currentPage === 'intro.html' ? 'active' : ''}" title="인트로">
-            <span class="owner-menu-icon">🚀</span>
-            <span class="owner-menu-label">인트로</span>
-        </a>
-        ` : ''}
-
-        <a href="portfolio.html" class="owner-menu-item ${currentPage === 'portfolio.html' ? 'active' : ''}" title="포트폴리오">
-            <span class="owner-menu-icon">📄</span>
-            <span class="owner-menu-label">포트폴리오</span>
-        </a>
-
-        ${pageSettings.ai !== false ? `
-        <a href="ai.html" class="owner-menu-item ${currentPage === 'ai.html' ? 'active' : ''}" title="AI 활용제작">
-            <span class="owner-menu-icon">🤖</span>
-            <span class="owner-menu-label">AI활용</span>
-        </a>
-        ` : ''}
-
-        ${pageSettings.team !== false ? `
-        <a href="team.html" class="owner-menu-item ${currentPage === 'team.html' ? 'active' : ''}" title="팀 프로젝트">
-            <span class="owner-menu-icon">👥</span>
-            <span class="owner-menu-label">팀플</span>
-        </a>
-        ` : ''}
-
-        <div class="owner-menu-divider"></div>
 
         <button class="owner-menu-item" id="owner-pdf-btn" title="PDF 미리보기">
             <span class="owner-menu-icon">📑</span>
@@ -394,25 +354,46 @@
         }, 1000);
     }
 
+    // 중앙 하단 토스트 메시지
+    function showToast(msg) {
+        let t = document.getElementById('owner-toast');
+        if (!t) {
+            t = document.createElement('div');
+            t.id = 'owner-toast';
+            t.style.cssText = 'position:fixed;left:50%;bottom:48px;transform:translateX(-50%);background:rgba(0,0,0,0.9);color:#fff;padding:15px 24px;border-radius:12px;font-size:15px;font-weight:500;z-index:100000;box-shadow:0 8px 28px rgba(0,0,0,0.35);opacity:0;transition:opacity .25s ease;max-width:90vw;text-align:center;pointer-events:none;';
+            document.body.appendChild(t);
+        }
+        t.textContent = msg;
+        t.style.opacity = '1';
+        clearTimeout(t._timer);
+        t._timer = setTimeout(() => { t.style.opacity = '0'; }, 2800);
+    }
+
     // URL 복사 버튼 기능
     const shareBtn = document.getElementById('owner-share-btn');
     shareBtn.addEventListener('click', async () => {
         const baseUrl = window.location.origin + window.location.pathname.replace(/[^/]*$/, '');
         const shareUrl = `${baseUrl}intro.html?u=${userId}`;
 
+        let copied = false;
         try {
             await navigator.clipboard.writeText(shareUrl);
-            // 복사 완료 피드백
-            const originalLabel = shareBtn.querySelector('.owner-menu-label').textContent;
-            shareBtn.querySelector('.owner-menu-label').textContent = '복사됨!';
-            shareBtn.style.background = 'rgba(46, 204, 113, 0.6)';
-            setTimeout(() => {
-                shareBtn.querySelector('.owner-menu-label').textContent = originalLabel;
-                shareBtn.style.background = '';
-            }, 1500);
+            copied = true;
         } catch (e) {
-            alert('URL 복사에 실패했습니다.\n' + shareUrl);
+            // 폴백: 임시 textarea + execCommand
+            try {
+                const ta = document.createElement('textarea');
+                ta.value = shareUrl;
+                ta.style.cssText = 'position:fixed;opacity:0;';
+                document.body.appendChild(ta);
+                ta.select();
+                copied = document.execCommand('copy');
+                document.body.removeChild(ta);
+            } catch (e2) { copied = false; }
         }
+
+        if (copied) showToast('복사되었습니다. 보여주고싶은 상대한테 보내주세요');
+        else alert('URL 복사에 실패했습니다.\n' + shareUrl);
     });
 
     // 로그아웃 버튼 기능

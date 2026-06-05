@@ -30,38 +30,50 @@
     window.addEventListener('dataUpdated', () => setStatus('saved', '저장됨 ✓'));
 
     // ---------- 이미지 업로드 ----------
-    function fileToBase64(file) {
+    // 캔버스로 리사이즈/압축하여 base64 반환 (Storage 용량초과/미연결 폴백)
+    function compressImage(file, maxWidth, quality) {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
-            reader.onload = e => resolve(e.target.result);
+            reader.onload = e => {
+                const img = new Image();
+                img.onload = () => {
+                    let w = img.width, h = img.height;
+                    if (w > maxWidth) { h = Math.round(h * maxWidth / w); w = maxWidth; }
+                    const canvas = document.createElement('canvas');
+                    canvas.width = w; canvas.height = h;
+                    canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+                    try { resolve(canvas.toDataURL('image/jpeg', quality)); }
+                    catch (err) { reject(err); }
+                };
+                img.onerror = reject;
+                img.src = e.target.result;
+            };
             reader.onerror = reject;
             reader.readAsDataURL(file);
         });
     }
     async function doUpload(file, path) {
-        if (file.size > 5 * 1024 * 1024) {
-            alert('파일이 너무 큽니다. 최대 5MB 이미지를 사용해주세요.');
-            return null;
-        }
+        if (!file.type || !file.type.startsWith('image/')) { alert('이미지 파일만 업로드할 수 있습니다.'); return null; }
+        if (file.size > 8 * 1024 * 1024) { alert('파일이 너무 큽니다. 8MB 이하 이미지를 사용해주세요.'); return null; }
         const SM = window.StorageManager || (window.getStorageManager && window.getStorageManager());
         const userId = dm.userId;
         setStatus('saving', '업로드 중…');
-        try {
-            if (SM && userId) {
+        // 1) Firebase Storage 우선 시도
+        if (SM && userId) {
+            try {
                 const r = await SM.uploadImage(userId, file, path);
                 if (r && r.success && r.url) { setStatus('saved', '업로드 완료 ✓'); return r.url; }
-                console.error('[editor-v3] 업로드 실패:', r && r.error);
-                alert('이미지 업로드 실패: ' + (r && r.error ? r.error : '알 수 없는 오류'));
-                setStatus('error');
-                return null;
-            }
-            // Firebase 미연결 시 base64 (로컬 미리보기용)
-            const b64 = await fileToBase64(file);
-            setStatus('saved');
+                console.warn('[editor-v3] Storage 실패 → 내장(base64) 대체:', r && r.error);
+            } catch (e) { console.warn('[editor-v3] Storage 예외 → 내장(base64) 대체:', e); }
+        }
+        // 2) 폴백: 압축 base64 (Storage 용량초과/미연결 시에도 이미지가 동작)
+        try {
+            const b64 = await compressImage(file, 1000, 0.72);
+            setStatus('saved', '업로드 완료(내장) ✓');
             return b64;
         } catch (e) {
-            console.error('[editor-v3] 업로드 오류:', e);
-            alert('업로드 중 오류: ' + e.message);
+            console.error('[editor-v3] 이미지 처리 오류:', e);
+            alert('이미지 처리 실패: ' + e.message);
             setStatus('error');
             return null;
         }
@@ -88,6 +100,7 @@
         field.className = opts.multiline ? 'ev3-textarea' : 'ev3-input';
         field.value = rawValue != null ? rawValue : '';
         if (opts.multiline) field.rows = opts.rows || 5;
+        if (opts.wide) { field.style.minWidth = 'min(460px, 78vw)'; field.style.width = 'min(460px, 78vw)'; }
         el.innerHTML = '';
         el.appendChild(field);
         field.focus();
@@ -124,6 +137,24 @@
             e.stopPropagation();
             inlineEdit(el, getRaw(), opts || {}, commit);
         });
+    }
+    // 쉼표구분 리스트 필드 — 값이 비어 있으면 안내문구를 보여 클릭 가능하게
+    function decorateListField(selector, getArr, commit, hint) {
+        const el = $(selector);
+        if (!el) return;
+        el.classList.add('ev3-editable');
+        el.title = '클릭하여 수정';
+        const empty = !getArr().length;
+        if (empty && !el.dataset.ev3Editing) { el.textContent = hint; el.classList.add('ev3-empty'); }
+        else { el.classList.remove('ev3-empty'); }
+        if (!el.dataset.ev3Bound) {
+            el.dataset.ev3Bound = '1';
+            el.addEventListener('click', e => {
+                if (el.dataset.ev3Editing) return;
+                e.stopPropagation();
+                inlineEdit(el, getArr().join(', '), { multiline: true, rows: 2, wide: true }, commit);
+            });
+        }
     }
 
     // ---------- 중앙 모달 ----------
@@ -245,21 +276,22 @@
     // =====================================================
     //  데코레이션 (사용자 화면 위에 편집 도구 입히기)
     // =====================================================
+    function safe(fn, name) { try { fn(); } catch (e) { console.error('[editor-v3] ' + name + ' 오류:', e); } }
     function decorate() {
         // 이전에 바깥에 주입했던 컨트롤 제거 (중복 방지)
         $$('.ev3-injected').forEach(n => n.remove());
-        try {
-            decorateProfile();
-            decorateImages();
-            decorateAiTools();
-            decorateExperience('related');
-            decorateExperience('other');
-            decorateEvaluation();
-            decorateVideo();
-            decoratePortfolio();
-            decorateContact();
-            decorateInterviews();
-        } catch (e) { console.error('[editor-v3] decorate 오류:', e); }
+        // 각 섹션을 독립적으로 처리 — 하나가 실패해도 나머지는 정상 동작
+        safe(decorateProfile, 'profile');
+        safe(decorateImages, 'images');
+        safe(decorateAiTools, 'aiTools');
+        safe(function () { decorateExperience('related'); }, 'exp-related');
+        safe(function () { decorateExperience('other'); }, 'exp-other');
+        safe(decorateEvaluation, 'evaluation');
+        safe(decorateVideo, 'video');
+        safe(decoratePortfolio, 'portfolio');
+        safe(decorateContact, 'contact');
+        safe(decorateInterviews, 'interviews');
+        safe(buildDock, 'dock');
     }
     function decorateSoon() { setTimeout(decorate, 0); }
 
@@ -267,8 +299,11 @@
         const p = () => data().profile;
         bindInline('[data-content="name"]', () => p().name, v => dm.updateProfile({ name: v.trim() }));
         bindInline('[data-content="kakao"]', () => p().kakaoId, v => dm.updateProfile({ kakaoId: v.trim() }));
-        bindInline('[data-content="job-roles"]', () => p().jobRoles.join(', '), v => dm.updateProfile({ jobRoles: splitList(v) }));
-        bindInline('[data-content="skills"]', () => p().skills.join(', '), v => dm.updateProfile({ skills: splitList(v) }));
+        bindInline('[data-content="job-roles"]', () => p().jobRoles.join(', '), v => dm.updateProfile({ jobRoles: splitList(v) }), { multiline: true, rows: 2, wide: true });
+        bindInline('[data-content="skills"]', () => p().skills.join(', '), v => dm.updateProfile({ skills: splitList(v) }), { multiline: true, rows: 3, wide: true });
+        // 자격증 / 교육이수 — 샘플(기본값)이 없어도 빈 칸 클릭으로 입력 가능
+        decorateListField('[data-content="certificates"]', () => p().certificates || [], v => dm.updateProfile({ certificates: splitList(v) }), '＋ 자격증 입력 (쉼표로 구분)');
+        decorateListField('[data-content="educations"]', () => p().educations || [], v => dm.updateProfile({ educations: splitList(v) }), '＋ 교육이수 입력 (쉼표로 구분)');
         bindInline('[data-content="residence"]', () => p().residence, v => dm.updateProfile({ residence: v }));
         bindInline('[data-content="motto"]', () => p().motto, v => dm.updateProfile({ motto: v }), { multiline: true, rows: 3 });
 
@@ -378,9 +413,17 @@
         vc.appendChild(b);
     }
 
+    // app.js의 PortfolioRenderer가 render 후 컨테이너 className을 portfolio-{mode}로
+    // 바꾸기 때문에(.portfolio-container 클래스가 사라짐) 모든 케이스를 함께 선택한다.
+    function getPortfolioContainer(id) {
+        return document.querySelector(
+            '#' + id + ' .portfolio-container, #' + id + ' .portfolio-grid, #' + id +
+            ' .portfolio-masonry, #' + id + ' .portfolio-single, #' + id + ' .portfolio-slider'
+        );
+    }
     function decoratePortfolio() {
         (data().menuItems || []).filter(m => m.isPortfolio).forEach(menu => {
-            const cont = document.querySelector('#' + menu.id + ' .portfolio-container');
+            const cont = getPortfolioContainer(menu.id);
             if (!cont) return;
             const items = (data().portfolioSolo.items || []).filter(i => i.section === menu.id);
             $$('.portfolio-item', cont).forEach((el, i) => {
@@ -498,6 +541,76 @@
             const arr = le.get().map((x, i) => Object.assign({ id: i + 1 }, x));
             dm.set('interviews', arr);
         });
+    }
+
+    // =====================================================
+    //  좌측 섹션맵 (전체 축소 보기 + 드래그로 섹션 순서 변경)
+    // =====================================================
+    function buildDock() {
+        let dock = $('#ev3-dock');
+        if (!dock) { dock = document.createElement('aside'); dock.id = 'ev3-dock'; dock.className = 'ev3-dock'; document.body.appendChild(dock); }
+        const main = $('.main');
+        if (!main) return;
+
+        const order = data().sectionOrder || [];
+        const labelMap = {};
+        (data().menuItems || []).forEach(m => { labelMap[m.id] = m.label; });
+
+        const secs = Array.from(main.querySelectorAll(':scope > section[id]'));
+        secs.sort((a, b) => {
+            const ia = order.indexOf(a.id), ib = order.indexOf(b.id);
+            return (ia < 0 ? 999 : ia) - (ib < 0 ? 999 : ib);
+        });
+
+        dock.innerHTML = '<div class="ev3-dock-title">🗺 섹션 위치<br><small>드래그로 순서 변경 · 클릭 이동</small></div>';
+        const list = document.createElement('div'); list.className = 'ev3-dock-list';
+
+        secs.forEach(sec => {
+            const card = document.createElement('div');
+            card.className = 'ev3-dock-card';
+            card.draggable = true;
+            card.dataset.id = sec.id;
+            const hpx = Math.max(28, Math.min(96, Math.round((sec.offsetHeight || 300) / 36)));
+            card.style.height = hpx + 'px';
+            const lbl = document.createElement('span'); lbl.className = 'ev3-dock-label';
+            lbl.textContent = labelMap[sec.id] || sec.id;
+            card.appendChild(lbl);
+
+            card.addEventListener('click', () => {
+                const hh = (document.querySelector('.header') && document.querySelector('.header').offsetHeight) || 70;
+                window.scrollTo({ top: sec.offsetTop - hh - 56, behavior: 'smooth' });
+            });
+            card.addEventListener('dragstart', e => { card.classList.add('dragging'); try { e.dataTransfer.setData('text/plain', sec.id); } catch (x) { } });
+            card.addEventListener('dragend', () => card.classList.remove('dragging'));
+            list.appendChild(card);
+        });
+
+        list.addEventListener('dragover', e => {
+            e.preventDefault();
+            const dragging = list.querySelector('.dragging');
+            if (!dragging) return;
+            const after = getDragAfter(list, e.clientY);
+            if (after == null) list.appendChild(dragging);
+            else list.insertBefore(dragging, after);
+        });
+        list.addEventListener('drop', e => {
+            e.preventDefault();
+            const ids = Array.from(list.querySelectorAll('.ev3-dock-card')).map(c => c.dataset.id);
+            const rest = (data().sectionOrder || []).filter(x => ids.indexOf(x) < 0);
+            dm.reorderSections(ids.concat(rest));   // 저장 → app.js가 실제 섹션 DOM 재정렬
+        });
+
+        dock.appendChild(list);
+    }
+    function getDragAfter(container, y) {
+        const els = Array.from(container.querySelectorAll('.ev3-dock-card:not(.dragging)'));
+        let closest = { offset: -Infinity, element: null };
+        els.forEach(child => {
+            const box = child.getBoundingClientRect();
+            const offset = y - box.top - box.height / 2;
+            if (offset < 0 && offset > closest.offset) closest = { offset, element: child };
+        });
+        return closest.element;
     }
 
     // =====================================================
@@ -754,6 +867,9 @@
     function init() {
         // 툴바
         $('#ev3-settings-btn').onclick = () => openDrawer();
+        const mapBtn = $('#ev3-map-btn');
+        if (mapBtn) mapBtn.onclick = () => document.body.classList.toggle('ev3-dock-open');
+        document.body.classList.add('ev3-dock-open');   // 기본 표시
         $('#ev3-drawer-close').onclick = closeDrawer;
         drawerBackdrop.onclick = closeDrawer;
         $('#ev3-logout-btn').onclick = async () => {
