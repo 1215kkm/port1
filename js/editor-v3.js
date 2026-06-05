@@ -549,6 +549,14 @@
     // =====================================================
     let __dockReloadTimer = null;
     function dockAvailHeight() { return Math.max(220, window.innerHeight - 150); }
+    function getDockMode() { return localStorage.getItem('ev3DockMode') || 'full'; }   // full | titles | hidden
+    function setDockMode(m) {
+        localStorage.setItem('ev3DockMode', m);
+        const d = $('#ev3-dock'); if (!d) return;
+        d.dataset.mode = m;
+        d.querySelectorAll('.ev3-dock-modes button').forEach(b => b.classList.toggle('active', b.dataset.m === m));
+        if (m === 'full') { scaleDockFrame(d); reloadDockFrame(d); }
+    }
 
     function buildDock() {
         let dock = $('#ev3-dock');
@@ -556,23 +564,50 @@
         if (!dock) {
             first = true;
             dock = document.createElement('aside'); dock.id = 'ev3-dock'; dock.className = 'ev3-dock';
+            dock.dataset.mode = getDockMode();
             dock.innerHTML =
-                '<div class="ev3-dock-head"><span class="ttl">🗺 섹션맵</span><button class="ev3-dock-refresh" type="button" title="미리보기 새로고침">↻</button></div>' +
-                '<div class="ev3-dock-body">' +
-                '  <div class="ev3-dock-preview"><iframe class="ev3-dock-frame" title="전체 미리보기"></iframe></div>' +
-                '  <div class="ev3-dock-cards"></div>' +
-                '</div>' +
-                '<button class="ev3-dock-add" type="button">＋ 섹션 추가</button>';
+                '<button class="ev3-dock-reopen" type="button" title="섹션맵 열기">🗺<span>섹션맵</span></button>' +
+                '<div class="ev3-dock-main">' +
+                '  <div class="ev3-dock-head">' +
+                '    <span class="ttl">🗺 섹션맵</span>' +
+                '    <div class="ev3-dock-modes">' +
+                '      <button data-m="full" type="button" title="미리보기 + 제목">🖼</button>' +
+                '      <button data-m="titles" type="button" title="제목만">≡</button>' +
+                '      <button data-m="hidden" type="button" title="접기">✕</button>' +
+                '    </div>' +
+                '  </div>' +
+                '  <div class="ev3-dock-body">' +
+                '    <div class="ev3-dock-preview"><iframe class="ev3-dock-frame" title="전체 미리보기"></iframe></div>' +
+                '    <div class="ev3-dock-cards"></div>' +
+                '  </div>' +
+                '  <button class="ev3-dock-add" type="button">＋ 섹션 추가</button>' +
+                '</div>';
             document.body.appendChild(dock);
             const frame = dock.querySelector('.ev3-dock-frame');
-            frame.addEventListener('load', () => scaleDockFrame(dock));
+            frame.addEventListener('load', () => { prepIframe(frame); scaleDockFrame(dock); });
             frame.src = 'portfolio.html';
-            dock.querySelector('.ev3-dock-refresh').onclick = () => reloadDockFrame(dock);
+            dock.querySelector('.ev3-dock-reopen').onclick = () => setDockMode('titles');
+            dock.querySelectorAll('.ev3-dock-modes button').forEach(btn => btn.onclick = () => setDockMode(btn.dataset.m));
             dock.querySelector('.ev3-dock-add').onclick = addSectionModal;
+            dock.querySelectorAll('.ev3-dock-modes button').forEach(b => b.classList.toggle('active', b.dataset.m === dock.dataset.mode));
         }
         renderDockCards(dock);
-        scaleDockFrame(dock);
-        if (!first) scheduleFrameReload();   // 내용이 바뀌면 미리보기도 갱신(디바운스)
+        if (dock.dataset.mode === 'full') {
+            scaleDockFrame(dock);
+            if (!first) scheduleFrameReload();   // 내용이 바뀌면 미리보기도 갱신(디바운스)
+        }
+    }
+
+    // iframe(미리보기) 안에서 .section의 min-height:100vh 를 제거 — 높이 측정이 누적 폭증하는 문제 방지
+    function prepIframe(frame) {
+        try {
+            const doc = frame.contentDocument; if (!doc || !doc.head) return;
+            if (!doc.getElementById('ev3-mini-style')) {
+                const st = doc.createElement('style'); st.id = 'ev3-mini-style';
+                st.textContent = '.section{min-height:0 !important} .intro-page{height:auto !important} body.loading .main,body.loading .header,body.loading .section-nav{opacity:1 !important;visibility:visible !important}';
+                doc.head.appendChild(st);
+            }
+        } catch (e) { }
     }
 
     function renderDockCards(dock) {
@@ -615,15 +650,21 @@
         const prev = dock.querySelector('.ev3-dock-preview');
         if (!frame || !prev) return;
         const baseW = 1200;
-        let fullH = 3000;
-        try { const doc = frame.contentDocument; if (doc && doc.body) fullH = Math.max(doc.body.scrollHeight, doc.documentElement.scrollHeight) || 3000; } catch (e) { }
-        const availH = dockAvailHeight();
-        const scale = availH / fullH;
+        prepIframe(frame);                       // 측정 전에 min-height:100vh 제거
+        // 고정 폭(1200)에서 자연 콘텐츠 높이 측정 — height를 다시 만지지 않으므로 누적 안 됨
         frame.style.width = baseW + 'px';
+        frame.style.height = 'auto';
+        let fullH = 3000;
+        try {
+            const doc = frame.contentDocument;
+            if (doc && doc.body) fullH = Math.max(doc.body.scrollHeight, doc.documentElement.scrollHeight, 600) || 3000;
+        } catch (e) { }
         frame.style.height = fullH + 'px';
+        const availH = dockAvailHeight();
+        const scale = Math.min(availH / fullH, 0.5);
         frame.style.transform = 'scale(' + scale + ')';
         prev.style.width = Math.round(baseW * scale) + 'px';
-        prev.style.height = availH + 'px';
+        prev.style.height = Math.min(availH, Math.round(fullH * scale)) + 'px';
     }
 
     function reloadDockFrame(dock) {
@@ -632,9 +673,10 @@
         try { f.contentWindow.location.reload(); } catch (e) { f.src = f.src; }
     }
     function scheduleFrameReload() {
-        if (!document.body.classList.contains('ev3-dock-open')) return;
+        const d = $('#ev3-dock');
+        if (!d || d.dataset.mode !== 'full') return;
         clearTimeout(__dockReloadTimer);
-        __dockReloadTimer = setTimeout(() => { const d = $('#ev3-dock'); if (d) reloadDockFrame(d); }, 1500);
+        __dockReloadTimer = setTimeout(() => { const dd = $('#ev3-dock'); if (dd && dd.dataset.mode === 'full') reloadDockFrame(dd); }, 1500);
     }
 
     function getDragAfter(container, y) {
@@ -941,13 +983,6 @@
     function init() {
         // 툴바
         $('#ev3-settings-btn').onclick = () => openDrawer();
-        const mapBtn = $('#ev3-map-btn');
-        if (mapBtn) mapBtn.onclick = () => {
-            const open = document.body.classList.toggle('ev3-dock-open');
-            const d = $('#ev3-dock');
-            if (open && d) { renderDockCards(d); scaleDockFrame(d); reloadDockFrame(d); }
-        };
-        document.body.classList.add('ev3-dock-open');   // 기본 표시
         $('#ev3-drawer-close').onclick = closeDrawer;
         drawerBackdrop.onclick = closeDrawer;
         $('#ev3-logout-btn').onclick = async () => {

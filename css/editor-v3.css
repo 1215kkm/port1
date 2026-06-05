@@ -360,7 +360,7 @@ body.edit-mode .ev3-item-wrap:hover > .ev3-item-ctrls { display: flex; }
     font-weight: 500;
 }
 
-/* ---- 좌측 섹션맵: [전체 미리보기 iframe] + [섹션 제목/추가/삭제/드래그] ---- */
+/* ---- 좌측 섹션맵: 3단(접기/제목만/미리보기) ---- */
 .ev3-dock {
     position: fixed;
     left: 8px;
@@ -372,15 +372,28 @@ body.edit-mode .ev3-item-wrap:hover > .ev3-item-ctrls { display: flex; }
     border-radius: 10px;
     padding: 8px;
     box-shadow: 0 6px 22px rgba(0, 0, 0, 0.35);
-    display: none;
     backdrop-filter: blur(2px);
 }
-body.ev3-dock-open .ev3-dock { display: block; }
+/* 접힘: 본문 숨기고 작은 탭만 */
+.ev3-dock[data-mode="hidden"] { background: transparent; box-shadow: none; padding: 0; backdrop-filter: none; }
+.ev3-dock[data-mode="hidden"] .ev3-dock-main { display: none; }
+.ev3-dock .ev3-dock-reopen { display: none; }
+.ev3-dock[data-mode="hidden"] .ev3-dock-reopen {
+    display: flex; flex-direction: column; align-items: center; gap: 2px;
+    background: rgba(22, 22, 42, 0.92); color: #c4b5fd; border: none;
+    border-radius: 0 8px 8px 0; cursor: pointer; padding: 10px 6px;
+    font-size: 16px; box-shadow: 0 4px 14px rgba(0,0,0,.3);
+}
+.ev3-dock[data-mode="hidden"] .ev3-dock-reopen span { font-size: 10px; writing-mode: vertical-rl; }
+/* 제목만: 미리보기 숨김 */
+.ev3-dock[data-mode="titles"] .ev3-dock-preview { display: none; }
 
-.ev3-dock-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+.ev3-dock-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
 .ev3-dock-head .ttl { font-size: 12px; font-weight: 700; color: #c4b5fd; }
-.ev3-dock-refresh { background: #2a2a4a; color: #cfcfe6; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; padding: 2px 8px; line-height: 1.4; }
-.ev3-dock-refresh:hover { background: var(--ev3-accent); color: #fff; }
+.ev3-dock-modes { display: flex; gap: 3px; }
+.ev3-dock-modes button { background: #2a2a4a; color: #cfcfe6; border: none; border-radius: 6px; cursor: pointer; font-size: 12px; padding: 3px 7px; line-height: 1.4; }
+.ev3-dock-modes button:hover { background: #3a3a5a; }
+.ev3-dock-modes button.active { background: var(--ev3-accent); color: #fff; }
 
 .ev3-dock-body { display: flex; gap: 8px; align-items: flex-start; }
 .ev3-dock-preview {
