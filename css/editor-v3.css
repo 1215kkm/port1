@@ -410,27 +410,36 @@ body.edit-mode .ev3-item-wrap:hover > .ev3-item-ctrls { display: flex; }
 }
 .ev3-dock-frame { border: 0; background: #fff; display: block; transform-origin: top left; pointer-events: none; }
 
-.ev3-dock-cards { display: flex; flex-direction: column; gap: 3px; flex: none; width: 92px; }
+.ev3-dock-cards { display: flex; flex-direction: column; gap: 3px; flex: none; width: 22px; }
 .ev3-dock-card {
     position: relative;
     background: linear-gradient(180deg, #3a3a5a, #2a2a4a);
     border: 1px solid #4a4a6a;
-    border-radius: 6px;
-    padding: 2px 6px;
+    border-radius: 5px;
+    padding: 3px 1px;
     cursor: grab;
     display: flex; align-items: center; justify-content: center;
-    font-size: 11px; font-weight: 600;
+    font-size: 10px; font-weight: 600;
     user-select: none;
     overflow: hidden;
 }
 .ev3-dock-card:hover { border-color: var(--ev3-accent); }
 .ev3-dock-card.dragging { opacity: .4; cursor: grabbing; }
-.ev3-dock-label { pointer-events: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ev3-dock-label {
+    pointer-events: none;
+    writing-mode: vertical-rl;        /* 세로쓰기로 폭 축소 */
+    text-orientation: mixed;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-height: 100%;
+    line-height: 1.1;
+}
 .ev3-dock-x {
-    position: absolute; top: 1px; right: 2px;
-    width: 16px; height: 16px; line-height: 14px;
+    position: absolute; top: 1px; right: 1px;
+    width: 14px; height: 14px; line-height: 12px;
     border: none; border-radius: 50%;
-    background: rgba(231, 76, 60, .85); color: #fff;
+    background: rgba(231, 76, 60, .9); color: #fff;
     font-size: 12px; cursor: pointer; display: none; padding: 0;
 }
 .ev3-dock-card:hover .ev3-dock-x { display: block; }
