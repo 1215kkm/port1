@@ -584,17 +584,31 @@
                 '</div>';
             document.body.appendChild(dock);
             const frame = dock.querySelector('.ev3-dock-frame');
-            frame.addEventListener('load', () => { prepIframe(frame); scaleDockFrame(dock); });
+            frame.addEventListener('load', () => {
+                prepIframe(frame);
+                scaleDockFrame(dock);
+                // 포트폴리오 항목은 비동기로 렌더되므로, 내용이 커질 때마다 다시 맞춤
+                try {
+                    const doc = frame.contentDocument;
+                    if (doc && doc.body && window.ResizeObserver) {
+                        if (dock._ro) dock._ro.disconnect();
+                        dock._ro = new ResizeObserver(() => { clearTimeout(dock._roT); dock._roT = setTimeout(() => scaleDockFrame(dock), 120); });
+                        dock._ro.observe(doc.body);
+                    }
+                } catch (e) { }
+                [500, 1200, 2500].forEach(t => setTimeout(() => scaleDockFrame(dock), t));
+            });
             frame.src = 'portfolio.html';
             dock.querySelector('.ev3-dock-reopen').onclick = () => setDockMode('titles');
             dock.querySelectorAll('.ev3-dock-modes button').forEach(btn => btn.onclick = () => setDockMode(btn.dataset.m));
             dock.querySelector('.ev3-dock-add').onclick = addSectionModal;
             dock.querySelectorAll('.ev3-dock-modes button').forEach(b => b.classList.toggle('active', b.dataset.m === dock.dataset.mode));
         }
-        renderDockCards(dock);
         if (dock.dataset.mode === 'full') {
-            scaleDockFrame(dock);
+            scaleDockFrame(dock);                // 내부에서 renderDockCards 호출
             if (!first) scheduleFrameReload();   // 내용이 바뀌면 미리보기도 갱신(디바운스)
+        } else {
+            renderDockCards(dock);
         }
     }
 
@@ -621,13 +635,15 @@
         secs.sort((a, b) => { const ia = order.indexOf(a.id), ib = order.indexOf(b.id); return (ia < 0 ? 999 : ia) - (ib < 0 ? 999 : ib); });
         const total = secs.reduce((s, el) => s + (el.offsetHeight || 200), 0) || 1;
         const availH = dockAvailHeight();
+        const secHeights = dock._secHeights;   // iframe 섹션 높이(스케일 적용) — 있으면 미리보기와 정렬
 
         cards.innerHTML = '';
         secs.forEach(sec => {
             const m = labelMap[sec.id] || { label: sec.id };
             const card = document.createElement('div');
             card.className = 'ev3-dock-card'; card.draggable = true; card.dataset.id = sec.id;
-            card.style.height = Math.max(20, (sec.offsetHeight || 200) / total * availH) + 'px';
+            const aligned = secHeights && secHeights[sec.id];
+            card.style.height = Math.max(18, aligned || (sec.offsetHeight || 200) / total * availH) + 'px';
             const lab = document.createElement('span'); lab.className = 'ev3-dock-label'; lab.textContent = m.label || sec.id;
             card.appendChild(lab);
             if (sec.id !== 'about' && sec.id !== 'contact') {
@@ -646,25 +662,38 @@
     }
 
     function scaleDockFrame(dock) {
+        if (dock.dataset.mode !== 'full') return;
         const frame = dock.querySelector('.ev3-dock-frame');
         const prev = dock.querySelector('.ev3-dock-preview');
         if (!frame || !prev) return;
         const baseW = 1200;
         prepIframe(frame);                       // 측정 전에 min-height:100vh 제거
-        // 고정 폭(1200)에서 자연 콘텐츠 높이 측정 — height를 다시 만지지 않으므로 누적 안 됨
+        // 고정 폭(1200)에서 자연 콘텐츠 높이 측정 — 폭을 기준으로 축소하므로 길이가 길어도 얇아지지 않음
         frame.style.width = baseW + 'px';
         frame.style.height = 'auto';
-        let fullH = 3000;
+        let fullH = 1200;
         try {
             const doc = frame.contentDocument;
-            if (doc && doc.body) fullH = Math.max(doc.body.scrollHeight, doc.documentElement.scrollHeight, 600) || 3000;
+            if (doc && doc.body) fullH = Math.max(doc.body.scrollHeight, doc.documentElement.scrollHeight, 600) || 1200;
         } catch (e) { }
+        const targetW = 188;                     // 미리보기 폭 고정(얇아짐 방지) → 넘치면 세로 스크롤
+        const scale = targetW / baseW;
         frame.style.height = fullH + 'px';
-        const availH = dockAvailHeight();
-        const scale = Math.min(availH / fullH, 0.5);
         frame.style.transform = 'scale(' + scale + ')';
-        prev.style.width = Math.round(baseW * scale) + 'px';
-        prev.style.height = Math.min(availH, Math.round(fullH * scale)) + 'px';
+        prev.style.width = targetW + 'px';
+        prev.style.height = Math.round(fullH * scale) + 'px';
+
+        // 우측 제목 카드 높이를 iframe 섹션과 정렬
+        try {
+            const doc = frame.contentDocument;
+            const fmain = doc && doc.querySelector('.main');
+            if (fmain) {
+                const mapH = {};
+                fmain.querySelectorAll(':scope > section[id]').forEach(s => { mapH[s.id] = s.offsetHeight * scale; });
+                dock._secHeights = mapH;
+            }
+        } catch (e) { dock._secHeights = null; }
+        renderDockCards(dock);
     }
 
     function reloadDockFrame(dock) {

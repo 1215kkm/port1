@@ -395,7 +395,12 @@ body.edit-mode .ev3-item-wrap:hover > .ev3-item-ctrls { display: flex; }
 .ev3-dock-modes button:hover { background: #3a3a5a; }
 .ev3-dock-modes button.active { background: var(--ev3-accent); color: #fff; }
 
-.ev3-dock-body { display: flex; gap: 8px; align-items: flex-start; }
+.ev3-dock-main { display: flex; flex-direction: column; max-height: calc(100vh - var(--ev3-bar-h) - 28px); }
+.ev3-dock-body {
+    display: flex; gap: 8px; align-items: flex-start;
+    overflow-y: auto; overflow-x: hidden;
+    min-height: 0; flex: 1 1 auto;
+}
 .ev3-dock-preview {
     flex: none;
     background: #fff;
