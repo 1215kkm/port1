@@ -857,22 +857,52 @@
         return b;
     }
 
+    // 스타일별 간단 와이어프레임
+    function styleWireframe(mode) {
+        if (mode === 'grid') return '<i></i><i></i><i></i><i></i><i></i><i></i>';
+        if (mode === 'single') return '<i></i><i></i><i></i>';
+        if (mode === 'masonry') return '<i></i><i></i><i></i><i></i><i></i><i></i>';
+        if (mode === 'slider') return '<b>‹</b><i></i><i></i><i></i><b>›</b>';
+        return '';
+    }
     function addSectionModal() {
-        openFormModal('새 섹션 추가', [
-            { key: 'label', label: '섹션 이름', value: '', placeholder: '예: 웹디자인' },
-            {
-                key: 'mode', label: '표시 스타일', type: 'select', value: 'grid', options: [
-                    { value: 'grid', label: '그리드 (격자로 여러 개)' },
-                    { value: 'single', label: '한 줄 (크게 한 개씩)' },
-                    { value: 'masonry', label: '벽돌형 (높이 자동)' },
-                    { value: 'slider', label: '슬라이더 (좌우 넘김)' }
-                ]
-            }
-        ], v => {
-            if (!v.label || !v.label.trim()) { alert('섹션 이름을 입력하세요'); return false; }
+        const STYLES = [
+            { mode: 'grid', label: '그리드', desc: '격자로 여러 개' },
+            { mode: 'single', label: '한 줄', desc: '크게 한 개씩' },
+            { mode: 'masonry', label: '벽돌형', desc: '높이 자동' },
+            { mode: 'slider', label: '슬라이더', desc: '좌우로 넘김' }
+        ];
+        const body = document.createElement('div');
+        const nf = document.createElement('div'); nf.className = 'ev3-field';
+        nf.innerHTML = '<label>섹션 이름</label>';
+        const nameInput = document.createElement('input'); nameInput.type = 'text'; nameInput.placeholder = '예: 웹디자인';
+        nf.appendChild(nameInput); body.appendChild(nf);
+
+        const sl = document.createElement('label');
+        sl.style.cssText = 'display:block;font-size:13px;font-weight:600;margin-bottom:8px;';
+        sl.textContent = '표시 스타일';
+        body.appendChild(sl);
+
+        const grid = document.createElement('div'); grid.className = 'ev3-style-grid-wrap';
+        let selected = 'grid';
+        STYLES.forEach(s => {
+            const opt = document.createElement('button');
+            opt.type = 'button';
+            opt.className = 'ev3-style-opt' + (s.mode === 'grid' ? ' active' : '');
+            opt.dataset.mode = s.mode;
+            opt.innerHTML = '<div class="ev3-wf ev3-wf-' + s.mode + '">' + styleWireframe(s.mode) + '</div>' +
+                '<span class="ev3-style-name">' + s.label + '</span>' +
+                '<span class="ev3-style-desc">' + s.desc + '</span>';
+            opt.onclick = () => { selected = s.mode; grid.querySelectorAll('.ev3-style-opt').forEach(o => o.classList.toggle('active', o === opt)); };
+            grid.appendChild(opt);
+        });
+        body.appendChild(grid);
+
+        showModal('새 섹션 추가', body, () => {
+            if (!nameInput.value.trim()) { alert('섹션 이름을 입력하세요'); return false; }
             const id = 'sec-' + Date.now();
-            dm.addMenuItem({ id: id, label: v.label.trim(), isPortfolio: true });
-            dm.setSectionDisplayMode(id, v.mode);
+            dm.addMenuItem({ id: id, label: nameInput.value.trim(), isPortfolio: true });
+            dm.setSectionDisplayMode(id, selected);
             // 새 섹션을 연락처 바로 앞에 배치
             const ord = (data().sectionOrder || []).filter(x => x !== id);
             const ci = ord.indexOf('contact');
@@ -922,7 +952,17 @@
         textRow(b, '제목 폰트명', font.title, v => upd({ title: v }), { placeholder: 'Paperozi' });
         textRow(b, '본문 폰트명', font.content, v => upd({ content: v }), { placeholder: 'Paperozi' });
         secTitle(b, '@font-face 코드');
-        helpLine(b, '웹폰트 @font-face CSS를 붙여넣으면 적용됩니다.');
+        const findRow = document.createElement('div');
+        findRow.style.cssText = 'display:flex;justify-content:flex-end;margin:-4px 0 6px;';
+        const findBtn = document.createElement('button');
+        findBtn.type = 'button';
+        findBtn.textContent = '🔎 폰트찾기';
+        findBtn.title = '눈누(noonnu.cc)에서 무료 웹폰트 찾기';
+        findBtn.style.cssText = 'background:var(--ev3-accent);color:#fff;border:none;border-radius:6px;padding:5px 11px;font-size:12px;font-weight:600;cursor:pointer;';
+        findBtn.onclick = () => window.open('https://noonnu.cc/index', '_blank', 'noopener');
+        findRow.appendChild(findBtn);
+        b.appendChild(findRow);
+        helpLine(b, '눈누에서 폰트의 "웹폰트로 사용" @font-face 코드를 복사해 붙여넣으면 적용됩니다.');
         textRow(b, '@font-face', font.fontFaceAll || font.fontFaceTitle || '', v => upd({ fontFaceAll: v }), { textarea: true });
         secTitle(b, '폰트 크기 (CSS 단위)');
         const sizes = font.fontSizes || {};

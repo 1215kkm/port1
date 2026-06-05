@@ -1416,19 +1416,28 @@ class PageInitializer {
 
 // Initialize on DOM ready
 document.addEventListener('DOMContentLoaded', () => {
+    // 관리자 페이지는 자체 처리
+    if (document.querySelector('.admin-layout')) return;
+
+    let done = false;
     const initApp = () => {
-        // Check if we're on a user page (not admin)
-        if (!document.querySelector('.admin-layout')) {
-            new PageInitializer();
-        }
+        if (done) return;
+        // 데이터가 실제로 로드된 뒤에만 렌더 (뷰모드 첫 로드 빈화면 방지)
+        if (!window.dataManager || !window.dataManager.data) return;
+        done = true;
+        window.__pageInitializer = new PageInitializer();
     };
 
-    // Wait for dataManager to be ready
-    if (window.dataManager && window.dataManager.data) {
+    // 1) 준비 이벤트 수신  2) 이미 준비됐으면 즉시
+    window.addEventListener('dataManagerReady', initApp);
+    initApp();
+
+    // 3) 안전장치: 이벤트를 놓쳤거나 데이터가 늦게 도착해도 렌더 보장
+    let tries = 0;
+    const timer = setInterval(() => {
         initApp();
-    } else {
-        window.addEventListener('dataManagerReady', initApp);
-    }
+        if (done || ++tries > 50) clearInterval(timer);   // 최대 ~7.5초
+    }, 150);
 });
 
 // Export classes for use in admin page

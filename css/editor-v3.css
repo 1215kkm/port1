@@ -442,6 +442,34 @@ body.edit-mode .ev3-item-wrap:hover > .ev3-item-ctrls { display: flex; }
     .ev3-dock-card { font-size: 10px; }
 }
 
+/* ---- 섹션 추가: 표시 스타일 와이어프레임 선택 ---- */
+.ev3-style-grid-wrap { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.ev3-style-opt {
+    border: 2px solid var(--color-border, #dee2e6);
+    border-radius: 10px;
+    background: var(--color-bg, #fff);
+    padding: 10px;
+    cursor: pointer;
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+}
+.ev3-style-opt:hover { border-color: var(--ev3-accent); }
+.ev3-style-opt.active { border-color: var(--ev3-accent); box-shadow: 0 0 0 3px var(--ev3-accent-soft); }
+.ev3-style-name { font-size: 13px; font-weight: 700; color: var(--color-text, #212529); }
+.ev3-style-desc { font-size: 11px; color: var(--color-text-secondary, #6c757d); }
+
+.ev3-wf { width: 104px; height: 62px; background: var(--color-bg-secondary, #f1f3f5); border: 1px solid var(--color-border, #dee2e6); border-radius: 6px; padding: 6px; box-sizing: border-box; }
+.ev3-wf i { background: #9aa6b2; border-radius: 2px; display: block; }
+.ev3-wf b { color: #9aa6b2; font-size: 15px; line-height: 1; align-self: center; }
+.ev3-wf-grid { display: grid; grid-template-columns: repeat(3, 1fr); grid-auto-rows: 1fr; gap: 3px; }
+.ev3-wf-single { display: flex; flex-direction: column; justify-content: center; gap: 5px; }
+.ev3-wf-single i { height: 11px; width: 100%; }
+.ev3-wf-masonry { display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px; align-content: start; }
+.ev3-wf-masonry i:nth-child(1) { height: 26px; } .ev3-wf-masonry i:nth-child(2) { height: 16px; } .ev3-wf-masonry i:nth-child(3) { height: 22px; }
+.ev3-wf-masonry i:nth-child(4) { height: 14px; } .ev3-wf-masonry i:nth-child(5) { height: 24px; } .ev3-wf-masonry i:nth-child(6) { height: 18px; }
+.ev3-wf-slider { display: flex; align-items: center; gap: 4px; }
+.ev3-wf-slider i { height: 40px; flex: 1; }
+.ev3-wf-slider b { flex: none; }
+
 /* 인쇄/미리보기 시 편집 도구 숨김 안전장치 */
 @media print {
     .ev3-toolbar, .ev3-drawer, .ev3-drawer-backdrop, .ev3-mini, .ev3-add-row, .ev3-item-del, .ev3-dock, .ev3-item-ctrls, .ev3-float-edit { display: none !important; }
