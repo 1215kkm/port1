@@ -310,9 +310,9 @@
         // Wait for auth to initialize
         await AuthManager.init();
 
-        // If already logged in, redirect to dashboard
+        // If already logged in, redirect to portfolio
         if (AuthManager.isLoggedIn()) {
-            window.location.href = 'dashboard.html';
+            window.location.href = 'portfolio.html';
         }
 
         // Tab switching
@@ -345,9 +345,9 @@
             e.target.classList.remove('loading');
 
             if (result.success) {
-                showSuccess('로그인 성공! 대시보드로 이동합니다...');
+                showSuccess('로그인 성공! 포트폴리오로 이동합니다...');
                 setTimeout(() => {
-                    window.location.href = 'dashboard.html';
+                    window.location.href = 'portfolio.html';
                 }, 1000);
             } else {
                 showError(getErrorMessage(result.error));
@@ -376,9 +376,9 @@
             e.target.classList.remove('loading');
 
             if (result.success) {
-                showSuccess('회원가입 성공! 대시보드로 이동합니다...');
+                showSuccess('회원가입 성공! 포트폴리오로 이동합니다...');
                 setTimeout(() => {
-                    window.location.href = 'dashboard.html';
+                    window.location.href = 'portfolio.html';
                 }, 1000);
             } else {
                 showError(getErrorMessage(result.error));
@@ -395,9 +395,9 @@
             const result = await AuthManager.signInWithGoogle();
 
             if (result.success) {
-                showSuccess('로그인 성공! 대시보드로 이동합니다...');
+                showSuccess('로그인 성공! 포트폴리오로 이동합니다...');
                 setTimeout(() => {
-                    window.location.href = 'dashboard.html';
+                    window.location.href = 'portfolio.html';
                 }, 1000);
             } else {
                 showError(getErrorMessage(result.error));

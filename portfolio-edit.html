@@ -16,10 +16,10 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css">
 
     <!-- Main CSS (사용자 페이지와 동일) -->
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/style.css?v=2">
 
     <!-- Editor v3 CSS -->
-    <link rel="stylesheet" href="css/editor-v3.css">
+    <link rel="stylesheet" href="css/editor-v3.css?v=2">
 
     <style>
         /* Keep Korean words from breaking mid-word */
@@ -182,6 +182,7 @@
                     </div>
 
                     <div class="about-profile">
+                        <div class="about-profile-name" data-content="profile-name-top"></div>
                         <div data-content="profile-image">
                             <div class="profile-image-placeholder">사진</div>
                         </div>
@@ -341,12 +342,12 @@
                 }
 
                 // 1) 데이터 매니저 로드 + 내 데이터(편집모드) 로드
-                await loadScript('js/data.js');
+                await loadScript('js/data.js?v=2');
                 await window.dataManager.init();   // viewUserId 없음 → 내 포트폴리오 편집
 
                 // 2) PDF 폰트 + 렌더러(app.js) 로드 후 사용자 화면 렌더
                 await loadScript('js/pdf-font.js').catch(() => {});
-                await loadScript('js/app.js');
+                await loadScript('js/app.js?v=2');
 
                 // app.js의 DOMContentLoaded는 이미 지났으므로 직접 렌더
                 if (window.PageInitializer && !window.__ev3PageInit) {
@@ -354,7 +355,7 @@
                 }
 
                 // 3) 편집 레이어 로드
-                await loadScript('js/editor-v3.js');
+                await loadScript('js/editor-v3.js?v=2');
 
                 document.body.classList.remove('loading');
                 document.getElementById('page-loading')?.classList.add('hidden');

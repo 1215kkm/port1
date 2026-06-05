@@ -1069,6 +1069,10 @@ class PageInitializer {
         const nameEl = document.querySelector('[data-content="name"]');
         if (nameEl) nameEl.textContent = profile.name;
 
+        // Name (큰 글씨, 프로필 이미지 맨 위)
+        const nameTopEl = document.querySelector('[data-content="profile-name-top"]');
+        if (nameTopEl) nameTopEl.textContent = profile.name;
+
         // Kakao ID
         const kakaoEl = document.querySelector('[data-content="kakao"]');
         if (kakaoEl) kakaoEl.textContent = `(카톡:${profile.kakaoId})`;

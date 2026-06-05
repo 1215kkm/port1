@@ -233,8 +233,8 @@
         'intro.html': {
             title: '인트로 페이지',
             desc: '포트폴리오 진입점이 되는 페이지입니다.<br>아이콘, 문구, 사용여부를 설정할 수 있습니다.',
-            settingsUrl: 'admin.html#panel-skin',
-            settingsLabel: '아이콘/스킨 설정하기'
+            settingsUrl: 'portfolio-edit.html',
+            settingsLabel: '편집하기'
         },
         'portfolio.html': {
             title: '혼자제작 포트폴리오',

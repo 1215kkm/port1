@@ -399,7 +399,8 @@ body.ev3-dock-open .ev3-dock { display: block; }
     .ev3-dock { width: 132px; }
 }
 @media (max-width: 820px) {
-    body.ev3-dock-open .ev3-dock { display: none; }  /* 좁은 화면에선 가림 방지 */
+    .ev3-dock { width: 120px; left: 4px; }
+    .ev3-dock-card { font-size: 11px; padding: 3px 5px; }
 }
 
 /* 인쇄/미리보기 시 편집 도구 숨김 안전장치 */

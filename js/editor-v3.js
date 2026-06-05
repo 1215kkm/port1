@@ -298,6 +298,7 @@
     function decorateProfile() {
         const p = () => data().profile;
         bindInline('[data-content="name"]', () => p().name, v => dm.updateProfile({ name: v.trim() }));
+        bindInline('[data-content="profile-name-top"]', () => p().name, v => dm.updateProfile({ name: v.trim() }));
         bindInline('[data-content="kakao"]', () => p().kakaoId, v => dm.updateProfile({ kakaoId: v.trim() }));
         bindInline('[data-content="job-roles"]', () => p().jobRoles.join(', '), v => dm.updateProfile({ jobRoles: splitList(v) }), { multiline: true, rows: 2, wide: true });
         bindInline('[data-content="skills"]', () => p().skills.join(', '), v => dm.updateProfile({ skills: splitList(v) }), { multiline: true, rows: 3, wide: true });

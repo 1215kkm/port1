@@ -412,13 +412,14 @@
     <script type="module">
         import { AuthManager } from './js/firebase-config.js';
 
-        // Check if user is already logged in
+        // 첫 진입: 로그인 되어 있으면 포트폴리오로, 아니면 바로 로그인 페이지로
         async function checkAuth() {
             await AuthManager.init();
 
             if (AuthManager.isLoggedIn()) {
-                // Redirect to dashboard
-                window.location.href = 'dashboard.html';
+                window.location.href = 'portfolio.html';
+            } else {
+                window.location.href = 'login.html';
             }
         }
 
