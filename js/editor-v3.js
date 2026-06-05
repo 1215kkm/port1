@@ -789,7 +789,9 @@
     function tabSections() {
         const b = frag();
         secTitle(b, '페이지 표시');
-        [['intro', '인트로 페이지'], ['ai', 'AI활용제작 페이지'], ['team', '팀플제작 페이지']].forEach(([k, label]) => {
+        // 인트로 페이지는 v3에서 사용하지 않음 → 항목 제거하고 데이터도 off로 정리
+        if ((data().pageSettings || {}).intro !== false) dm.set('pageSettings.intro', false);
+        [['ai', 'AI활용제작 페이지'], ['team', '팀플제작 페이지']].forEach(([k, label]) => {
             checkRow(b, label, (data().pageSettings || {})[k] !== false, v => dm.set('pageSettings.' + k, v));
         });
         secTitle(b, '섹션 표시');
