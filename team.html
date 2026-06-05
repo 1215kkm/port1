@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>팀플 제작 - 포트폴리오</title>
+
+    <!-- Swiper CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css">
+
+    <!-- Main CSS -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-inner">
+            <a href="index.html" class="logo">Portfolio</a>
+
+            <nav class="nav">
+                <ul class="nav-menu">
+                    <li><a href="index.html#about" class="nav-link">자기소개</a></li>
+                    <li><a href="index.html#web-mobile" class="nav-link">web&mobile</a></li>
+                    <li><a href="index.html#popup-banner" class="nav-link">팝업&배너</a></li>
+                    <li><a href="index.html#detail-page" class="nav-link">상세페이지</a></li>
+                    <li><a href="index.html#contact" class="nav-link">contact</a></li>
+                </ul>
+                <div class="nav-buttons">
+                    <a href="ai.html" class="btn btn-secondary">AI 제작</a>
+                    <a href="team.html" class="btn btn-primary">팀플제작</a>
+                </div>
+            </nav>
+
+            <button class="menu-toggle" aria-label="메뉴 열기">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main">
+        <div class="container">
+            <!-- Projects Container -->
+            <div id="team-projects">
+                <!-- Projects will be rendered by JavaScript -->
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2025 Portfolio. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Theme Toggle -->
+    <div class="theme-toggle">
+        <button class="theme-toggle-btn" aria-label="테마 변경">🎨</button>
+        <div class="theme-menu">
+            <button class="theme-option active" data-theme="light">
+                <span class="theme-color" style="background: #ffffff; border-color: #dee2e6;"></span>
+                라이트 모드
+            </button>
+            <button class="theme-option" data-theme="dark">
+                <span class="theme-color" style="background: #1a1a2e;"></span>
+                다크 모드
+            </button>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+    <script src="js/data.js"></script>
+    <script src="js/app.js"></script>
+    <script type="module" src="js/owner-menu.js"></script>
+    <script>
+        // Team Page Specific Renderer
+        class TeamPageRenderer {
+            constructor() {
+                this.data = dataManager.getData();
+                this.container = document.getElementById('team-projects');
+                this.render();
+
+                // Listen for data updates
+                window.addEventListener('dataUpdated', () => {
+                    this.data = dataManager.getData();
+                    this.render();
+                });
+            }
+
+            render() {
+                if (!this.container) return;
+
+                const projects = this.data.portfolioTeam.projects || [];
+
+                if (projects.length === 0) {
+                    this.container.innerHTML = `
+                        <div style="text-align: center; padding: var(--space-4xl); color: var(--color-text-secondary);">
+                            <p>등록된 프로젝트가 없습니다.</p>
+                            <a href="admin.html" class="btn btn-primary" style="margin-top: var(--space-lg);">프로젝트 추가하기</a>
+                        </div>
+                    `;
+                    return;
+                }
+
+                this.container.innerHTML = projects.map((project, index) => this.renderProject(project, index + 1)).join('');
+            }
+
+            renderProject(project, number) {
+                return `
+                    <article class="project-detail" style="margin-bottom: var(--space-4xl); padding-bottom: var(--space-4xl); border-bottom: 1px solid var(--color-border);">
+                        <div class="project-header">
+                            <h2 class="section-title"><span style="color: var(--color-primary); margin-right: 8px;">${number}.</span>${project.title || '프로젝트 제목'}</h2>
+
+                            <!-- Project Links -->
+                            <div class="project-links">
+                                ${(project.links || []).map((link, i) => `
+                                    <a href="${link.url}" target="_blank" class="project-link">
+                                        <span>${i + 1}</span>
+                                        <span>${link.label}</span>
+                                        <span class="project-link-icon">↗</span>
+                                    </a>
+                                `).join('')}
+                            </div>
+
+                            <!-- Project Meta -->
+                            <div class="project-meta">
+                                <span><strong>팀원:</strong> ${project.team || '-'}</span>
+                                <span><strong>내역할:</strong> ${project.myRole || '-'}</span>
+                                <span><strong>내작업기간:</strong> ${project.duration?.planning || ''} ${project.duration?.design || ''} ${project.duration?.publishing || ''}</span>
+                                <span><strong>총기간:</strong> ${project.duration?.total || '-'}</span>
+                            </div>
+                        </div>
+
+                        <!-- Project Images -->
+                        <div class="project-images">
+                            ${(project.images || []).length > 0 ?
+                                project.images.map(img => `
+                                    <div class="project-image">
+                                        <img src="${img}" alt="프로젝트 이미지">
+                                    </div>
+                                `).join('') :
+                                Array(4).fill().map(() => `
+                                    <div class="project-image" style="display: flex; align-items: center; justify-content: center;">
+                                        <span style="color: var(--color-text-muted);">이미지</span>
+                                    </div>
+                                `).join('')
+                            }
+                        </div>
+
+                        <!-- Roles and Contribution -->
+                        <div class="project-roles">
+                            <div class="project-role-block">
+                                <h4 class="project-role-title">나의역할 :</h4>
+                                <ul class="project-role-list">
+                                    ${(project.myRoleDetail || []).map(role => `
+                                        <li>- ${role}</li>
+                                    `).join('')}
+                                </ul>
+                            </div>
+                            <div class="project-role-block">
+                                <h4 class="project-role-title">기여도 :</h4>
+                                <div class="contribution-bars">
+                                    ${(project.contributionBars || []).map(bar => `
+                                        <div class="contribution-item">
+                                            <span class="contribution-item-label">${bar.label}</span>
+                                            <div class="contribution-bar">
+                                                <div class="contribution-fill" style="width: ${bar.value}%; background: var(--color-primary);"></div>
+                                            </div>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Descriptions -->
+                        <div class="project-description">
+                            ${project.descriptions ? `
+                                <div class="project-desc-block">
+                                    <h4 class="project-desc-title">팀 협업 방식 :</h4>
+                                    <p class="project-desc-content">${(project.descriptions.teamwork || project.descriptions.aiUsage || '').replace(/\n/g, '<br>')}</p>
+                                </div>
+                                <div class="project-desc-block">
+                                    <h4 class="project-desc-title">설명 :</h4>
+                                    <p class="project-desc-content">${(project.descriptions.explanation || '').replace(/\n/g, '<br>')}</p>
+                                </div>
+                                <div class="project-desc-block">
+                                    <h4 class="project-desc-title">고민한부분 :</h4>
+                                    <p class="project-desc-content">${(project.descriptions.challenges || '').replace(/\n/g, '<br>')}</p>
+                                </div>
+                                <div class="project-desc-block">
+                                    <h4 class="project-desc-title">마무리 :</h4>
+                                    <p class="project-desc-content">${(project.descriptions.conclusion || '').replace(/\n/g, '<br>')}</p>
+                                </div>
+                            ` : ''}
+                        </div>
+
+                        <!-- Client Feedback -->
+                        ${project.clientFeedback && project.clientFeedback.length > 0 ? `
+                            <div class="client-feedback">
+                                <h4 class="feedback-title">클라이언트 피드백 요약 :</h4>
+                                <table class="feedback-table">
+                                    <thead>
+                                        <tr>
+                                            <th>단계</th>
+                                            <th>요청 및 피드백 내용</th>
+                                            <th>대응 방식</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${project.clientFeedback.map(feedback => `
+                                            <tr>
+                                                <td>${feedback.stage}</td>
+                                                <td>"${feedback.request}"</td>
+                                                <td>${feedback.response}</td>
+                                            </tr>
+                                        `).join('')}
+                                    </tbody>
+                                </table>
+                            </div>
+                        ` : ''}
+
+                        <!-- Video -->
+                        ${project.videoUrl ? `
+                            <div class="project-video">
+                                <div class="video-container" style="display: inline-block;">
+                                    ${this.renderVideo(project.videoUrl)}
+                                </div>
+                            </div>
+                        ` : ''}
+                    </article>
+                `;
+            }
+
+            renderVideo(url) {
+                const youtubeId = this.extractYouTubeId(url);
+                if (youtubeId) {
+                    return `
+                        <iframe
+                            src="https://www.youtube.com/embed/${youtubeId}"
+                            frameborder="0"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowfullscreen>
+                        </iframe>
+                    `;
+                }
+                return `
+                    <video controls>
+                        <source src="${url}" type="video/mp4">
+                    </video>
+                `;
+            }
+
+            extractYouTubeId(url) {
+                const match = url.match(/(?:youtu\.be\/|youtube\.com(?:\/embed\/|\/v\/|\/watch\?v=|\/watch\?.+&v=))([\w-]{11})/);
+                return match ? match[1] : null;
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            const initPage = () => {
+                new TeamPageRenderer();
+
+                // In view mode, hide admin links
+                const userId = window.getUrlUserId ? window.getUrlUserId() : null;
+                if (userId) {
+                    document.querySelectorAll('a[href="admin.html"]').forEach(link => {
+                        link.style.display = 'none';
+                    });
+                }
+            };
+
+            // Check if dataManager is ready
+            if (window.dataManager && window.dataManager.data) {
+                initPage();
+            } else {
+                window.addEventListener('dataManagerReady', initPage);
+            }
+        });
+    </script>
+</body>
+</html>

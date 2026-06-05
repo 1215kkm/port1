@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>포트폴리오 - UIUX 디자인 & 퍼블리셔</title>
+
+    <!-- Main CSS -->
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .intro-page {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: var(--space-xl);
+            background: linear-gradient(135deg, var(--color-bg) 0%, var(--color-bg-secondary) 100%);
+        }
+
+        .intro-header {
+            text-align: center;
+            margin-bottom: var(--space-3xl);
+        }
+
+        .intro-title {
+            font-size: var(--font-4xl);
+            font-weight: 700;
+            margin-bottom: var(--space-md);
+            color: var(--color-text);
+        }
+
+        .intro-subtitle {
+            font-size: var(--font-lg);
+            color: var(--color-text-secondary);
+        }
+
+        .intro-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: var(--space-xl);
+            width: 100%;
+            max-width: 1000px;
+        }
+
+        .intro-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: var(--space-3xl) var(--space-xl);
+            background: var(--color-bg);
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow-lg);
+            transition: all var(--transition-normal);
+            cursor: pointer;
+            text-align: center;
+            min-height: 320px;
+            text-decoration: none;
+            color: inherit;
+            border: 2px solid transparent;
+        }
+
+        .intro-card:hover {
+            transform: translateY(-10px);
+            box-shadow: var(--shadow-xl);
+            border-color: var(--color-primary);
+        }
+
+        .intro-card-icon {
+            font-size: 4rem;
+            margin-bottom: var(--space-xl);
+        }
+
+        .intro-card-title {
+            font-size: var(--font-2xl);
+            font-weight: 700;
+            margin-bottom: var(--space-md);
+            color: var(--color-text);
+        }
+
+        .intro-card-desc {
+            font-size: var(--font-sm);
+            color: var(--color-text-secondary);
+            line-height: var(--leading-relaxed);
+        }
+
+        .intro-card-solo {
+            background: linear-gradient(135deg, #fff 0%, #f0f7ff 100%);
+        }
+
+        .intro-card-ai {
+            background: linear-gradient(135deg, #fff 0%, #f0fff4 100%);
+        }
+
+        .intro-card-team {
+            background: linear-gradient(135deg, #fff 0%, #fff5f0 100%);
+        }
+
+        .intro-footer {
+            margin-top: var(--space-3xl);
+            text-align: center;
+        }
+
+        .intro-footer-links {
+            display: flex;
+            gap: var(--space-lg);
+            justify-content: center;
+        }
+
+        @media (max-width: 768px) {
+            .intro-grid {
+                grid-template-columns: 1fr;
+                max-width: 400px;
+            }
+
+            .intro-card {
+                min-height: 200px;
+                padding: var(--space-xl);
+            }
+
+            .intro-card-icon {
+                font-size: 3rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="intro-page">
+        <header class="intro-header">
+            <h1 class="intro-title">UIUX 디자인 & 퍼블리셔 포트폴리오</h1>
+            <p class="intro-subtitle">제작 방식을 선택하여 작품을 확인하세요</p>
+        </header>
+
+        <div class="intro-grid">
+            <a href="portfolio.html" class="intro-card intro-card-solo">
+                <div class="intro-card-icon" data-emoji="solo">👤</div>
+                <h2 class="intro-card-title">혼자제작</h2>
+                <p class="intro-card-desc">
+                    개인 프로젝트 및<br>
+                    독립적으로 제작한 작품들
+                </p>
+            </a>
+
+            <a href="ai.html" class="intro-card intro-card-ai">
+                <div class="intro-card-icon" data-emoji="ai">🤖</div>
+                <h2 class="intro-card-title">AI활용제작</h2>
+                <p class="intro-card-desc">
+                    AI 도구를 활용하여<br>
+                    제작한 프로젝트
+                </p>
+            </a>
+
+            <a href="team.html" class="intro-card intro-card-team">
+                <div class="intro-card-icon" data-emoji="team">👥</div>
+                <h2 class="intro-card-title">팀플제작</h2>
+                <p class="intro-card-desc">
+                    팀원들과 협업하여<br>
+                    완성한 프로젝트
+                </p>
+            </a>
+        </div>
+
+    </div>
+
+    <!-- Theme Toggle -->
+    <div class="theme-toggle">
+        <button class="theme-toggle-btn" aria-label="테마 변경">🎨</button>
+        <div class="theme-menu">
+            <button class="theme-option active" data-theme="light">
+                <span class="theme-color" style="background: #ffffff; border-color: #dee2e6;"></span>
+                라이트 모드
+            </button>
+            <button class="theme-option" data-theme="dark">
+                <span class="theme-color" style="background: #1a1a2e;"></span>
+                다크 모드
+            </button>
+        </div>
+    </div>
+
+    <script src="js/data.js"></script>
+    <script type="module" src="js/owner-menu.js"></script>
+    <script>
+        // Theme toggle functionality
+        document.addEventListener('DOMContentLoaded', () => {
+            // Wait for dataManager to be ready
+            const initPage = () => {
+                const themeToggle = document.querySelector('.theme-toggle');
+                const toggleBtn = themeToggle.querySelector('.theme-toggle-btn');
+
+                toggleBtn.addEventListener('click', () => {
+                    themeToggle.classList.toggle('open');
+                });
+
+                document.addEventListener('click', (e) => {
+                    if (!themeToggle.contains(e.target)) {
+                        themeToggle.classList.remove('open');
+                    }
+                });
+
+                themeToggle.querySelectorAll('.theme-option').forEach(option => {
+                    option.addEventListener('click', () => {
+                        const theme = option.dataset.theme;
+                        dataManager.setTheme(theme);
+                        themeToggle.querySelectorAll('.theme-option').forEach(o => o.classList.remove('active'));
+                        option.classList.add('active');
+                    });
+                });
+
+                // Pass user ID to linked pages
+                const userId = window.getUrlUserId ? window.getUrlUserId() : null;
+                if (userId) {
+                    // Update all links to include user ID
+                    document.querySelectorAll('.intro-card').forEach(card => {
+                        const href = card.getAttribute('href');
+                        if (href && !href.includes('?')) {
+                            card.setAttribute('href', `${href}?u=${userId}`);
+                        } else if (href && href.includes('?')) {
+                            card.setAttribute('href', `${href}&u=${userId}`);
+                        }
+                    });
+                }
+
+                // Load settings from dataManager
+                const data = dataManager.getData();
+                const emojiIcons = data.emojiIcons?.intro || {};
+                const pageSettings = data.pageSettings || { intro: true, ai: true, team: true };
+
+                // If intro page is disabled, redirect to portfolio
+                if (pageSettings.intro === false) {
+                    const userId = window.getUrlUserId ? window.getUrlUserId() : null;
+                    window.location.href = userId ? `portfolio.html?u=${userId}` : 'portfolio.html';
+                    return;
+                }
+
+                // Hide disabled page cards
+                if (pageSettings.ai === false) {
+                    const aiCard = document.querySelector('.intro-card-ai');
+                    if (aiCard) aiCard.style.display = 'none';
+                }
+                if (pageSettings.team === false) {
+                    const teamCard = document.querySelector('.intro-card-team');
+                    if (teamCard) teamCard.style.display = 'none';
+                }
+
+                // Update grid columns based on visible cards
+                const visibleCards = [true, pageSettings.ai !== false, pageSettings.team !== false].filter(Boolean).length;
+                const introGrid = document.querySelector('.intro-grid');
+                if (visibleCards === 1) {
+                    introGrid.style.gridTemplateColumns = '1fr';
+                    introGrid.style.maxWidth = '400px';
+                } else if (visibleCards === 2) {
+                    introGrid.style.gridTemplateColumns = 'repeat(2, 1fr)';
+                    introGrid.style.maxWidth = '700px';
+                }
+
+                // Update page title with user name
+                if (data.profile?.name) {
+                    document.querySelector('.intro-title').textContent = `${data.profile.name}의 포트폴리오`;
+                }
+
+                // Helper function to render icon (emoji or image)
+                const renderIcon = (el, iconData, defaultEmoji) => {
+                    if (!el) return;
+                    if (typeof iconData === 'string') {
+                        el.textContent = iconData || defaultEmoji;
+                    } else if (iconData?.type === 'image' && iconData?.imageUrl) {
+                        el.innerHTML = `<img src="${iconData.imageUrl}" style="width: 100%; height: 100%; object-fit: contain;">`;
+                    } else {
+                        el.textContent = iconData?.emoji || defaultEmoji;
+                    }
+                };
+
+                const soloEl = document.querySelector('[data-emoji="solo"]');
+                const aiEl = document.querySelector('[data-emoji="ai"]');
+                const teamEl = document.querySelector('[data-emoji="team"]');
+
+                renderIcon(soloEl, emojiIcons.solo, '👤');
+                renderIcon(aiEl, emojiIcons.ai, '🤖');
+                renderIcon(teamEl, emojiIcons.team, '👥');
+            };
+
+            // Check if dataManager is ready
+            if (window.dataManager && window.dataManager.data) {
+                initPage();
+            } else {
+                window.addEventListener('dataManagerReady', initPage);
+            }
+        });
+    </script>
+</body>
+</html>
