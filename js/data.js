@@ -644,12 +644,29 @@ class DataManager {
         }
 
         try {
-            await FirestoreManager.saveUserData(this.userId, this.data);
+            const r = await FirestoreManager.saveUserData(this.userId, this.data);
+            // saveUserData는 예외를 삼키고 {success:false}를 반환할 수 있으므로 결과를 확인한다.
+            if (r && r.success === false) {
+                console.error('Firestore 저장 실패:', r.error);
+                this._notifySaveError(r.error);
+                return false;
+            }
             return true;
         } catch (e) {
             console.error('Error saving to Firestore:', e);
+            this._notifySaveError(e && e.message);
             return false;
         }
+    }
+
+    // 저장 실패를 에디터 등 UI에 알린다 (1MB 문서 초과 등)
+    _notifySaveError(rawMessage) {
+        const msg = String(rawMessage || '');
+        // Firestore 단일 문서 1MB 한도 초과(주로 이미지 누적) 여부 추정
+        const tooLarge = /1048576|exceeds the maximum|maximum size|longer than|too large|invalid-argument/i.test(msg);
+        window.dispatchEvent(new CustomEvent('dataSaveError', {
+            detail: { error: msg, tooLarge }
+        }));
     }
 
     // Load data from localStorage

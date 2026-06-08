@@ -1116,13 +1116,26 @@ class PageInitializer {
             }
         }
 
+        // 편집모드(portfolio-edit.html)에서는 빈 줄도 클릭 입력을 위해 항상 표시
+        const isEditMode = !!document.querySelector('.ev3-toolbar');
+
         // Certificates (자격증) - comma-joined list
         const certEl = document.querySelector('[data-content="certificates"]');
-        if (certEl) certEl.textContent = (profile.certificates || []).join(', ');
+        if (certEl) {
+            const certs = profile.certificates || [];
+            certEl.textContent = certs.join(', ');
+            const certRow = certEl.closest('[data-section="certificates"]');
+            if (certRow) certRow.style.display = (!isEditMode && certs.length === 0) ? 'none' : '';
+        }
 
         // Educations (교육이수) - comma-joined list
         const eduListEl = document.querySelector('[data-content="educations"]');
-        if (eduListEl) eduListEl.textContent = (profile.educations || []).join(', ');
+        if (eduListEl) {
+            const edus = profile.educations || [];
+            eduListEl.textContent = edus.join(', ');
+            const eduRow = eduListEl.closest('[data-section="educations"]');
+            if (eduRow) eduRow.style.display = (!isEditMode && edus.length === 0) ? 'none' : '';
+        }
 
         // Motto
         const mottoEl = document.querySelector('[data-content="motto"]');

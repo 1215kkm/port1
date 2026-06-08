@@ -341,12 +341,12 @@
                 }
 
                 // 1) 데이터 매니저 로드 + 내 데이터(편집모드) 로드
-                await loadScript('js/data.js?v=2');
+                await loadScript('js/data.js?v=3');
                 await window.dataManager.init();   // viewUserId 없음 → 내 포트폴리오 편집
 
                 // 2) PDF 폰트 + 렌더러(app.js) 로드 후 사용자 화면 렌더
                 await loadScript('js/pdf-font.js').catch(() => {});
-                await loadScript('js/app.js?v=2');
+                await loadScript('js/app.js?v=3');
 
                 // app.js의 DOMContentLoaded는 이미 지났으므로 직접 렌더
                 if (window.PageInitializer && !window.__ev3PageInit) {
@@ -354,7 +354,7 @@
                 }
 
                 // 3) 편집 레이어 로드
-                await loadScript('js/editor-v3.js?v=2');
+                await loadScript('js/editor-v3.js?v=3');
 
                 document.body.classList.remove('loading');
                 document.getElementById('page-loading')?.classList.add('hidden');

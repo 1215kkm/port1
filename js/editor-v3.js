@@ -29,6 +29,26 @@
     }
     window.addEventListener('dataUpdated', () => setStatus('saved', '저장됨 ✓'));
 
+    // ---------- 저장 실패 알림 (Firestore 1MB 문서 초과 등) ----------
+    let lastSaveAlert = 0;
+    window.addEventListener('dataSaveError', (e) => {
+        setStatus('error', '저장 실패 — 서버에 반영되지 않음');
+        const tooLarge = e && e.detail && e.detail.tooLarge;
+        // 같은 알림을 반복하지 않도록 8초 쓰로틀
+        const now = (window.performance && performance.now) ? performance.now() : (lastSaveAlert + 9000);
+        if (now - lastSaveAlert < 8000) return;
+        lastSaveAlert = now;
+        if (tooLarge) {
+            alert('저장 용량을 초과했습니다.\n\n' +
+                '이미지가 본문에 함께 저장되는데, 전체 용량이 1MB 한도를 넘어서\n' +
+                '더 이상 저장되지 않습니다(이미지·글 모두 서버에 반영 안 됨).\n\n' +
+                '해결: 추가한 이미지 중 일부를 삭제하면 다시 저장됩니다.\n' +
+                '(많은 이미지를 쓰려면 Firebase Storage 연결이 필요합니다.)');
+        } else {
+            alert('서버 저장에 실패했습니다. 네트워크 상태를 확인한 뒤 다시 시도해주세요.');
+        }
+    });
+
     // ---------- 이미지 업로드 ----------
     // 캔버스로 리사이즈/압축하여 base64 반환 (Storage 용량초과/미연결 폴백)
     function compressImage(file, maxWidth, quality) {
@@ -67,8 +87,12 @@
             } catch (e) { console.warn('[editor-v3] Storage 예외 → 내장(base64) 대체:', e); }
         }
         // 2) 폴백: 압축 base64 (Storage 용량초과/미연결 시에도 이미지가 동작)
+        //    내장 이미지는 Firestore 문서(1MB) 용량을 공유하므로 강하게 압축한다.
         try {
-            const b64 = await compressImage(file, 1000, 0.72);
+            let b64 = await compressImage(file, 800, 0.6);
+            // 그래도 크면 단계적으로 더 줄여서 누적 용량초과를 늦춘다.
+            if (b64.length > 180 * 1024) b64 = await compressImage(file, 680, 0.5);
+            if (b64.length > 180 * 1024) b64 = await compressImage(file, 560, 0.45);
             setStatus('saved', '업로드 완료(내장) ✓');
             return b64;
         } catch (e) {
