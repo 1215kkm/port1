@@ -77,6 +77,7 @@
             <span class="ev3-hint">파란 점선 영역을 클릭하면 그 자리에서 바로 수정됩니다</span>
         </div>
         <div class="ev3-toolbar-right">
+            <select class="ev3-btn ev3-btn-ghost" id="ev3-skin-select" title="스킨(템플릿) 선택" style="cursor:pointer;"></select>
             <span class="ev3-save-status" id="ev3-save-status">●&nbsp;자동저장 켜짐</span>
             <button class="ev3-btn ev3-btn-ghost" id="ev3-settings-btn" title="전역 설정">⚙ 설정</button>
             <a class="ev3-btn ev3-btn-ghost" id="ev3-preview-btn" href="portfolio.html" target="_blank" title="실제 사용자 화면 새 탭으로 보기">👁 미리보기</a>
@@ -347,6 +348,9 @@
                 // 2) PDF 폰트 + 렌더러(app.js) 로드 후 사용자 화면 렌더
                 await loadScript('js/pdf-font.js').catch(() => {});
                 await loadScript('js/app.js?v=3');
+
+                // 스킨 레지스트리(스킨 선택 드롭다운용)
+                await loadScript('js/skins.js').catch(() => {});
 
                 // app.js의 DOMContentLoaded는 이미 지났으므로 직접 렌더
                 if (window.PageInitializer && !window.__ev3PageInit) {

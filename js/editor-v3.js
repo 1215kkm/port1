@@ -1087,6 +1087,18 @@
         // 미리보기: 내 고유 주소(?u=내 uid)로 — 공용 주소가 아니라 실제 공유되는 내 포트폴리오
         const previewBtn = $('#ev3-preview-btn');
         if (previewBtn && dm.userId) previewBtn.href = 'portfolio.html?u=' + encodeURIComponent(dm.userId);
+
+        // 스킨(템플릿) 선택 — 기본(V3) + 등록된 스킨들. 고르면 그 스킨 편집 화면으로 이동
+        const skinSel = $('#ev3-skin-select');
+        if (skinSel) {
+            let opts = '<option value="" selected>기본 (V3 포트폴리오)</option>';
+            (window.PORTFOLIO_SKINS || []).forEach(s => {
+                opts += '<option value="' + s.file + '">' + (s.icon ? s.icon + ' ' : '') + s.name + ' 스킨</option>';
+            });
+            skinSel.innerHTML = opts;
+            // 로그인 상태로 이동하면(쿼리 없음) 소유자 편집 모드로 열림
+            skinSel.onchange = () => { if (skinSel.value) location.href = skinSel.value; };
+        }
         $$('.ev3-tab', drawer).forEach(t => t.onclick = () => { activeTab = t.dataset.tab; setActiveTabBtn(); renderTab(); });
 
         // 로고 클릭 → 로고 설정 탭

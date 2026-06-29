@@ -18,6 +18,11 @@
 .s1-fab .s1-save-btn { background: #2ec27e; color: #06301c; }
 .s1-fab .s1-exit-btn { background: #3a3a3a; color: #eee; }
 .s1-fab .s1-status { font-size: 12px; color: #bbb; background: rgba(0,0,0,.5); padding: 6px 12px; border-radius: 999px; }
+.s1-fab .s1-skin-select {
+  border: none; border-radius: 999px; padding: 10px 14px; font-size: 13px; font-weight: 700;
+  background: #2a2a2a; color: #eee; cursor: pointer; box-shadow: 0 6px 20px rgba(0,0,0,.35);
+  font-family: 'Pretendard', sans-serif;
+}
 
 /* ---------- editing affordances ---------- */
 body.s1-editing [contenteditable="true"] { outline: 1px dashed rgba(224,133,36,.55); outline-offset: 2px; border-radius: 3px; cursor: text; }

@@ -89,8 +89,18 @@
       fab.querySelector('.s1-exit-btn').onclick = function () { exitEdit(false); };
       statusEl = fab.querySelector('.s1-status');
     } else {
-      fab.innerHTML = '<button class="s1-edit-btn">✏️ 편집하기</button>';
+      // skin switcher — paths in the registry are root-relative; this page lives
+      // in skins/ so prefix '../'. Navigating without ?u keeps owner-edit mode.
+      var skinOpts = '<option value="../portfolio-edit.html">기본 (V3 포트폴리오)</option>';
+      (window.PORTFOLIO_SKINS || []).forEach(function (s) {
+        skinOpts += '<option value="../' + s.file + '"' + (s.id === 'scroll1' ? ' selected' : '') + '>'
+          + (s.icon ? s.icon + ' ' : '') + s.name + ' 스킨</option>';
+      });
+      fab.innerHTML = '<select class="s1-skin-select" title="스킨 선택">' + skinOpts + '</select>'
+        + '<button class="s1-edit-btn">✏️ 편집하기</button>';
       fab.querySelector('.s1-edit-btn').onclick = enterEdit;
+      var sel = fab.querySelector('.s1-skin-select');
+      sel.onchange = function () { if (sel.value) location.href = sel.value; };
       statusEl = null;
     }
   }
