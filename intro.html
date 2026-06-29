@@ -159,6 +159,8 @@
                     완성한 프로젝트
                 </p>
             </a>
+
+            <!-- skin cards are injected here from the PORTFOLIO_SKINS registry -->
         </div>
 
     </div>
@@ -178,6 +180,7 @@
         </div>
     </div>
 
+    <script src="js/skins.js"></script>
     <script src="js/data.js"></script>
     <script type="module" src="js/owner-menu.js"></script>
     <script>
@@ -242,14 +245,33 @@
                     const teamCard = document.querySelector('.intro-card-team');
                     if (teamCard) teamCard.style.display = 'none';
                 }
+                // Skin cards from the central registry (opt-in via pageSettings[id])
+                const skins = window.PORTFOLIO_SKINS || [];
+                let enabledSkins = 0;
+                skins.forEach(skin => {
+                    if (pageSettings[skin.id] !== true) return;
+                    enabledSkins++;
+                    const a = document.createElement('a');
+                    a.className = 'intro-card intro-card-skin';
+                    let href = skin.file;
+                    if (userId) href += (href.includes('?') ? '&' : '?') + 'u=' + userId;
+                    a.href = href;
+                    a.innerHTML = `<div class="intro-card-icon">${skin.icon || '🎨'}</div>`
+                        + `<h2 class="intro-card-title">${skin.name}</h2>`
+                        + `<p class="intro-card-desc">${skin.desc || ''}</p>`;
+                    document.querySelector('.intro-grid').appendChild(a);
+                });
 
                 // Update grid columns based on visible cards
-                const visibleCards = [true, pageSettings.ai !== false, pageSettings.team !== false].filter(Boolean).length;
+                const visibleCards = [true, pageSettings.ai !== false, pageSettings.team !== false].filter(Boolean).length + enabledSkins;
                 const introGrid = document.querySelector('.intro-grid');
                 if (visibleCards === 1) {
                     introGrid.style.gridTemplateColumns = '1fr';
                     introGrid.style.maxWidth = '400px';
                 } else if (visibleCards === 2) {
+                    introGrid.style.gridTemplateColumns = 'repeat(2, 1fr)';
+                    introGrid.style.maxWidth = '700px';
+                } else if (visibleCards >= 4) {
                     introGrid.style.gridTemplateColumns = 'repeat(2, 1fr)';
                     introGrid.style.maxWidth = '700px';
                 }

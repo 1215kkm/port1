@@ -2149,8 +2149,32 @@ class AdminPanel {
         if (aiToggle) aiToggle.checked = pageSettings.ai !== false;
         if (teamToggle) teamToggle.checked = pageSettings.team !== false;
 
+        // Render a toggle for each registered skin (default off)
+        const skinList = document.getElementById('skin-toggle-list');
+        const skins = window.PORTFOLIO_SKINS || [];
+        const skinToggles = [];
+        if (skinList) {
+            skinList.innerHTML = '';
+            skins.forEach(skin => {
+                const item = document.createElement('div');
+                item.className = 'page-toggle-item';
+                item.innerHTML =
+                    '<label class="toggle-switch">'
+                    + '<input type="checkbox" id="page-enable-' + skin.id + '">'
+                    + '<span class="toggle-slider"></span></label>'
+                    + '<div class="page-toggle-info">'
+                    + '<span class="page-toggle-name">' + skin.name + ' 템플릿</span>'
+                    + '<span class="page-toggle-desc">' + (skin.desc || '').replace(/<br>/g, ' ')
+                    + ' (' + skin.file + '). 켜면 인트로에 선택 카드가 추가됩니다.</span></div>';
+                skinList.appendChild(item);
+                const input = item.querySelector('input');
+                input.checked = pageSettings[skin.id] === true;
+                skinToggles.push(input);
+            });
+        }
+
         // Add change listeners
-        [introToggle, aiToggle, teamToggle].forEach(toggle => {
+        [introToggle, aiToggle, teamToggle].concat(skinToggles).forEach(toggle => {
             if (toggle) {
                 toggle.addEventListener('change', () => {
                     this.savePageSettings();
@@ -2169,6 +2193,11 @@ class AdminPanel {
             ai: aiToggle ? aiToggle.checked : true,
             team: teamToggle ? teamToggle.checked : true
         };
+        // include every registered skin's toggle state
+        (window.PORTFOLIO_SKINS || []).forEach(skin => {
+            const t = document.getElementById('page-enable-' + skin.id);
+            pageSettings[skin.id] = t ? t.checked : (this.data.pageSettings && this.data.pageSettings[skin.id] === true);
+        });
 
         console.log('Saving pageSettings:', JSON.stringify(pageSettings));
         dataManager.set('pageSettings', pageSettings);

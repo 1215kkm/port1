@@ -1,0 +1,78 @@
+/* scroll1.css — inline editor chrome for the scroll1 skin.
+   View-mode adds nothing visual except optional link buttons.
+   Edit-mode (body.s1-editing) unpins/unstacks the scroll-driven sections so
+   every element is reachable and editable regardless of scroll position. */
+
+/* ---------- floating owner control ---------- */
+.s1-fab {
+  position: fixed; right: 18px; bottom: 18px; z-index: 100000;
+  display: flex; gap: 8px; align-items: center;
+  font-family: 'Pretendard', -apple-system, sans-serif;
+}
+.s1-fab button {
+  border: none; border-radius: 999px; padding: 11px 18px; font-size: 14px; font-weight: 700;
+  cursor: pointer; box-shadow: 0 6px 20px rgba(0,0,0,.35); transition: transform .12s ease, opacity .2s;
+}
+.s1-fab button:hover { transform: translateY(-2px); }
+.s1-fab .s1-edit-btn { background: #e08524; color: #1a1a1a; }
+.s1-fab .s1-save-btn { background: #2ec27e; color: #06301c; }
+.s1-fab .s1-exit-btn { background: #3a3a3a; color: #eee; }
+.s1-fab .s1-status { font-size: 12px; color: #bbb; background: rgba(0,0,0,.5); padding: 6px 12px; border-radius: 999px; }
+
+/* ---------- editing affordances ---------- */
+body.s1-editing [contenteditable="true"] { outline: 1px dashed rgba(224,133,36,.55); outline-offset: 2px; border-radius: 3px; cursor: text; }
+body.s1-editing [contenteditable="true"]:hover { outline-color: rgba(224,133,36,.95); background: rgba(224,133,36,.06); }
+body.s1-editing [contenteditable="true"]:focus { outline: 2px solid #e08524; background: rgba(224,133,36,.10); }
+
+/* repeatable unit + media: relative so we can pin a toolbar */
+body.s1-editing .s1-rep, body.s1-editing .s1-mediabox { position: relative; }
+body.s1-editing .s1-rep { outline: 1px dashed rgba(120,180,255,.45); outline-offset: 4px; }
+body.s1-editing .s1-mediabox { outline: 1px dashed rgba(120,255,180,.55); outline-offset: 2px; cursor: pointer; }
+
+.s1-tool {
+  position: absolute; top: 6px; right: 6px; z-index: 50;
+  display: flex; gap: 4px; opacity: 0; transition: opacity .15s; pointer-events: none;
+}
+body.s1-editing .s1-rep:hover > .s1-tool,
+body.s1-editing .s1-mediabox:hover > .s1-tool,
+body.s1-editing .s1-sec:hover > .s1-sectool,
+body.s1-editing .s1-tool:hover { opacity: 1; pointer-events: auto; }
+
+/* section background control sits top-left so it never collides with rep tools */
+body.s1-editing .s1-sec { position: relative; }
+.s1-sectool { top: 10px; left: 10px; right: auto; align-items: center; }
+.s1-sectool input[type="color"] {
+  width: 34px; height: 30px; border: none; border-radius: 6px; padding: 2px;
+  background: rgba(20,20,20,.92); cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,.4);
+}
+.s1-tool button {
+  border: none; border-radius: 6px; width: 30px; height: 30px; font-size: 14px; cursor: pointer;
+  background: rgba(20,20,20,.92); color: #fff; box-shadow: 0 2px 8px rgba(0,0,0,.4); line-height: 1;
+}
+.s1-tool button:hover { background: #e08524; color: #1a1a1a; }
+.s1-tool button.s1-del:hover { background: #e8553a; color: #fff; }
+
+/* visible "go to link" button rendered on a unit when a link is set */
+.s1-linkbtn {
+  display: inline-flex; align-items: center; gap: 6px; margin-top: 14px;
+  padding: 9px 18px; border-radius: 999px; background: #e08524; color: #1a1a1a;
+  font-size: 15px; font-weight: 700; text-decoration: none; cursor: pointer;
+  font-family: 'Pretendard', sans-serif;
+}
+.s1-linkbtn:hover { filter: brightness(1.08); }
+
+/* ---------- edit-mode: unpin / unstack scroll-driven sections ---------- */
+body.s1-editing #s1-root [data-worksec] { height: auto !important; }
+body.s1-editing #s1-root [data-worksec] > div { position: static !important; height: auto !important; overflow: visible !important; }
+body.s1-editing #s1-root [data-worksec] [data-panel] { position: static !important; opacity: 1 !important; transform: none !important; padding: 80px 40px !important; }
+
+body.s1-editing #s1-root [data-hsec] { height: auto !important; }
+body.s1-editing #s1-root [data-hpin] { position: static !important; height: auto !important; flex-direction: column !important; align-items: stretch !important; overflow: visible !important; gap: 32px !important; }
+body.s1-editing #s1-root [data-htrack] { transform: none !important; width: 100% !important; flex-wrap: wrap !important; }
+
+body.s1-editing #s1-root [data-vlog] { position: static !important; }
+body.s1-editing #s1-root [data-screen-label="Projects"] [style*="position: sticky"],
+body.s1-editing #s1-root [data-screen-label="Projects"] [style*="position:sticky"] { position: static !important; }
+
+body.s1-editing #s1-root [data-heroletter] { transform: none !important; opacity: 1 !important; }
+body.s1-editing #s1-root [data-mobilemock] { transform: none !important; }

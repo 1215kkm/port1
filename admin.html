@@ -1181,6 +1181,8 @@
                                     <span class="page-toggle-desc">팀 프로젝트 페이지 (team.html)</span>
                                 </div>
                             </div>
+                            <!-- skin toggles are injected here from the PORTFOLIO_SKINS registry -->
+                            <div id="skin-toggle-list"></div>
                         </div>
                     </div>
                 </div>
@@ -1727,6 +1729,10 @@
                     setTimeout(loadAdmin, 500);
                 }
             };
+            // skin registry (needed by admin.js to render skin toggles)
+            const skinsScript = document.createElement('script');
+            skinsScript.src = 'js/skins.js';
+            document.body.appendChild(skinsScript);
             document.body.appendChild(dataScript);
         }
 

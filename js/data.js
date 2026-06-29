@@ -204,7 +204,15 @@ const defaultData = {
     pageSettings: {
         intro: true,
         ai: true,
-        team: true
+        team: true,
+        scroll1: false
+    },
+
+    // Skin templates (alternate full-page portfolio layouts).
+    // scroll1: a scroll-driven dark theme. `html` holds the owner-edited
+    // markup of #s1-root (empty = use the shipped default in skins/scroll1.html).
+    skins: {
+        scroll1: { html: '' }
     },
 
     // Section Visibility Settings
