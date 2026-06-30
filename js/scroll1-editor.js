@@ -117,14 +117,19 @@
     window.scrollTo({ top: 0 });
   }
 
-  function exitEdit(save) {
+  async function exitEdit(save) {
     var html;
     if (save) {
-      html = serialize();
-      var dm = DM();
-      if (dm && dm.set) {
-        try { dm.set('skins.scroll1.html', html); } catch (e) { console.error('scroll1 save error', e); }
+      setStatus('저장 중…');
+      var res = await saveNow();
+      if (!res.ok) {
+        setStatus('저장 실패 ✗');
+        alert('저장에 실패했습니다.\n\n' + res.msg + '\n\n편집한 내용은 그대로 유지됩니다.');
+        return;                              // stay in edit mode so nothing is lost
       }
+      if (res.warn) alert(res.warn);
+      html = res.html;
+      setStatus('저장됨 ✓');
     } else {
       html = snapshot != null ? snapshot : serialize();
     }
@@ -134,6 +139,36 @@
     renderViewLinks(root());
     if (window.Scroll1Anim) { window.Scroll1Anim.reprime(); window.Scroll1Anim.start(); }
     renderFab();
+  }
+
+  // Persist to Firebase, awaiting the write and surfacing the real failure
+  // reason (Firestore is fire-and-forget elsewhere, so failures were silent —
+  // and on reload the unsaved skin gets overwritten by the stored doc).
+  async function saveNow() {
+    var dm = DM();
+    if (!dm) return { ok: false, msg: '데이터 시스템을 찾을 수 없습니다.' };
+    if (dm.isViewMode) return { ok: false, msg: '지금은 “보기 모드”입니다. 주소에서 ?u=... 부분을 빼고, 로그인한 상태로 열어야 저장됩니다.' };
+    var html = serialize();
+    var failedMsg = null, tooLarge = false;
+    var onErr = function (e) { failedMsg = (e.detail && e.detail.error) || '알 수 없는 오류'; tooLarge = !!(e.detail && e.detail.tooLarge); };
+    window.addEventListener('dataSaveError', onErr);
+    try {
+      dm.data = dm.data || {};
+      dm.data.skins = dm.data.skins || {};
+      dm.data.skins.scroll1 = dm.data.skins.scroll1 || {};
+      dm.data.skins.scroll1.html = html;
+      await dm.saveData();                    // awaits the Firestore write
+    } catch (e) { failedMsg = (e && e.message) || String(e); }
+    window.removeEventListener('dataSaveError', onErr);
+    if (failedMsg) {
+      if (tooLarge) failedMsg = '저장 용량(문서 1MB)을 초과했습니다. 큰 이미지를 줄이거나 일부 이미지를 빼고 다시 저장해주세요.\n(' + failedMsg + ')';
+      return { ok: false, msg: failedMsg };
+    }
+    // online but not authenticated → only localStorage was written
+    if (dm.isFirebaseReady && !dm.userId) {
+      return { ok: true, html: html, warn: '로그인이 안 되어 이 브라우저에만 임시 저장되었습니다. 로그인 후 다시 저장하면 서버에 반영됩니다.' };
+    }
+    return { ok: true, html: html };
   }
 
   /* ---------------- decoration (edit mode) ---------------- */
@@ -354,7 +389,10 @@
     var SM = window.StorageManager || (window.getStorageManager && window.getStorageManager());
     var uid = DM() && DM().userId;
     if (SM && uid) {
-      return SM.uploadImage(uid, file, 'scroll1').then(function (r) {
+      // use 'portfolio' (a folder the existing Storage rules already permit) so
+      // uploads succeed and stay OUT of the Firestore doc — base64 fallback would
+      // bloat the doc toward the 1MB limit and make saves fail.
+      return SM.uploadImage(uid, file, 'portfolio').then(function (r) {
         if (r && r.success && r.url) return r.url;
         return compress(file, 1000, 0.7);
       }).catch(function () { return compress(file, 1000, 0.7); });
