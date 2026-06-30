@@ -18,15 +18,18 @@
   function qa(sel, ctx) { return Array.prototype.slice.call((ctx || root()).querySelectorAll(sel)); }
 
   // selectors whose every match is one repeatable unit (＋추가 duplicates it)
+  // Stable data-attribute anchors only — style-substring selectors break once the
+  // animation engine touches an element (the browser re-serialises inline style:
+  // "90px 1fr" → "90px 1fr", "#d2d2d2" → "rgb(...)"), so repeatable/media units
+  // are marked with data-s1-* in the HTML instead.
   var REP_SELECTORS = [
-    'section[data-screen-label="Responsive"]',                                  // 반응형 웹사이트 섹션
-    '[data-project]',                                                            // POSTER 프로젝트
-    '[data-htrack] > div',                                                       // POPUP 가로 타일
-    '[data-team]',                                                               // TEAM WORK 카드
-    '[data-reveal][style*="border:1px solid rgba(255,255,255,0.12)"]',          // 타업무경력 카드
-    '[style*="border:1px solid rgba(255,255,255,0.1)"][style*="border-radius:10px"]', // AI 카드
-    '[data-panel="a"] [style*="align-items:flex-end"]',                          // WORKS 통계
-    '[data-screen-label="Contact"] [style*="gap:80px"] > div'                    // 연락처 항목
+    'section[data-screen-label="Responsive"]',  // 반응형 웹사이트 섹션
+    '[data-project]',                           // POSTER 프로젝트
+    '[data-htrack] > div',                      // POPUP 가로 타일
+    '[data-team]',                              // TEAM WORK 카드
+    '[data-typo]',                              // 타이포그래피 행
+    '[data-s1-row]',                            // 프로필 정보 행 (런타임 생성)
+    '[data-s1-rep]'                             // 경력·AI·통계·연락처·디렉션 등 (HTML 마커)
   ];
   var TEXT_TAGS = ['H1', 'H2', 'H3', 'H4', 'H5', 'P', 'SPAN'];
 
@@ -97,14 +100,40 @@
           + (s.icon ? s.icon + ' ' : '') + s.name + ' 스킨</option>';
       });
       fab.innerHTML = '<select class="s1-skin-select" title="스킨 선택">' + skinOpts + '</select>'
+        + '<button class="s1-share-btn" title="보기 전용 공유 링크 복사">🔗 공유</button>'
         + '<button class="s1-edit-btn">✏️ 편집하기</button>';
       fab.querySelector('.s1-edit-btn').onclick = enterEdit;
+      fab.querySelector('.s1-share-btn').onclick = copyShareLink;
       var sel = fab.querySelector('.s1-skin-select');
       sel.onchange = function () { if (sel.value) location.href = sel.value; };
       statusEl = null;
     }
   }
   function setStatus(msg) { if (statusEl) statusEl.textContent = msg; }
+
+  function toast(msg) {
+    var t = document.createElement('div');
+    t.textContent = msg;
+    t.style.cssText = 'position:fixed;left:50%;bottom:84px;transform:translateX(-50%);background:#222;color:#fff;padding:12px 20px;border-radius:10px;z-index:100001;font-size:14px;line-height:1.4;box-shadow:0 6px 22px rgba(0,0,0,.45);max-width:82vw;white-space:pre-wrap;text-align:center;font-family:Pretendard,sans-serif;';
+    document.body.appendChild(t);
+    setTimeout(function () { if (t.parentNode) t.parentNode.removeChild(t); }, 2800);
+  }
+
+  // copy a view-only share link (?u=<uid>) so anyone can see the finished skin
+  function copyShareLink() {
+    var dm = DM();
+    var uid = dm && dm.userId;
+    if (!uid) { toast('로그인 후 공유 링크를 만들 수 있어요.'); return; }
+    var url = location.origin + location.pathname + '?u=' + encodeURIComponent(uid);
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(url).then(
+        function () { toast('공유 링크가 복사되었습니다 ✓\n받는 사람은 편집 없이 보기만 됩니다.'); },
+        function () { window.prompt('아래 링크를 복사해서 보내세요:', url); }
+      );
+    } else {
+      window.prompt('아래 링크를 복사해서 보내세요:', url);
+    }
+  }
 
   /* ---------------- enter / exit ---------------- */
   function enterEdit() {
@@ -173,6 +202,7 @@
 
   /* ---------------- decoration (edit mode) ---------------- */
   function decorate(scope) {
+    restructureProfile(scope);
     autoTagMedia(scope);
     // text
     TEXT_TAGS.forEach(function (tag) {
@@ -200,8 +230,32 @@
   }
 
   function autoTagMedia(scope) {
-    qa('[style*="background:#d2d2d2"],[style*="background:#c4c4c4"]', scope).forEach(function (el) {
+    // every placeholder/image region becomes uploadable: gray mockups, black
+    // video boxes (V-LOG 등), and any element already styled as a flat image area
+    qa('[style*="background:#d2d2d2"],[style*="background:#c4c4c4"],[style*="background:#000;"],[style*="background:#000 "]', scope).forEach(function (el) {
       if (!el.hasAttribute('data-s1-media')) el.setAttribute('data-s1-media', '');
+    });
+  }
+
+  // Wrap the flat "label / value" profile grid into per-row units so each row
+  // can be duplicated / deleted. Runs at runtime so it works on both the shipped
+  // markup and any previously-saved (flat) HTML. Idempotent.
+  function restructureProfile(scope) {
+    qa('[data-s1-profile]', scope).forEach(function (grid) {
+      if (grid.querySelector(':scope > [data-s1-row]')) return;     // already rows
+      var kids = Array.prototype.slice.call(grid.children).filter(function (n) { return n.nodeType === 1; });
+      if (kids.length < 2) return;
+      grid.style.display = 'flex';
+      grid.style.flexDirection = 'column';
+      grid.style.gap = '22px';
+      for (var i = 0; i < kids.length; i += 2) {
+        var row = document.createElement('div');
+        row.setAttribute('data-s1-row', '');
+        row.style.cssText = 'display:grid;grid-template-columns:90px 1fr;column-gap:18px;align-items:start;';
+        grid.insertBefore(row, kids[i]);
+        row.appendChild(kids[i]);
+        if (kids[i + 1]) row.appendChild(kids[i + 1]);
+      }
     });
   }
 
