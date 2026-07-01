@@ -387,6 +387,25 @@ body.edit-mode .ev3-item-wrap:hover > .ev3-item-ctrls { display: flex; }
 .ev3-dock[data-mode="hidden"] .ev3-dock-reopen span { font-size: 10px; writing-mode: vertical-rl; }
 /* 제목만: 미리보기 숨김 */
 .ev3-dock[data-mode="titles"] .ev3-dock-preview { display: none; }
+/* 제목만 모드에서는 미리보기가 없으니 제목 카드가 패널 폭을 100% 채우고,
+   세로쓰기 대신 가로 한 줄로 읽히게 한다(빈 공간 제거). */
+.ev3-dock[data-mode="titles"] { width: 210px; }
+.ev3-dock[data-mode="titles"] .ev3-dock-body { display: block; }
+.ev3-dock[data-mode="titles"] .ev3-dock-cards { width: 100%; }
+.ev3-dock[data-mode="titles"] .ev3-dock-card {
+    height: auto !important;            /* JS가 넣는 비례 높이 무시 → 컴팩트한 행 */
+    justify-content: flex-start;
+    padding: 10px 12px;
+    font-size: 13px;
+}
+.ev3-dock[data-mode="titles"] .ev3-dock-label {
+    writing-mode: horizontal-tb;        /* 가로쓰기 */
+    text-orientation: initial;
+    max-height: none;
+    width: 100%;
+    text-align: left;
+}
+.ev3-dock[data-mode="titles"] .ev3-dock-x { width: 18px; height: 18px; line-height: 16px; font-size: 13px; }
 
 .ev3-dock-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
 .ev3-dock-head .ttl { font-size: 12px; font-weight: 700; color: #c4b5fd; }
