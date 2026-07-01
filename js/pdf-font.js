@@ -171,27 +171,34 @@ const PDFGenerator = {
     //  · project buttons kept and made clickable in the PDF
     async generateResume(data) {
         const { jsPDF } = window.jspdf;
-        const html2canvas = window.html2canvas;
-        // Scope the capture to the 자기소개(#about) section. It renders reliably;
-        // capturing the whole page stalls html2canvas on the portfolio-carousel
-        // sections. #about already contains the intro video (turned into a
-        // thumbnail below).
-        let target = document.querySelector('#about') ||
-                       document.querySelector('.about-section') ||
-                       document.querySelector('.main') ||
-                       document.querySelector('main');
-
-        if (!html2canvas || !target) {
+        const msLib = window.modernScreenshot;
+        // Capture the WHOLE portfolio. modern-screenshot renders the DOM via an
+        // SVG <foreignObject>, which — unlike html2canvas — does not synchronously
+        // stall on the portfolio-carousel sections.
+        let target = document.querySelector('.main') ||
+                       document.querySelector('main') ||
+                       document.querySelector('#about');
+        if (!target) {
             return this.generateResumeText(data);
         }
 
         const prep = await this._prepExport(target, data);
 
-        // Time-box the capture so a stall can't freeze the download button.
-        const canvas = await this._capture(html2canvas, target, 25000);
+        let canvas = null;
+        if (msLib && msLib.domToCanvas) {
+            canvas = await this._msCapture(msLib, target, 45000);
+        }
+        // Fallback: html2canvas on just 자기소개 if modern-screenshot is missing/failed.
+        if (!canvas && window.html2canvas) {
+            const about = document.querySelector('#about');
+            if (about) {
+                const c = await this._capture(window.html2canvas, about, 25000);
+                if (c) { canvas = c; target = about; }
+            }
+        }
         if (!canvas) {
             prep.restore();
-            console.warn('html2canvas capture failed/timed out, using text fallback');
+            console.warn('capture failed/timed out, using text fallback');
             return this.generateResumeText(data);
         }
 
@@ -203,7 +210,6 @@ const PDFGenerator = {
         prep.linkEls.forEach(a => {
             const r = a.getBoundingClientRect();
             const y = r.top - targetRect.top;
-            // keep only links that fall inside the captured area
             if (r.width && r.height && a.href && y >= 0 && y <= fullHpx) {
                 links.push({ url: a.href, x: r.left - targetRect.left, y: y, w: r.width, h: r.height });
             }
@@ -243,6 +249,24 @@ const PDFGenerator = {
 
         const profile = data.profile || {};
         doc.save(`${profile.name || 'resume'}_포트폴리오.pdf`);
+    },
+
+    // Capture a node to a canvas with modern-screenshot, resolving to null if it
+    // exceeds `ms` (the SVG render is async, so this timeout actually fires).
+    async _msCapture(msLib, el, ms) {
+        try {
+            return await Promise.race([
+                msLib.domToCanvas(el, {
+                    scale: 2,
+                    backgroundColor: '#ffffff',
+                    fetch: { requestInit: { mode: 'cors' } }
+                }),
+                new Promise(resolve => setTimeout(() => resolve(null), ms))
+            ]);
+        } catch (err) {
+            console.warn('modern-screenshot capture failed:', err);
+            return null;
+        }
     },
 
     // Temporarily transform the page into a print-friendly view for capture, and
