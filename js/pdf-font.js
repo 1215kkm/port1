@@ -160,7 +160,74 @@ const PDFFontLoader = {
 
 // Alternative: Use html2canvas approach for Korean text
 const PDFGenerator = {
+    // Capture the on-screen resume (자기소개 섹션) exactly as designed and place
+    // it into the PDF, so the output matches what the user sees — layout, colors,
+    // photo and all. The old text-only re-layout is kept as a fallback.
     async generateResume(data) {
+        const { jsPDF } = window.jspdf;
+        const html2canvas = window.html2canvas;
+        const target = document.querySelector('#about') ||
+                       document.querySelector('.about-section') ||
+                       document.querySelector('main');
+
+        if (!html2canvas || !target) {
+            return this.generateResumeText(data);
+        }
+
+        // Hide interactive chrome so it isn't baked into the image.
+        const hidden = [];
+        document.querySelectorAll('[data-action="download-pdf"], .owner-menu, .s1-fab, .section-nav, .header, .menu-toggle')
+            .forEach(el => { hidden.push([el, el.style.visibility]); el.style.visibility = 'hidden'; });
+
+        let canvas;
+        try {
+            canvas = await html2canvas(target, {
+                scale: 2,
+                useCORS: true,
+                backgroundColor: '#ffffff',
+                scrollX: 0,
+                scrollY: -window.scrollY,
+                windowWidth: document.documentElement.scrollWidth
+            });
+        } catch (err) {
+            hidden.forEach(([el, v]) => { el.style.visibility = v; });
+            console.warn('html2canvas capture failed, using text fallback:', err);
+            return this.generateResumeText(data);
+        }
+        hidden.forEach(([el, v]) => { el.style.visibility = v; });
+
+        const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+        const pageW = doc.internal.pageSize.getWidth();
+        const pageH = doc.internal.pageSize.getHeight();
+        const imgW = pageW;
+        const imgH = canvas.height * imgW / canvas.width;
+        let img;
+        try {
+            img = canvas.toDataURL('image/jpeg', 0.92);
+        } catch (err) {
+            // A cross-origin image (e.g. profile photo) tainted the canvas.
+            console.warn('Canvas tainted, using text fallback:', err);
+            return this.generateResumeText(data);
+        }
+
+        // Slice the tall capture across as many A4 pages as needed.
+        let heightLeft = imgH;
+        let position = 0;
+        doc.addImage(img, 'JPEG', 0, position, imgW, imgH);
+        heightLeft -= pageH;
+        while (heightLeft > 0) {
+            position -= pageH;
+            doc.addPage();
+            doc.addImage(img, 'JPEG', 0, position, imgW, imgH);
+            heightLeft -= pageH;
+        }
+
+        const profile = data.profile || {};
+        doc.save(`${profile.name || 'resume'}_이력서.pdf`);
+    },
+
+    // Text-only fallback (used only when html2canvas is unavailable).
+    async generateResumeText(data) {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF({
             orientation: 'portrait',
