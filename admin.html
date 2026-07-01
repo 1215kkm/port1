@@ -912,6 +912,13 @@
                 </div>
             </div>
 
+            <div class="sidebar-section">
+                <h3 class="sidebar-title">분석</h3>
+                <div class="page-tabs">
+                    <button class="page-tab" data-page="visits">📊 방문기록</button>
+                </div>
+            </div>
+
             <div class="sidebar-section" id="menu-management-section">
                 <h3 class="sidebar-title">메뉴 관리 (드래그로 순서변경)</h3>
                 <div id="menu-list">
@@ -1564,6 +1571,20 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Visits (방문 기록) -->
+            <div class="admin-panel" id="panel-visits">
+                <div class="settings-section">
+                    <h2 class="settings-section-title">방문 기록 (최근 5일)</h2>
+                    <div class="settings-section-content">
+                        <p style="color: var(--color-text-muted); margin-bottom: var(--space-lg); font-size: var(--font-sm);">
+                            내 포트폴리오 공유 링크(<code>?u=</code>)로 들어온 방문을 날짜별로 보여줍니다.
+                            방문자는 로그인하지 않으므로 대부분 “비회원”으로 표시되며, 유입 경로(있을 때)와 시각을 함께 보여줍니다.
+                        </p>
+                        <div id="visits-list">불러오는 중…</div>
+                    </div>
+                </div>
+            </div>
         </main>
 
         <!-- Resize Handle -->
@@ -1695,6 +1716,9 @@
                 AnalyticsManager.trackLogin(user.uid);
             }
 
+            // Render 방문 기록 (최근 5일)
+            renderVisits(user.uid);
+
             // User is logged in, load admin scripts
             const dataScript = document.createElement('script');
             dataScript.src = 'js/data.js';
@@ -1734,6 +1758,41 @@
             skinsScript.src = 'js/skins.js';
             document.body.appendChild(skinsScript);
             document.body.appendChild(dataScript);
+        }
+
+        // 방문 기록 렌더 — 최근 5일치를 날짜별로 묶어 보여준다.
+        async function renderVisits(uid) {
+            const el = document.getElementById('visits-list');
+            if (!el) return;
+            try {
+                const visits = await AnalyticsManager.getRecentVisits(uid, 5);
+                if (!visits.length) {
+                    el.innerHTML = '<p style="color:#888;font-size:14px;">최근 5일간 방문 기록이 없습니다.<br><span style="color:#aaa;font-size:12px;">(공유 링크 <code>?u=</code>로 들어온 방문만 기록됩니다.)</span></p>';
+                    return;
+                }
+                const byDay = {};
+                visits.forEach(v => { const d = (v.ts || '').slice(0, 10); (byDay[d] = byDay[d] || []).push(v); });
+                const days = Object.keys(byDay).sort().reverse();
+                el.innerHTML = days.map(d => {
+                    const rows = byDay[d].map(v => {
+                        const t = new Date(v.ts);
+                        const time = isNaN(t.getTime()) ? (v.ts || '') : t.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
+                        const who = (v.visitorId && v.visitorId !== 'anonymous') ? '회원' : '비회원';
+                        let src = '직접/알수없음';
+                        try { if (v.ref) src = new URL(v.ref).hostname; } catch (e) {}
+                        return '<div style="display:flex;gap:12px;padding:7px 4px;border-bottom:1px solid #eee;font-size:13px;">' +
+                            '<span style="width:64px;color:#555;">' + time + '</span>' +
+                            '<span style="width:54px;">' + who + '</span>' +
+                            '<span style="color:#888;">' + src + '</span></div>';
+                    }).join('');
+                    return '<div style="margin-bottom:18px;">' +
+                        '<h3 style="font-size:14px;margin:6px 0;color:#333;">' + d + ' · 방문 ' + byDay[d].length + '회</h3>' +
+                        rows + '</div>';
+                }).join('');
+            } catch (e) {
+                console.error('renderVisits failed:', e);
+                el.innerHTML = '<p style="color:#c0392b;">방문 기록을 불러오지 못했습니다.</p>';
+            }
         }
 
         checkAuth();

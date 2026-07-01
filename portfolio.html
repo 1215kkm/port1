@@ -271,9 +271,11 @@
     <!-- Analytics Tracking -->
     <script type="module">
         import { AnalyticsManager } from './js/firebase-config.js';
-        // Track page visit (편집기 미리보기 iframe 안에서는 카운트 제외)
+        // Track page visit (편집기 미리보기 iframe 안에서는 카운트 제외).
+        // ?u=<uid>로 열린 방문이면 그 포트폴리오 오너에게 방문 기록으로 남긴다.
         if (window.self === window.top && window.AnalyticsManager) {
-            AnalyticsManager.trackVisit('portfolio');
+            const ownerId = (window.getUrlUserId && window.getUrlUserId()) || null;
+            AnalyticsManager.trackVisit('portfolio', ownerId);
         }
     </script>
 </body>

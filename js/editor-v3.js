@@ -1092,9 +1092,11 @@
             if (window.AuthManager) { try { await window.AuthManager.signOut(); } catch (e) { } }
             location.href = 'login.html';
         };
-        // 미리보기: 내 고유 주소(?u=내 uid)로 — 공용 주소가 아니라 실제 공유되는 내 포트폴리오
+        // 미리보기: 로그인한 오너 컨텍스트(?u= 없이)로 연다. ?u=<uid>는 view-mode라
+        // Firestore만 읽어서, 아직 서버 저장 전이면 기본(샘플) 데이터가 떠버린다.
+        // ?u= 없이 열면 loadFromFirestore가 localStorage로 폴백해 실제 내 편집분을 보여준다.
         const previewBtn = $('#ev3-preview-btn');
-        if (previewBtn && dm.userId) previewBtn.href = 'portfolio.html?u=' + encodeURIComponent(dm.userId);
+        if (previewBtn) previewBtn.href = 'portfolio.html';
 
         // 스킨(템플릿) 선택 — 기본(V3) + 등록된 스킨들. 고르면 그 스킨 편집 화면으로 이동
         const skinSel = $('#ev3-skin-select');

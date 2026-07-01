@@ -308,6 +308,11 @@
             <span class="owner-menu-icon">🚪</span>
             <span class="owner-menu-label">로그아웃</span>
         </button>
+
+        <a class="owner-menu-item" id="owner-admin-link" href="admin.html" title="관리자 페이지">
+            <span class="owner-menu-icon">🛠</span>
+            <span class="owner-menu-label">관리자</span>
+        </a>
     `;
 
     document.body.appendChild(menu);

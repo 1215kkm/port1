@@ -3,7 +3,7 @@
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { getFirestore, doc, getDoc, setDoc, collection, query, where, getDocs, increment } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getFirestore, doc, getDoc, setDoc, collection, query, where, getDocs, increment, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
 // Firebase configuration
@@ -309,8 +309,9 @@ const AnalyticsManager = {
         return user && this.SUPER_ADMIN_EMAILS.includes(user.email);
     },
 
-    // Track page visit
-    async trackVisit(page = 'portfolio') {
+    // Track page visit. Pass ownerId (the portfolio being viewed) to also record
+    // a per-portfolio visit so the owner can see who came and when.
+    async trackVisit(page = 'portfolio', ownerId = null) {
         try {
             const today = new Date().toISOString().split('T')[0];
             const analyticsRef = doc(db, 'analytics', 'global');
@@ -321,11 +322,42 @@ const AnalyticsManager = {
                 lastUpdated: new Date().toISOString()
             }, { merge: true });
 
+            // Per-portfolio visit record (오너 관리자 페이지의 "방문 기록"에서 조회)
+            if (ownerId) {
+                try {
+                    const vref = doc(collection(db, 'portfolios', ownerId, 'visits'));
+                    await setDoc(vref, {
+                        ts: new Date().toISOString(),
+                        page,
+                        visitorId: (AuthManager.getUser() && AuthManager.getUser().uid) || 'anonymous',
+                        ua: (navigator.userAgent || '').slice(0, 180),
+                        ref: (document.referrer || '').slice(0, 200)
+                    });
+                } catch (e) { console.warn('per-portfolio visit log failed:', e); }
+            }
+
             // Log activity
             await this.logActivity('visit', `${page} 페이지 방문`);
 
         } catch (error) {
             console.error('Error tracking visit:', error);
+        }
+    },
+
+    // Recent visits to a portfolio (기본 최근 5일). Orders by ts (single-field →
+    // auto-indexed, no composite index needed) and filters the window client-side.
+    async getRecentVisits(ownerId, days = 5) {
+        if (!ownerId) return [];
+        try {
+            const cutoff = new Date(Date.now() - days * 86400000).toISOString();
+            const q = query(collection(db, 'portfolios', ownerId, 'visits'), orderBy('ts', 'desc'), limit(500));
+            const snap = await getDocs(q);
+            const out = [];
+            snap.forEach(d => { const v = d.data(); if (v && v.ts >= cutoff) out.push(v); });
+            return out;
+        } catch (e) {
+            console.error('getRecentVisits failed:', e);
+            return [];
         }
     },
 
