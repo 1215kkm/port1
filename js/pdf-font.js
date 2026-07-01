@@ -160,66 +160,73 @@ const PDFFontLoader = {
 
 // Alternative: Use html2canvas approach for Korean text
 const PDFGenerator = {
-    // Capture the on-screen resume (자기소개 섹션) exactly as designed and place
-    // it into the PDF, so the output matches what the user sees — layout, colors,
-    // photo and all. The old text-only re-layout is kept as a fallback.
+    // Capture the WHOLE on-screen portfolio (자기소개 → 영상 → 웹/모바일/팝업/배너 →
+    // Contact) exactly as designed and place it into a single native-size PDF page,
+    // so the output matches what the user sees and stays at original scale. Before
+    // capturing we massage a few things that don't translate to a static image:
+    //  · YouTube iframe → thumbnail + clickable URL
+    //  · carousels → arrows removed, slides stacked vertically
+    //  · Contact centered, calendar (bottom dates) removed
+    //  · external images inlined so the profile photo isn't dropped by CORS
+    //  · project buttons kept and made clickable in the PDF
     async generateResume(data) {
         const { jsPDF } = window.jspdf;
         const html2canvas = window.html2canvas;
-        const target = document.querySelector('#about') ||
+        // Scope the capture to the 자기소개(#about) section. It renders reliably;
+        // capturing the whole page stalls html2canvas on the portfolio-carousel
+        // sections. #about already contains the intro video (turned into a
+        // thumbnail below).
+        let target = document.querySelector('#about') ||
                        document.querySelector('.about-section') ||
+                       document.querySelector('.main') ||
                        document.querySelector('main');
 
         if (!html2canvas || !target) {
             return this.generateResumeText(data);
         }
 
-        // Hide interactive chrome so it isn't baked into the image.
-        const hidden = [];
-        document.querySelectorAll('[data-action="download-pdf"], .owner-menu, .s1-fab, .section-nav, .header, .menu-toggle')
-            .forEach(el => { hidden.push([el, el.style.visibility]); el.style.visibility = 'hidden'; });
+        const prep = await this._prepExport(target, data);
 
-        let canvas;
-        try {
-            canvas = await html2canvas(target, {
-                scale: 2,
-                useCORS: true,
-                backgroundColor: '#ffffff',
-                scrollX: 0,
-                scrollY: -window.scrollY,
-                windowWidth: document.documentElement.scrollWidth
-            });
-        } catch (err) {
-            hidden.forEach(([el, v]) => { el.style.visibility = v; });
-            console.warn('html2canvas capture failed, using text fallback:', err);
+        // Time-box the capture so a stall can't freeze the download button.
+        const canvas = await this._capture(html2canvas, target, 25000);
+        if (!canvas) {
+            prep.restore();
+            console.warn('html2canvas capture failed/timed out, using text fallback');
             return this.generateResumeText(data);
         }
-        hidden.forEach(([el, v]) => { el.style.visibility = v; });
+
+        // Read link positions while the export DOM is still in place, then restore.
+        const targetRect = target.getBoundingClientRect();
+        const fullWpx = targetRect.width;
+        const fullHpx = targetRect.height;
+        const links = [];
+        prep.linkEls.forEach(a => {
+            const r = a.getBoundingClientRect();
+            const y = r.top - targetRect.top;
+            // keep only links that fall inside the captured area
+            if (r.width && r.height && a.href && y >= 0 && y <= fullHpx) {
+                links.push({ url: a.href, x: r.left - targetRect.left, y: y, w: r.width, h: r.height });
+            }
+        });
+        const contentWpx = prep.contentW || fullWpx;
+        prep.restore();
 
         let img;
         try {
             img = canvas.toDataURL('image/jpeg', 0.92);
         } catch (err) {
-            // A cross-origin image (e.g. profile photo) tainted the canvas.
             console.warn('Canvas tainted, using text fallback:', err);
             return this.generateResumeText(data);
         }
 
-        // Build the PDF at the content's NATIVE pixel size (unit:'px') so at 100%
-        // zoom it shows at original scale — instead of being squeezed into A4 and
-        // appearing tiny (the user had to zoom ~250% before). Also trim HALF of
-        // the empty left/right margin that the full-width section leaves around
-        // its centered content.
-        const aboutWpx = target.getBoundingClientRect().width;      // full section width (css px)
-        const inner = target.querySelector('.container') || target;
-        const contentWpx = inner.getBoundingClientRect().width;     // centered content width
-        const sideGap = Math.max(0, (aboutWpx - contentWpx) / 2);   // current margin per side
-        const trimPerSide = sideGap / 2;                            // remove half of it
-
-        const scaleUsed = canvas.width / aboutWpx;                  // scale html2canvas actually applied
-        const imgWpx = aboutWpx;                                    // draw image at css-px size
-        const imgHpx = canvas.height / scaleUsed;                   // css-px height
-        const pageWpx = Math.max(1, Math.round(aboutWpx - trimPerSide * 2));
+        // Native-size single page (unit:'px') → 100% zoom shows original scale.
+        // Trim HALF of the empty left/right margin around the centered content.
+        const sideGap = Math.max(0, (fullWpx - contentWpx) / 2);
+        const trimPerSide = sideGap / 2;
+        const scaleUsed = canvas.width / fullWpx;
+        const imgWpx = fullWpx;
+        const imgHpx = canvas.height / scaleUsed;
+        const pageWpx = Math.max(1, Math.round(fullWpx - trimPerSide * 2));
         const pageHpx = Math.max(1, Math.round(imgHpx));
 
         const doc = new jsPDF({
@@ -228,12 +235,129 @@ const PDFGenerator = {
             format: [pageWpx, pageHpx],
             hotfixes: ['px_scaling']
         });
-        // Shift the image left by trimPerSide so an equal amount is cropped off
-        // each side → the remaining left/right margin is halved.
         doc.addImage(img, 'JPEG', -trimPerSide, 0, imgWpx, imgHpx);
+        // Make each project button / video URL clickable (shifted by the trim).
+        links.forEach(l => {
+            try { doc.link(l.x - trimPerSide, l.y, l.w, l.h, { url: l.url }); } catch (e) { }
+        });
 
         const profile = data.profile || {};
-        doc.save(`${profile.name || 'resume'}_이력서.pdf`);
+        doc.save(`${profile.name || 'resume'}_포트폴리오.pdf`);
+    },
+
+    // Temporarily transform the page into a print-friendly view for capture, and
+    // return { restore, linkEls, contentW }. All changes are reverted by restore().
+    async _prepExport(target, data) {
+        const undo = [];
+
+        // Hide chrome + carousel arrows + calendar; center contact; stack slides.
+        const style = document.createElement('style');
+        style.id = 'pdf-export-style';
+        style.textContent =
+            '.header,.section-nav,.theme-toggle,.owner-menu,.s1-fab,.menu-toggle,[data-action="download-pdf"],.footer{display:none!important;}' +
+            '.calendar-container{display:none!important;}' +
+            '#contact .contact-grid{display:block!important;text-align:center!important;}' +
+            '#contact .contact-info{max-width:560px;margin:0 auto!important;}' +
+            '#contact .contact-list{align-items:center!important;}' +
+            '#contact .contact-item{justify-content:center!important;}' +
+            '.swiper-wrapper{display:block!important;transform:none!important;height:auto!important;}' +
+            '.swiper-slide{width:100%!important;margin:0 0 16px 0!important;flex-shrink:0!important;}' +
+            '.swiper-button-next,.swiper-button-prev,.swiper-pagination,.swiper-scrollbar{display:none!important;}';
+        document.head.appendChild(style);
+        undo.push(() => style.remove());
+
+        // YouTube iframe → thumbnail image + clickable URL underneath. Fetch the
+        // thumbnail to a data URL FIRST so html2canvas never has to load an
+        // external image mid-capture (which can stall it).
+        const vc = target.querySelector('[data-content="video"]');
+        if (vc) {
+            const iframe = vc.querySelector('iframe');
+            const url = data.video && data.video.url;
+            const id = url ? this._youTubeId(url) : null;
+            if (iframe && id) {
+                let thumbTag = '';
+                try {
+                    const ctrl = new AbortController();
+                    const timer = setTimeout(() => ctrl.abort(), 5000);
+                    let resp;
+                    try { resp = await fetch('https://i.ytimg.com/vi/' + id + '/hqdefault.jpg', { mode: 'cors', signal: ctrl.signal }); }
+                    finally { clearTimeout(timer); }
+                    if (resp && resp.ok) {
+                        const blob = await resp.blob();
+                        const dataUrl = await new Promise((res, rej) => { const fr = new FileReader(); fr.onloadend = () => res(fr.result); fr.onerror = rej; fr.readAsDataURL(blob); });
+                        thumbTag = '<img src="' + dataUrl + '" style="max-width:100%;border-radius:12px;display:block;margin:0 auto">';
+                    }
+                } catch (e) { /* no thumbnail — fall back to a labelled box */ }
+                if (!thumbTag) {
+                    thumbTag = '<div style="width:100%;max-width:640px;aspect-ratio:16/9;margin:0 auto;background:#111;color:#fff;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px">▶ 영상 보기</div>';
+                }
+                const orig = vc.innerHTML;
+                vc.innerHTML =
+                    '<div style="text-align:center">' + thumbTag +
+                    '<a class="pdf-yt-link" href="' + url + '" ' +
+                    'style="display:inline-block;margin-top:10px;color:#2563eb;text-decoration:underline;font-size:15px;word-break:break-all">' +
+                    url + '</a></div>';
+                undo.push(() => { vc.innerHTML = orig; });
+            }
+        }
+
+        // Inline external images (profile photo, project images) so CORS doesn't
+        // drop them from the capture.
+        const imgs = Array.from(target.querySelectorAll('img')).filter(im => /^https?:/i.test(im.src));
+        await Promise.all(imgs.map(async im => {
+            try {
+                // Time-box each fetch so a slow/blocked image can't stall the export.
+                const ctrl = new AbortController();
+                const timer = setTimeout(() => ctrl.abort(), 5000);
+                let resp;
+                try { resp = await fetch(im.src, { mode: 'cors', signal: ctrl.signal }); }
+                finally { clearTimeout(timer); }
+                if (!resp.ok) return;
+                const blob = await resp.blob();
+                const dataUrl = await new Promise((res, rej) => {
+                    const fr = new FileReader();
+                    fr.onloadend = () => res(fr.result);
+                    fr.onerror = rej;
+                    fr.readAsDataURL(blob);
+                });
+                const oldSrc = im.getAttribute('src');
+                im.setAttribute('src', dataUrl);
+                undo.push(() => im.setAttribute('src', oldSrc));
+            } catch (e) { /* leave as-is; may render blank if CORS unset */ }
+        }));
+
+        // Collect clickable links (project buttons + the video URL).
+        const linkEls = Array.from(target.querySelectorAll('.portfolio-item a[href], a.pdf-yt-link'));
+
+        const inner = target.querySelector('.container');
+        const contentW = inner ? inner.getBoundingClientRect().width : target.getBoundingClientRect().width;
+
+        return { restore: () => undo.forEach(f => { try { f(); } catch (e) { } }), linkEls, contentW };
+    },
+
+    _youTubeId(url) {
+        const m = String(url).match(/(?:youtu\.be\/|youtube\.com(?:\/embed\/|\/v\/|\/watch\?v=|\/watch\?.+&v=))([\w-]{11})/);
+        return m ? m[1] : null;
+    },
+
+    // Run html2canvas but resolve to null if it takes longer than `ms` (a stalled
+    // capture shouldn't hang the whole export — the caller falls back).
+    async _capture(html2canvas, el, ms) {
+        const opts = {
+            scale: 2, useCORS: true, backgroundColor: '#ffffff',
+            scrollX: 0, scrollY: -window.scrollY,
+            windowWidth: document.documentElement.scrollWidth,
+            imageTimeout: 8000
+        };
+        try {
+            return await Promise.race([
+                html2canvas(el, opts),
+                new Promise(resolve => setTimeout(() => resolve(null), ms))
+            ]);
+        } catch (err) {
+            console.warn('html2canvas error:', err);
+            return null;
+        }
     },
 
     // Text-only fallback (used only when html2canvas is unavailable).
