@@ -309,9 +309,9 @@
             <span class="owner-menu-label">로그아웃</span>
         </button>
 
-        <a class="owner-menu-item" id="owner-admin-link" href="admin.html" title="관리자 페이지">
-            <span class="owner-menu-icon">🛠</span>
-            <span class="owner-menu-label">관리자</span>
+        <a class="owner-menu-item" id="owner-admin-link" href="superadmin.html" target="_blank" rel="noopener" title="회원 목록(슈퍼관리자) 새 창으로 열기">
+            <span class="owner-menu-icon">👥</span>
+            <span class="owner-menu-label">회원목록</span>
         </a>
     `;
 
