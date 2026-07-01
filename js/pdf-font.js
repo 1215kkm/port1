@@ -4,10 +4,15 @@
 const PDFFontLoader = {
     fontLoaded: false,
     fontData: null,
-    fontName: 'NotoSansKR',
+    fontName: 'NanumGothic',
+    fontExt: 'ttf',
     customFontName: null,
 
-    // Extract font URL from @font-face code
+    // Extract font URL from @font-face code.
+    // IMPORTANT: jsPDF can only embed TTF/OTF fonts — it cannot parse woff/woff2
+    // (compressed), which throws "No unicode cmap for font". So we ONLY accept
+    // ttf/otf here; a woff2-only custom font is ignored and we fall back to the
+    // bundled Korean TTF instead.
     extractFontUrl(fontFaceCode, targetWeight = '400') {
         if (!fontFaceCode) return null;
 
@@ -20,25 +25,21 @@ const PDFFontLoader = {
             const weight = weightMatch ? weightMatch[1] : '400';
 
             if (weight === targetWeight) {
-                // Extract URL - prefer ttf/otf over woff2
+                // Only ttf/otf — jsPDF cannot use woff/woff2
                 const urlMatch = block.match(/url\(['"]?([^'")\s]+\.(ttf|otf))['"]?\)/i);
                 if (urlMatch) {
                     return urlMatch[1];
                 }
-                // Fall back to woff2 URL
-                const woff2Match = block.match(/url\(['"]?([^'")\s]+\.woff2?)['"]?\)/i);
-                if (woff2Match) {
-                    return woff2Match[1];
-                }
             }
         }
 
-        // If no matching weight, try to find any ttf/otf
+        // If no matching weight, try to find any ttf/otf anywhere
         const anyUrlMatch = fontFaceCode.match(/url\(['"]?([^'")\s]+\.(ttf|otf))['"]?\)/i);
         if (anyUrlMatch) {
             return anyUrlMatch[1];
         }
 
+        // No jsPDF-compatible font in the settings → use bundled default
         return null;
     },
 
@@ -56,28 +57,27 @@ const PDFFontLoader = {
         }
     },
 
-    // Load font from CDN (fallback)
+    // Load bundled Korean font (fallback). NanumGothic is a real TTF with a
+    // full Hangul cmap that jsPDF can embed. Both sources are CORS-enabled.
     async loadDefaultFont() {
-        try {
-            // Load Noto Sans KR Regular from jsDelivr CDN
-            const response = await fetch('https://cdn.jsdelivr.net/gh/nickshanks/Allsorts@main/tests/fonts/noto/NotoSansKR-Regular.otf');
-
-            if (!response.ok) {
-                // Fallback to another source
-                const fallbackResponse = await fetch('https://fonts.gstatic.com/s/notosanskr/v36/PbyxFmXiEBPT4ITbgNA5Cgms3VYcOA.otf');
-                if (!fallbackResponse.ok) {
-                    throw new Error('Font load failed');
-                }
-                const blob = await fallbackResponse.blob();
-                return await this.blobToBase64(blob);
-            } else {
+        const sources = [
+            'https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/nanumgothic/NanumGothic-Regular.ttf',
+            'https://raw.githubusercontent.com/google/fonts/main/ofl/nanumgothic/NanumGothic-Regular.ttf'
+        ];
+        for (const url of sources) {
+            try {
+                const response = await fetch(url);
+                if (!response.ok) continue;
                 const blob = await response.blob();
+                this.fontName = 'NanumGothic';
+                this.fontExt = 'ttf';
                 return await this.blobToBase64(blob);
+            } catch (error) {
+                console.warn('Default Korean font source failed:', url, error);
             }
-        } catch (error) {
-            console.error('Failed to load default Korean font:', error);
-            return null;
         }
+        console.error('Failed to load any default Korean font');
+        return null;
     },
 
     // Main load function - tries custom font first, then fallback
@@ -93,19 +93,19 @@ const PDFFontLoader = {
                 if (customFontData) {
                     this.fontData = customFontData;
                     this.fontLoaded = true;
-                    this.customFontName = fontSettings.title || 'CustomFont';
-                    this.fontName = this.customFontName;
+                    this.customFontName = (fontSettings.title || 'CustomFont').replace(/[^\w-]/g, '');
+                    this.fontName = this.customFontName || 'CustomFont';
+                    this.fontExt = /\.otf(\?|$)/i.test(customUrl) ? 'otf' : 'ttf';
                     console.log('Custom font loaded:', this.fontName);
                     return this.fontData;
                 }
             }
         }
 
-        // Fallback to default font
-        console.log('Loading default Noto Sans KR font');
+        // Fallback to bundled default font (loadDefaultFont sets fontName/fontExt)
+        console.log('Loading default Korean font (NanumGothic)');
         this.fontData = await this.loadDefaultFont();
         this.fontLoaded = !!this.fontData;
-        this.fontName = 'NotoSansKR';
         return this.fontData;
     },
 
@@ -126,14 +126,32 @@ const PDFFontLoader = {
         const fontData = await this.loadFont(fontSettings);
         if (fontData) {
             try {
-                const fileName = `${this.fontName}.otf`;
+                const fileName = `${this.fontName}.${this.fontExt}`;
                 doc.addFileToVFS(fileName, fontData);
                 doc.addFont(fileName, this.fontName, 'normal');
                 doc.setFont(this.fontName);
                 return true;
             } catch (error) {
-                console.error('Failed to register font:', error);
-                return false;
+                console.error('Failed to register custom font, retrying with default:', error);
+                // A bad custom font shouldn't kill the export — fall back to the
+                // bundled Korean TTF and try once more.
+                try {
+                    this.fontLoaded = false;
+                    this.fontData = null;
+                    this.customFontName = null;
+                    const fallback = await this.loadDefaultFont();
+                    if (!fallback) return false;
+                    this.fontData = fallback;
+                    this.fontLoaded = true;
+                    const fbName = `${this.fontName}.${this.fontExt}`;
+                    doc.addFileToVFS(fbName, fallback);
+                    doc.addFont(fbName, this.fontName, 'normal');
+                    doc.setFont(this.fontName);
+                    return true;
+                } catch (e2) {
+                    console.error('Default font registration also failed:', e2);
+                    return false;
+                }
             }
         }
         return false;

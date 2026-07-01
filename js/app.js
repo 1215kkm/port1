@@ -351,7 +351,14 @@ class PDFExport {
             }
         } catch (error) {
             console.error('PDF generation error:', error);
-            alert('PDF 생성 중 오류가 발생했습니다.');
+            // Korean-font export failed — try the basic (Latin) exporter so the
+            // user still gets a file instead of just an error.
+            try {
+                await this.exportPDFBasic();
+            } catch (e2) {
+                console.error('Basic PDF export also failed:', e2);
+                alert('PDF 생성 중 오류가 발생했습니다.\n' + (error?.message || error));
+            }
         } finally {
             if (btn) btn.textContent = originalText;
         }
