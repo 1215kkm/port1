@@ -936,6 +936,13 @@ ul, ol {
     transform: scale(1.05);
 }
 
+/* 벽돌(masonry) 모드: 이미지를 16:10으로 자르지 않고 원본 비율 그대로 표시 */
+.portfolio-masonry .portfolio-thumbnail img {
+    aspect-ratio: auto;
+    height: auto;
+    object-fit: contain;
+}
+
 .portfolio-content {
     padding: var(--space-lg);
 }

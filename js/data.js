@@ -723,17 +723,20 @@ class DataManager {
             return false;
         }
 
-        try {
-            // Always save to localStorage
-            this.saveToLocalStorage();
+        // Save to localStorage and reflect the change in the UI IMMEDIATELY.
+        // The remote (Firestore) write can be slow — or hang — for large payloads
+        // such as an embedded image, and the on-screen update must not wait for
+        // it. Previously dataUpdated was dispatched only AFTER `await
+        // saveToFirestore()`, so image uploads didn't appear until a refresh
+        // (text edits looked fine only because they're typed in place). Remote
+        // failures are still surfaced separately via dataSaveError.
+        this.saveToLocalStorage();
+        window.dispatchEvent(new CustomEvent('dataUpdated', { detail: this.data }));
 
-            // Save to Firestore if available
+        try {
             if (this.isFirebaseReady && this.userId) {
                 await this.saveToFirestore();
             }
-
-            // Dispatch custom event for other pages to update
-            window.dispatchEvent(new CustomEvent('dataUpdated', { detail: this.data }));
             return true;
         } catch (e) {
             console.error('Error saving data:', e);
