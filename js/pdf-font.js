@@ -196,11 +196,6 @@ const PDFGenerator = {
         }
         hidden.forEach(([el, v]) => { el.style.visibility = v; });
 
-        const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-        const pageW = doc.internal.pageSize.getWidth();
-        const pageH = doc.internal.pageSize.getHeight();
-        const imgW = pageW;
-        const imgH = canvas.height * imgW / canvas.width;
         let img;
         try {
             img = canvas.toDataURL('image/jpeg', 0.92);
@@ -210,17 +205,32 @@ const PDFGenerator = {
             return this.generateResumeText(data);
         }
 
-        // Slice the tall capture across as many A4 pages as needed.
-        let heightLeft = imgH;
-        let position = 0;
-        doc.addImage(img, 'JPEG', 0, position, imgW, imgH);
-        heightLeft -= pageH;
-        while (heightLeft > 0) {
-            position -= pageH;
-            doc.addPage();
-            doc.addImage(img, 'JPEG', 0, position, imgW, imgH);
-            heightLeft -= pageH;
-        }
+        // Build the PDF at the content's NATIVE pixel size (unit:'px') so at 100%
+        // zoom it shows at original scale — instead of being squeezed into A4 and
+        // appearing tiny (the user had to zoom ~250% before). Also trim HALF of
+        // the empty left/right margin that the full-width section leaves around
+        // its centered content.
+        const aboutWpx = target.getBoundingClientRect().width;      // full section width (css px)
+        const inner = target.querySelector('.container') || target;
+        const contentWpx = inner.getBoundingClientRect().width;     // centered content width
+        const sideGap = Math.max(0, (aboutWpx - contentWpx) / 2);   // current margin per side
+        const trimPerSide = sideGap / 2;                            // remove half of it
+
+        const scaleUsed = canvas.width / aboutWpx;                  // scale html2canvas actually applied
+        const imgWpx = aboutWpx;                                    // draw image at css-px size
+        const imgHpx = canvas.height / scaleUsed;                   // css-px height
+        const pageWpx = Math.max(1, Math.round(aboutWpx - trimPerSide * 2));
+        const pageHpx = Math.max(1, Math.round(imgHpx));
+
+        const doc = new jsPDF({
+            orientation: pageHpx >= pageWpx ? 'portrait' : 'landscape',
+            unit: 'px',
+            format: [pageWpx, pageHpx],
+            hotfixes: ['px_scaling']
+        });
+        // Shift the image left by trimPerSide so an equal amount is cropped off
+        // each side → the remaining left/right margin is halved.
+        doc.addImage(img, 'JPEG', -trimPerSide, 0, imgWpx, imgHpx);
 
         const profile = data.profile || {};
         doc.save(`${profile.name || 'resume'}_이력서.pdf`);
