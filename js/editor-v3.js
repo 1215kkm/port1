@@ -364,7 +364,11 @@
         }
     }
 
+    function sectionTitle(key) { return (data().sectionTitles || {})[key]; }
+
     function decorateAiTools() {
+        bindInline('[data-content="ai-tools-title-text"]', () => sectionTitle('aiTools') || '사용해본 AI',
+            v => dm.updateSectionTitle('aiTools', v.trim()));
         const cont = $('[data-content="ai-tools"]');
         if (!cont) return;
         const tools = data().aiTools || [];
@@ -383,6 +387,8 @@
     function decorateExperience(type) {
         const sel = type === 'related' ? '[data-content="related-experience"]' : '[data-content="other-experience"]';
         const block = $(sel); if (!block) return;
+        if (type === 'related') bindInline('[data-content="related-exp-title"]', () => sectionTitle('relatedExperience') || '관련경력', v => dm.updateSectionTitle('relatedExperience', v.trim()));
+        else bindInline('[data-content="other-exp-title"]', () => sectionTitle('otherExperience') || '타업무경력', v => dm.updateSectionTitle('otherExperience', v.trim()));
         const list = ((type === 'related' ? data().relatedExperience : data().otherExperience).items) || [];
         $$('.experience-item', block).forEach((el, i) => {
             const it = list[i]; if (!it) return;
@@ -399,6 +405,8 @@
     }
 
     function decorateEvaluation() {
+        bindInline('[data-content="evaluation-title"]', () => sectionTitle('evaluation') || '내가 생각하는 내평가', v => dm.updateSectionTitle('evaluation', v.trim()));
+        bindInline('[data-content="radar-title"]', () => sectionTitle('radarChart') || '자신 있는 부분과 없는 부분 그래프', v => dm.updateSectionTitle('radarChart', v.trim()));
         const txt = $('[data-content="evaluation-text"]');
         if (txt) {
             const p = $('.evaluation-text-content', txt) || txt;

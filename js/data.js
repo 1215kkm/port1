@@ -161,6 +161,15 @@ const defaultData = {
         ]
     },
 
+    // Editable section titles (제목도 편집기에서 수정 가능)
+    sectionTitles: {
+        aiTools: "사용해본 AI",
+        relatedExperience: "관련경력",
+        otherExperience: "타업무경력",
+        evaluation: "내가 생각하는 내평가",
+        radarChart: "자신 있는 부분과 없는 부분 그래프"
+    },
+
     // Video (자기소개 영상)
     video: {
         type: "youtube",
@@ -843,6 +852,13 @@ class DataManager {
     // Update Radar Chart
     updateRadarChart(chartData) {
         this.data.evaluation.radarChart = chartData;
+        this.saveData();
+    }
+
+    // Update an editable section title (사용해본 AI / 관련경력 / 타업무경력 / 평가 / 그래프 제목)
+    updateSectionTitle(key, value) {
+        this.data.sectionTitles = this.data.sectionTitles || {};
+        this.data.sectionTitles[key] = value;
         this.saveData();
     }
 

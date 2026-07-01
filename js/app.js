@@ -1,5 +1,11 @@
 // Main Application JavaScript
 
+// Escape user-entered section titles before injecting into innerHTML.
+function escapeTitle(s) {
+    return String(s == null ? '' : s)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
 // =====================
 // Cache Busting Helper
 // =====================
@@ -1168,9 +1174,11 @@ class PageInitializer {
 
         const aiTools = this.data.aiTools || [];
 
-        // Update title with count
+        // Update title with count. The base title is editable (wrapped in a
+        // span the editor binds); the "(N가지)" count stays auto-generated.
         if (titleEl) {
-            titleEl.textContent = `사용해본 AI (${aiTools.length}가지)`;
+            const t = (this.data.sectionTitles && this.data.sectionTitles.aiTools) || '사용해본 AI';
+            titleEl.innerHTML = `<span data-content="ai-tools-title-text">${escapeTitle(t)}</span> (${aiTools.length}가지)`;
         }
 
         container.innerHTML = aiTools.map((tool, i) => `
@@ -1222,9 +1230,10 @@ class PageInitializer {
         if (relatedContainer) {
             const related = this.data.relatedExperience;
             const calculatedTotal = this.calculateTotalExperience(related.items);
+            const relTitle = (this.data.sectionTitles && this.data.sectionTitles.relatedExperience) || '관련경력';
             relatedContainer.innerHTML = `
                 <h3 class="experience-title">
-                    관련경력
+                    <span data-content="related-exp-title">${escapeTitle(relTitle)}</span>
                     <span class="experience-badge">${calculatedTotal}</span>
                 </h3>
                 <div class="experience-list">
@@ -1247,9 +1256,10 @@ class PageInitializer {
         if (otherContainer) {
             const other = this.data.otherExperience;
             const calculatedTotal = this.calculateTotalExperience(other.items);
+            const otherTitle = (this.data.sectionTitles && this.data.sectionTitles.otherExperience) || '타업무경력';
             otherContainer.innerHTML = `
                 <h3 class="experience-title">
-                    타업무경력
+                    <span data-content="other-exp-title">${escapeTitle(otherTitle)}</span>
                     <span class="experience-badge">${calculatedTotal}</span>
                 </h3>
                 <div class="experience-list">
@@ -1269,12 +1279,19 @@ class PageInitializer {
     }
 
     renderEvaluation() {
+        const st = this.data.sectionTitles || {};
         const textContainer = document.querySelector('[data-content="evaluation-text"]');
         if (textContainer) {
+            const evalTitle = st.evaluation || '내가 생각하는 내평가';
             textContainer.innerHTML = `
-                <h3 class="evaluation-text-title">내가 생각하는 내평가</h3>
+                <h3 class="evaluation-text-title"><span data-content="evaluation-title">${escapeTitle(evalTitle)}</span></h3>
                 <p class="evaluation-text-content">${this.data.evaluation.text.replace(/\n/g, '<br>')}</p>
             `;
+        }
+        // Radar chart title (static in the HTML) — reflect the saved title.
+        const radarTitleEl = document.querySelector('[data-content="radar-title"]');
+        if (radarTitleEl) {
+            radarTitleEl.textContent = st.radarChart || '자신 있는 부분과 없는 부분 그래프';
         }
     }
 
