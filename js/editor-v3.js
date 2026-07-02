@@ -30,6 +30,18 @@
     window.addEventListener('dataUpdated', () => setStatus('saved', '저장됨 ✓'));
 
     // ---------- 저장 실패 알림 (Firestore 1MB 문서 초과 등) ----------
+    // alert()는 절대 쓰지 않는다: 서버 저장은 비동기라 실패 알림이 커밋 후 0.5~1초
+    // 늦게 도착하는데, 그때 사용자가 이미 다음 칸을 편집 중이면 alert가 포커스를
+    // 뺏어 열린 입력창이 즉시 닫혀버린다("보라색 박스가 잠깐만 활성화" 버그).
+    let toastEl = null, toastTimer = 0;
+    function showToast(msg, isError) {
+        if (!toastEl) { toastEl = document.createElement('div'); toastEl.className = 'ev3-toast'; document.body.appendChild(toastEl); }
+        toastEl.textContent = msg;
+        toastEl.classList.toggle('error', !!isError);
+        toastEl.classList.add('show');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => toastEl.classList.remove('show'), 6000);
+    }
     let lastSaveAlert = 0;
     window.addEventListener('dataSaveError', (e) => {
         setStatus('error', '저장 실패 — 서버에 반영되지 않음');
@@ -39,13 +51,11 @@
         if (now - lastSaveAlert < 8000) return;
         lastSaveAlert = now;
         if (tooLarge) {
-            alert('저장 용량을 초과했습니다.\n\n' +
-                '이미지가 본문에 함께 저장되는데, 전체 용량이 1MB 한도를 넘어서\n' +
-                '더 이상 저장되지 않습니다(이미지·글 모두 서버에 반영 안 됨).\n\n' +
-                '해결: 추가한 이미지 중 일부를 삭제하면 다시 저장됩니다.\n' +
-                '(많은 이미지를 쓰려면 Firebase Storage 연결이 필요합니다.)');
+            showToast('⚠ 저장 용량(1MB) 초과 — 서버에 반영되지 않습니다.\n' +
+                '이미지 일부를 삭제하면 다시 저장됩니다.', true);
         } else {
-            alert('서버 저장에 실패했습니다. 네트워크 상태를 확인한 뒤 다시 시도해주세요.');
+            showToast('⚠ 서버 저장 실패 — 네트워크 확인 후 다시 시도해주세요.\n' +
+                '(이 화면의 수정 내용은 이 브라우저에는 남아 있습니다)', true);
         }
     });
 
@@ -374,6 +384,11 @@
         const tools = data().aiTools || [];
         Array.from(cont.children).forEach((el, i) => {
             const tool = tools[i]; if (!tool) return;
+            // 이름/설명 글자를 클릭하면 그 자리에서 바로 수정 (모달 없이)
+            const nameEl = el.querySelector('.ai-item-name');
+            const descEl = el.querySelector('.ai-item-desc');
+            if (nameEl) bindInline(nameEl, () => tool.name, v => dm.updateAITool(tool.id, { name: v.trim() }));
+            if (descEl) bindInline(descEl, () => tool.description, v => dm.updateAITool(tool.id, { description: v.trim() }), { multiline: true, rows: 2, wide: true });
             addItemControls(el,
                 () => openFormModal('AI 도구 수정', [
                     { key: 'name', label: '이름', value: tool.name },
@@ -392,6 +407,13 @@
         const list = ((type === 'related' ? data().relatedExperience : data().otherExperience).items) || [];
         $$('.experience-item', block).forEach((el, i) => {
             const it = list[i]; if (!it) return;
+            // 회사/기간/근무기간 글자를 클릭하면 그 자리에서 바로 수정 (모달 없이)
+            const cEl = el.querySelector('.experience-item-company');
+            const pEl = el.querySelector('.experience-item-period');
+            const dEl = el.querySelector('.experience-item-duration');
+            if (cEl) bindInline(cEl, () => it.company, v => dm.updateExperience(type, it.id, { company: v.trim() }));
+            if (pEl) bindInline(pEl, () => it.period, v => dm.updateExperience(type, it.id, { period: v.trim() }));
+            if (dEl) bindInline(dEl, () => it.duration, v => dm.updateExperience(type, it.id, { duration: v.trim() }));
             addItemControls(el,
                 () => openFormModal((type === 'related' ? '관련경력' : '타업무경력') + ' 수정', [
                     { key: 'company', label: '회사 / 내용', value: it.company },
@@ -409,13 +431,9 @@
         bindInline('[data-content="radar-title"]', () => sectionTitle('radarChart') || '자신 있는 부분과 없는 부분 그래프', v => dm.updateSectionTitle('radarChart', v.trim()));
         const txt = $('[data-content="evaluation-text"]');
         if (txt) {
-            const p = $('.evaluation-text-content', txt) || txt;
-            p.classList.add('ev3-editable'); p.title = '클릭하여 수정';
-            p.addEventListener('click', e => {
-                if (p.dataset.ev3Editing) return;
-                e.stopPropagation();
-                inlineEdit(p, data().evaluation.text, { multiline: true, rows: 10 }, v => dm.updateEvaluation({ text: v }));
-            });
+            // 내부 p가 아직 없으면 컨테이너에 바인딩하지 않는다(제목까지 지워지는 사고 방지).
+            const p = $('.evaluation-text-content', txt);
+            if (p) bindInline(p, () => data().evaluation.text, v => dm.updateEvaluation({ text: v }), { multiline: true, rows: 10, wide: true });
         }
         const chart = $('.evaluation-chart');
         if (chart) {

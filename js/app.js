@@ -854,6 +854,10 @@ class PageInitializer {
             'contact': '#contact'
         };
 
+        // 편집모드(portfolio-edit.html)에서는 꺼진 섹션도 흐리게 보여줘서 계속
+        // 편집할 수 있게 한다 (숨겨버리면 내용을 채운 뒤 켤 방법이 없음).
+        const isEditMode = !!document.querySelector('.ev3-toolbar');
+
         Object.entries(sectionMap).forEach(([key, selector]) => {
             const elements = document.querySelectorAll(selector);
             const isHidden = sectionSettings[key] === false;
@@ -862,10 +866,16 @@ class PageInitializer {
 
             elements.forEach(el => {
                 if (isHidden) {
-                    el.style.display = 'none';
+                    if (isEditMode) {
+                        el.style.display = '';
+                        el.classList.add('ev3-hidden-section');
+                    } else {
+                        el.style.display = 'none';
+                    }
                     el.setAttribute('data-hidden', 'true');
                 } else {
                     el.style.display = '';
+                    el.classList.remove('ev3-hidden-section');
                     el.removeAttribute('data-hidden');
                 }
             });
