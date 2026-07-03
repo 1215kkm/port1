@@ -794,6 +794,11 @@ class PageInitializer {
         // Per-menu section show/hide (메뉴에서 섹션 숨김)
         this.applyMenuVisibility();
 
+        // 편집기(editor-v3)는 이 이벤트를 받아 새로 그려진 DOM에 편집 바인딩을 다시 건다.
+        // dataUpdated만으로는 부족: 첫 렌더는 Firestore 로드 후 dataUpdated 없이 일어나서
+        // 그 사이에 걸린 바인딩이 전부 교체된 DOM과 함께 사라진다.
+        window.dispatchEvent(new CustomEvent('pageRendered'));
+
         // Listen for data updates
         window.addEventListener('dataUpdated', () => {
             this.data = dataManager.getData();
@@ -832,6 +837,8 @@ class PageInitializer {
         if (window.calendar) {
             window.calendar.setEvents(this.data.interviews);
         }
+
+        window.dispatchEvent(new CustomEvent('pageRendered'));
     }
 
     applySectionVisibility() {

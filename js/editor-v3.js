@@ -462,6 +462,14 @@
             { key: 'url', label: 'URL', value: data().video.url, type: 'url', placeholder: 'https://youtu.be/...' }
         ], v => dm.setVideo(v.type, v.url));
         vc.appendChild(b);
+        // 영상 섹션 자체를 켜고 끄는 토글 (설정 ▸ 표시 ▸ 자기소개 영상과 동일 동작)
+        const hidden = (data().sectionSettings || {}).video === false;
+        const t = document.createElement('button');
+        t.type = 'button'; t.className = 'ev3-float-edit';
+        t.style.right = '130px';
+        t.textContent = hidden ? '👁 영상 섹션 켜기' : '🙈 영상 섹션 숨기기';
+        t.onclick = () => dm.set('sectionSettings.video', hidden);
+        vc.appendChild(t);
     }
 
     // app.js의 PortfolioRenderer가 render 후 컨테이너 className을 portfolio-{mode}로
@@ -1138,6 +1146,9 @@
 
         // 데이터가 바뀌면 app.js가 재렌더 → 그 뒤에 다시 데코레이션
         window.addEventListener('dataUpdated', decorateSoon);
+        // 첫 렌더(Firestore 로드 후)와 크로스탭 storage 재렌더는 dataUpdated 없이
+        // 일어난다 — 그때 바인딩이 새 DOM과 함께 사라지므로 pageRendered로도 재데코.
+        window.addEventListener('pageRendered', decorateSoon);
         // 혹시 모를 외부 재렌더 대비: 주기적 재데코는 하지 않음(성능). 필요한 지점에서만.
 
         setStatus('saved', '준비됨');
