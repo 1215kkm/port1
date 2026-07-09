@@ -381,7 +381,7 @@
 
     <script type="module">
         import { AuthManager, FirestoreManager } from './js/firebase-config.js';
-        import { collection, getDocs, query, where, orderBy, limit, doc, getDoc, setDoc, updateDoc, increment } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+        import { collection, getDocs, query, where, orderBy, limit, doc, getDoc, setDoc, updateDoc, deleteDoc, increment } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
         import { db } from './js/firebase-config.js';
 
         // Super Admin Email (change this to your email)
@@ -464,7 +464,11 @@
                     <div class="dashboard-section">
                         <div class="section-header">
                             <h2 class="section-title">👥 회원 목록</h2>
-                            <button class="section-action" onclick="refreshMembers()">새로고침</button>
+                            <div style="display:flex; gap:8px;">
+                                <button class="section-action" style="background:#555;" onclick="backupAll(this)">💾 백업 다운로드</button>
+                                <button class="section-action" style="background:#e74c3c;" onclick="deleteSelected()">🗑 선택 삭제 (<span id="sel-count">0</span>)</button>
+                                <button class="section-action" onclick="refreshMembers()">새로고침</button>
+                            </div>
                         </div>
                         <div id="member-list">
                             <div class="loading">
@@ -636,10 +640,12 @@
                 return;
             }
 
+            const esc = s => String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;').replace(/</g,'&lt;');
             const html = `
                 <table class="member-table">
                     <thead>
                         <tr>
+                            <th style="width:34px;"><input type="checkbox" id="sel-all" onchange="toggleAll(this)" title="전체 선택"></th>
                             <th>회원</th>
                             <th>이메일</th>
                             <th>가입일</th>
@@ -649,15 +655,22 @@
                         </tr>
                     </thead>
                     <tbody>
-                        ${members.map(m => `
+                        ${members.map(m => {
+                            const isAdmin = SUPER_ADMIN_EMAILS.includes(m.email);
+                            return `
                             <tr data-uid="${m.id}">
+                                <td style="text-align:center;">
+                                    ${isAdmin
+                                        ? '<span title="관리자 계정 — 삭제 불가" style="color:#666;">🔒</span>'
+                                        : `<input type="checkbox" class="row-check" data-uid="${m.id}" data-email="${esc(m.email)}" data-name="${esc(m.name)}" onchange="updateSelCount()">`}
+                                </td>
                                 <td>
                                     <div style="display: flex; align-items: center; gap: 10px;">
                                         <div class="member-avatar">${m.name.charAt(0)}</div>
-                                        <span class="member-name">${m.name}</span>
+                                        <span class="member-name">${esc(m.name)}</span>
                                     </div>
                                 </td>
-                                <td class="member-email">${m.email}</td>
+                                <td class="member-email">${esc(m.email)}</td>
                                 <td>${formatDate(m.createdAt)}</td>
                                 <td>${formatDate(m.lastLogin)}</td>
                                 <td class="member-updated">…</td>
@@ -665,13 +678,14 @@
                                     <button class="preview-btn" onclick="openPreview('${m.id}', '${(m.name || '').replace(/'/g, "\\'")}')">👁 보기</button>
                                     <button class="edit-btn" onclick="openEdit('${m.id}')">✏️ 편집</button>
                                 </td>
-                            </tr>
-                        `).join('')}
+                            </tr>`;
+                        }).join('')}
                     </tbody>
                 </table>
             `;
 
             document.getElementById('member-list').innerHTML = html;
+            updateSelCount();
         }
 
         async function loadRecentActivity() {
@@ -778,6 +792,85 @@
                 </div>
             `;
             loadMembers();
+        };
+
+        // ===== 선택 삭제 / 백업 =====
+        window.toggleAll = function(master) {
+            document.querySelectorAll('.row-check').forEach(c => { c.checked = master.checked; });
+            updateSelCount();
+        };
+
+        window.updateSelCount = function() {
+            const n = document.querySelectorAll('.row-check:checked').length;
+            const el = document.getElementById('sel-count');
+            if (el) el.textContent = n;
+            const all = document.getElementById('sel-all');
+            const total = document.querySelectorAll('.row-check').length;
+            if (all) all.checked = total > 0 && n === total;
+        };
+
+        // 삭제 전 전체 백업을 JSON으로 내려받는다 (복구용). 잼 방지로 배치 읽기.
+        window.backupAll = async function(btn) {
+            const orig = btn ? btn.textContent : '';
+            if (btn) { btn.disabled = true; btn.textContent = '백업 중…'; }
+            try {
+                const usersSnap = await getDocs(collection(db, 'users'));
+                const users = {}; usersSnap.forEach(d => users[d.id] = d.data());
+                const portfolios = {};
+                const ids = Object.keys(users);
+                for (let i = 0; i < ids.length; i += 3) {
+                    await Promise.all(ids.slice(i, i + 3).map(async id => {
+                        try { const s = await getDoc(doc(db, 'portfolios', id)); if (s.exists()) portfolios[id] = s.data(); }
+                        catch (e) { console.warn('backup fail', id, e.code); }
+                    }));
+                }
+                const blob = new Blob([JSON.stringify({ exportedAt: new Date().toISOString(), users, portfolios })], { type: 'application/json' });
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = 'portfolio-backup-' + new Date().toISOString().slice(0, 10) + '.json';
+                a.click();
+                alert('백업 완료: 포트폴리오 ' + Object.keys(portfolios).length + '개, 회원 ' + ids.length + '명\n다운로드 폴더를 확인하세요.');
+            } catch (e) {
+                alert('백업 실패: ' + (e.code || e.message));
+            } finally {
+                if (btn) { btn.disabled = false; btn.textContent = orig; }
+            }
+        };
+
+        window.deleteSelected = async function() {
+            const checks = Array.from(document.querySelectorAll('.row-check:checked'));
+            if (!checks.length) { alert('삭제할 회원을 체크해주세요.'); return; }
+
+            const targets = checks.map(c => ({ uid: c.dataset.uid, email: c.dataset.email, name: c.dataset.name }))
+                // 안전장치: 관리자 계정은 절대 제외
+                .filter(t => !SUPER_ADMIN_EMAILS.includes(t.email));
+            if (!targets.length) { alert('관리자 계정은 삭제할 수 없습니다.'); return; }
+
+            const names = targets.map(t => `· ${t.name || '(무명)'} (${t.email})`).join('\n');
+            if (!confirm('⚠ 되돌릴 수 없습니다.\n\n먼저 "💾 백업 다운로드"로 백업을 받으셨나요?\n\n다음 ' + targets.length + '명의 포트폴리오와 회원 정보를 삭제합니다:\n\n' + names + '\n\n정말 삭제할까요?')) return;
+            if (!confirm('마지막 확인: ' + targets.length + '명을 영구 삭제합니다. 계속하시겠어요?')) return;
+
+            let ok = 0, fail = 0; const errs = [];
+            for (const t of targets) {
+                try {
+                    await deleteDoc(doc(db, 'portfolios', t.uid));
+                    await deleteDoc(doc(db, 'users', t.uid));
+                    ok++;
+                    const row = document.querySelector(`tr[data-uid="${t.uid}"]`);
+                    if (row) row.remove();
+                } catch (e) {
+                    fail++; errs.push(t.email + ': ' + (e.code || e.message));
+                }
+                await new Promise(r => setTimeout(r, 150));
+            }
+            updateSelCount();
+            let msg = '삭제 완료: ' + ok + '명';
+            if (fail) msg += '\n실패: ' + fail + '명\n' + errs.join('\n') +
+                '\n\n(권한 오류라면 Firestore 규칙에서 관리자 삭제 허용이 필요합니다.)';
+            msg += '\n\n※ 이미지 파일(Storage)은 삭제되지 않습니다.';
+            alert(msg);
+            // 통계(총 회원 수 등) 갱신
+            loadStats();
         };
 
         // Initialize
