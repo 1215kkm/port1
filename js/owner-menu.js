@@ -217,9 +217,51 @@
     // URL에서 사용자 ID 확인 (다른 사람 포트폴리오 보는 중인지)
     const urlParams = new URLSearchParams(window.location.search);
     const viewUserId = urlParams.get('u') || urlParams.get('user') || urlParams.get('id');
+    const viewingOther = viewUserId && viewUserId !== userId;
 
-    // 다른 사람 포트폴리오 보는 중이면 메뉴 표시 안함
-    if (viewUserId && viewUserId !== userId) {
+    // 슈퍼관리자 여부 확인 (다른 회원 포트폴리오를 편집할 수 있는지)
+    let isSuper = false;
+    try {
+        const mod = await import('./firebase-config.js');
+        isSuper = !!(mod.AnalyticsManager && mod.AnalyticsManager.isSuperAdmin());
+    } catch (e) {}
+
+    // 다른 사람 포트폴리오인데 슈퍼관리자가 아니면 메뉴 표시 안함
+    if (viewingOther && !isSuper) {
+        return;
+    }
+
+    // === 슈퍼관리자가 다른 회원의 포트폴리오를 보는 중 → 편집 진입 메뉴 ===
+    if (viewingOther && isSuper) {
+        const adminMenu = document.createElement('div');
+        adminMenu.className = 'owner-menu';
+        adminMenu.innerHTML = `
+            <button class="owner-menu-toggle" title="메뉴 접기/펼치기"><span>◀</span></button>
+            <div class="owner-menu-info">
+                <div class="owner-menu-info-title">👑 관리자</div>
+                <div class="owner-menu-info-desc">다른 회원의 포트폴리오입니다.<br>이 회원의 내용을 직접 편집할 수 있습니다.</div>
+                <a href="portfolio-edit.html?u=${encodeURIComponent(viewUserId)}" class="owner-menu-info-btn">편집하기 →</a>
+            </div>
+            <div class="owner-menu-divider"></div>
+            <a class="owner-menu-item" href="superadmin.html" target="_blank" rel="noopener" title="회원 목록(슈퍼관리자)">
+                <span class="owner-menu-icon">👥</span>
+                <span class="owner-menu-label">회원목록</span>
+            </a>
+        `;
+        document.body.appendChild(adminMenu);
+
+        const tBtn = adminMenu.querySelector('.owner-menu-toggle');
+        const tIcon = tBtn.querySelector('span');
+        if (localStorage.getItem('ownerMenuCollapsed') === 'true') {
+            adminMenu.classList.add('collapsed');
+            tIcon.textContent = '▶';
+        }
+        tBtn.addEventListener('click', () => {
+            adminMenu.classList.toggle('collapsed');
+            const c = adminMenu.classList.contains('collapsed');
+            tIcon.textContent = c ? '▶' : '◀';
+            localStorage.setItem('ownerMenuCollapsed', c);
+        });
         return;
     }
 

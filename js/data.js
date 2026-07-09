@@ -564,6 +564,7 @@ class DataManager {
         this.userId = null;
         this.isFirebaseReady = false;
         this.isViewMode = false; // True when viewing someone else's portfolio
+        this.isAdminEdit = false; // True when a super admin edits ANOTHER user's portfolio
         this.initPromise = null;
     }
 
@@ -573,6 +574,31 @@ class DataManager {
 
         this.initPromise = this._doInit(viewUserId);
         return this.initPromise;
+    }
+
+    // Admin edit mode: a super admin edits ANOTHER user's portfolio.
+    // Loads that user's data AND saves back to their Firestore doc
+    // (portfolios/{targetUserId}). Unlike view mode, saving is allowed.
+    // Does NOT touch localStorage so the admin's own cached portfolio
+    // (key 'portfolio_data') is never overwritten by the target's data.
+    async initAdminEdit(targetUserId) {
+        if (this.initPromise) return this.initPromise;
+        this.initPromise = this._doInitAdminEdit(targetUserId);
+        return this.initPromise;
+    }
+
+    async _doInitAdminEdit(targetUserId) {
+        this.isFirebaseReady = await initFirebase();
+        this.isAdminEdit = true;
+        this.isViewMode = false;
+        this.userId = targetUserId;
+
+        if (this.isFirebaseReady && targetUserId) {
+            await this.loadFromFirestore();
+        } else {
+            this.data = JSON.parse(JSON.stringify(defaultData));
+        }
+        return this.data;
     }
 
     async _doInit(viewUserId = null) {
@@ -640,8 +666,13 @@ class DataManager {
             const firestoreData = await FirestoreManager.getUserData(this.userId);
             if (firestoreData) {
                 this.data = this.deepMerge(defaultData, firestoreData);
-                // Sync to localStorage for offline access
-                this.saveToLocalStorage();
+                // Sync to localStorage for offline access.
+                // In admin-edit mode we must NOT cache another user's data over
+                // the admin's own 'portfolio_data'.
+                if (!this.isAdminEdit) this.saveToLocalStorage();
+            } else if (this.isAdminEdit) {
+                // Target has no doc yet — start from defaults, don't overwrite anything on load.
+                this.data = JSON.parse(JSON.stringify(defaultData));
             } else {
                 // No data in Firestore, load from localStorage or use defaults
                 this.data = this.loadFromLocalStorage();
@@ -650,7 +681,7 @@ class DataManager {
             }
         } catch (e) {
             console.error('Error loading from Firestore:', e);
-            this.data = this.loadFromLocalStorage();
+            this.data = this.isAdminEdit ? JSON.parse(JSON.stringify(defaultData)) : this.loadFromLocalStorage();
         }
     }
 
@@ -730,7 +761,9 @@ class DataManager {
         // saveToFirestore()`, so image uploads didn't appear until a refresh
         // (text edits looked fine only because they're typed in place). Remote
         // failures are still surfaced separately via dataSaveError.
-        this.saveToLocalStorage();
+        // In admin-edit mode skip localStorage — it would clobber the admin's own
+        // cached portfolio. The edit still persists to the target's Firestore doc.
+        if (!this.isAdminEdit) this.saveToLocalStorage();
         window.dispatchEvent(new CustomEvent('dataUpdated', { detail: this.data }));
 
         try {

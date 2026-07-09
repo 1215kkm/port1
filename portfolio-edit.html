@@ -320,7 +320,7 @@
 
     <!-- ===== Auth guard + script loader (admin 패턴과 동일) ===== -->
     <script type="module">
-        import { AuthManager } from './js/firebase-config.js';
+        import { AuthManager, AnalyticsManager } from './js/firebase-config.js';
 
         function loadScript(src) {
             return new Promise((resolve, reject) => {
@@ -330,6 +330,21 @@
                 s.onerror = reject;
                 document.body.appendChild(s);
             });
+        }
+
+        // 관리자가 남의 포트폴리오를 편집할 때 상단바에 "누구 것인지" 표시하고,
+        // 미리보기 버튼이 그 회원의 실제 화면을 열도록 바꾼다.
+        function showAdminEditBanner(uid) {
+            const name = (window.dataManager && window.dataManager.data
+                && window.dataManager.data.profile && window.dataManager.data.profile.name) || uid.slice(0, 6);
+            const logo = document.querySelector('.ev3-logo');
+            if (logo) {
+                logo.innerHTML = '✏️ 편집모드 <small>v3</small> '
+                    + '<span style="color:#ffc107;font-weight:700;">· 👑 ' + name + '님 포트폴리오 (관리자 편집)</span>';
+            }
+            const prev = document.getElementById('ev3-preview-btn');
+            if (prev) prev.href = 'portfolio.html?u=' + encodeURIComponent(uid);
+            document.title = '[관리자] ' + name + '님 포트폴리오 편집';
         }
 
         async function boot() {
@@ -342,9 +357,26 @@
                     return;
                 }
 
-                // 1) 데이터 매니저 로드 + 내 데이터(편집모드) 로드
-                await loadScript('js/data.js?v=4');
-                await window.dataManager.init();   // viewUserId 없음 → 내 포트폴리오 편집
+                // ?u=<uid> 로 열리면 "그 회원의 포트폴리오"를 편집한다 (슈퍼관리자 전용).
+                const params = new URLSearchParams(location.search);
+                const targetUid = params.get('u') || params.get('user') || params.get('id');
+                const isAdminEditing = targetUid && targetUid !== AuthManager.getUser().uid;
+
+                if (isAdminEditing && !AnalyticsManager.isSuperAdmin()) {
+                    alert('다른 사용자의 포트폴리오는 슈퍼관리자만 편집할 수 있습니다.');
+                    window.location.href = 'portfolio-edit.html';
+                    return;
+                }
+
+                // 1) 데이터 매니저 로드 + 데이터 로드
+                await loadScript('js/data.js?v=6');
+                if (isAdminEditing) {
+                    // 대상 회원의 Firestore 문서를 읽고, 저장도 그 문서로 되돌린다.
+                    await window.dataManager.initAdminEdit(targetUid);
+                    showAdminEditBanner(targetUid);
+                } else {
+                    await window.dataManager.init();   // viewUserId 없음 → 내 포트폴리오 편집
+                }
 
                 // 2) PDF 폰트 + 렌더러(app.js) 로드 후 사용자 화면 렌더
                 await loadScript('js/pdf-font.js').catch(() => {});
