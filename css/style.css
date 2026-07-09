@@ -957,13 +957,87 @@ ul, ol {
 .portfolio-meta {
     display: flex;
     flex-wrap: wrap;
-    gap: var(--space-sm);
+    gap: var(--space-sm) var(--space-lg);
     margin-bottom: var(--space-md);
 }
 
+/* PC에서는 주제/타겟을 항상 가로로 나란히 (좁은 벽돌 칸에서도 세로로 안 꺾이게) */
+@media (min-width: 769px) {
+    .portfolio-meta {
+        flex-wrap: nowrap;
+        align-items: baseline;
+    }
+    .portfolio-meta-item {
+        flex: 1;
+        min-width: 0;
+    }
+}
+
 .portfolio-meta-item {
-    font-size: var(--font-xs);
+    font-size: var(--font-sm);
     color: var(--color-text-secondary);
+}
+
+.portfolio-meta-item strong {
+    font-weight: 700;
+    color: var(--color-text);
+}
+
+/* ===== 작품 이미지 라이트박스(원본 크게 보기) ===== */
+.img-lightbox {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 100000;
+    background: rgba(0, 0, 0, 0.9);
+    /* 세로로 긴 이미지는 스크롤로 볼 수 있게 */
+    overflow: auto;
+    padding: 3vh 3vw;
+    cursor: zoom-out;
+}
+
+.img-lightbox.active {
+    display: block;
+}
+
+.img-lightbox-scroll {
+    min-height: 100%;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+}
+
+.img-lightbox-img {
+    max-width: 94vw;   /* 실제 크기지만 브라우저 폭의 94%를 넘지 않게 */
+    height: auto;
+    display: block;
+    border-radius: 6px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+    cursor: default;
+}
+
+.img-lightbox-close {
+    position: fixed;
+    top: 14px;
+    right: 20px;
+    width: 44px;
+    height: 44px;
+    font-size: 30px;
+    line-height: 1;
+    color: #fff;
+    background: rgba(0, 0, 0, 0.5);
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    z-index: 1;
+}
+
+.img-lightbox-close:hover {
+    background: rgba(0, 0, 0, 0.8);
+}
+
+.portfolio-zoomable {
+    cursor: zoom-in;
 }
 
 .portfolio-desc {

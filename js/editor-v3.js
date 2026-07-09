@@ -50,12 +50,19 @@
         const now = (window.performance && performance.now) ? performance.now() : (lastSaveAlert + 9000);
         if (now - lastSaveAlert < 8000) return;
         lastSaveAlert = now;
+        // 사용자가 놓치지 않도록 토스트가 아니라 알림창(alert)으로 이유를 알린다.
+        const detailMsg = (e && e.detail && e.detail.error) ? ('\n\n(상세: ' + String(e.detail.error).slice(0, 200) + ')') : '';
         if (tooLarge) {
-            showToast('⚠ 저장 용량(1MB) 초과 — 서버에 반영되지 않습니다.\n' +
-                '이미지 일부를 삭제하면 다시 저장됩니다.', true);
+            showToast('⚠ 저장 용량(1MB) 초과 — 서버에 반영되지 않았습니다.', true);
+            alert('⚠ 저장 용량 초과\n\n' +
+                '이 포트폴리오에 담긴 이미지 용량이 한 문서 한도(1MB)를 넘어서 서버에 저장되지 않았습니다.\n' +
+                '방금 올린 이미지를 빼거나, 기존 이미지를 몇 개 삭제한 뒤 다시 저장해주세요.\n' +
+                '(큰 원본은 "실제 이미지"로만 넣고 썸네일은 작게 유지하면 도움이 됩니다.)' + detailMsg);
         } else {
-            showToast('⚠ 서버 저장 실패 — 네트워크 확인 후 다시 시도해주세요.\n' +
-                '(이 화면의 수정 내용은 이 브라우저에는 남아 있습니다)', true);
+            showToast('⚠ 서버 저장 실패 — 네트워크 확인 후 다시 시도해주세요.', true);
+            alert('⚠ 서버 저장 실패\n\n' +
+                '네트워크 문제 등으로 서버에 저장하지 못했습니다. 잠시 후 다시 시도해주세요.\n' +
+                '(이 화면의 수정 내용은 이 브라우저에는 남아 있습니다)' + detailMsg);
         }
     });
 
@@ -493,7 +500,7 @@
             });
             addAddButton(cont, '+ 작품 추가', () => dm.addPortfolioItem(menu.id, {
                 title: '새 작품', subject: '', target: '', contributions: [], review: '',
-                thumbnails: [], links: [{ label: '상세보기', url: '#' }]
+                thumbnails: [], images: [], links: [{ label: '상세보기', url: '#' }]
             }));
         });
     }
@@ -523,29 +530,45 @@
             () => ({ label: '바로가기', url: '#' }));
         body.appendChild(linkLE.node);
 
-        secTitle(body, '썸네일 이미지');
-        let thumbs = (it.thumbnails || []).slice();
-        const thumbWrap = document.createElement('div');
-        function drawThumbs() {
-            thumbWrap.innerHTML = '';
-            thumbs.forEach((url, idx) => {
-                const r = document.createElement('div'); r.className = 'ev3-row'; r.style.marginBottom = '6px';
-                const img = document.createElement('img'); img.src = url; img.style.cssText = 'width:48px;height:48px;object-fit:cover;border-radius:6px;flex:none';
-                const span = document.createElement('span'); span.style.cssText = 'flex:1;font-size:12px;word-break:break-all;color:var(--color-text-secondary,#888)'; span.textContent = String(url).slice(0, 46) + '…';
-                const del = document.createElement('button'); del.type = 'button'; del.className = 'ev3-mini ev3-mini-del'; del.textContent = '✕'; del.style.flex = 'none';
-                del.onclick = () => { thumbs.splice(idx, 1); drawThumbs(); };
-                r.appendChild(img); r.appendChild(span); r.appendChild(del); thumbWrap.appendChild(r);
-            });
-            const add = document.createElement('button'); add.type = 'button'; add.className = 'ev3-mini'; add.textContent = '+ 이미지 업로드';
-            add.onclick = async () => { const url = await pickAndUpload('portfolio'); if (url) { thumbs.push(url); drawThumbs(); } };
-            thumbWrap.appendChild(add);
+        // 썸네일과 실제(원본) 이미지를 따로 등록. 둘 중 하나만 넣으면 그것이
+        // 썸네일과 원본보기 양쪽에 쓰인다(렌더러가 자동 폴백).
+        function makeImageEditor(initial, addLabel) {
+            const list = (initial || []).slice();
+            const wrap = document.createElement('div');
+            function draw() {
+                wrap.innerHTML = '';
+                list.forEach((url, idx) => {
+                    const r = document.createElement('div'); r.className = 'ev3-row'; r.style.marginBottom = '6px';
+                    const img = document.createElement('img'); img.src = url; img.style.cssText = 'width:48px;height:48px;object-fit:cover;border-radius:6px;flex:none';
+                    const span = document.createElement('span'); span.style.cssText = 'flex:1;font-size:12px;word-break:break-all;color:var(--color-text-secondary,#888)'; span.textContent = String(url).slice(0, 46) + '…';
+                    const del = document.createElement('button'); del.type = 'button'; del.className = 'ev3-mini ev3-mini-del'; del.textContent = '✕'; del.style.flex = 'none';
+                    del.onclick = () => { list.splice(idx, 1); draw(); };
+                    r.appendChild(img); r.appendChild(span); r.appendChild(del); wrap.appendChild(r);
+                });
+                const add = document.createElement('button'); add.type = 'button'; add.className = 'ev3-mini'; add.textContent = addLabel;
+                add.onclick = async () => { const url = await pickAndUpload('portfolio'); if (url) { list.push(url); draw(); } };
+                wrap.appendChild(add);
+            }
+            draw();
+            return { node: wrap, get: () => list };
         }
-        drawThumbs(); body.appendChild(thumbWrap);
+
+        secTitle(body, '썸네일 이미지 (목록에 보이는 작은 이미지)');
+        const thumbEd = makeImageEditor(it.thumbnails, '+ 썸네일 업로드');
+        body.appendChild(thumbEd.node);
+
+        secTitle(body, '실제 이미지 (클릭하면 크게 보이는 원본)');
+        const realHelp = document.createElement('div'); realHelp.className = 'ev3-help';
+        realHelp.textContent = '비워두면 썸네일이 원본으로도 쓰입니다. 반대로 실제 이미지만 넣으면 그게 썸네일로도 쓰입니다.';
+        body.appendChild(realHelp);
+        const realEd = makeImageEditor(it.images, '+ 실제 이미지 업로드');
+        body.appendChild(realEd.node);
 
         showModal('작품 편집', body, () => {
             dm.updatePortfolioItem(it.id, {
                 title: tIn.value, subject: sIn.value, target: gIn.value, review: rIn.value,
-                contributions: contribLE.get(), links: linkLE.get(), thumbnails: thumbs
+                contributions: contribLE.get(), links: linkLE.get(),
+                thumbnails: thumbEd.get(), images: realEd.get()
             });
         });
     }

@@ -615,7 +615,12 @@ class PortfolioRenderer {
     render() {
         if (!this.container) return;
 
-        this.container.className = `portfolio-${this.displayMode}`;
+        // IMPORTANT: keep the `portfolio-container` class. Previously this
+        // overwrote className entirely, dropping `portfolio-container`, so the
+        // next re-render couldn't find the container (querySelector) and the
+        // section only updated after a full page reload. That's why changing the
+        // 보기형태(display mode) or editing items needed a refresh to show up.
+        this.container.className = `portfolio-container portfolio-${this.displayMode}`;
 
         switch (this.displayMode) {
             case 'single':
@@ -636,9 +641,14 @@ class PortfolioRenderer {
     }
 
     createItemHTML(item) {
-        const thumbnails = item.thumbnails || [];
-        const thumbnailHTML = thumbnails.length > 0
-            ? thumbnails.map(t => `<img src="${addCacheBuster(t)}" alt="${item.title}">`).join('')
+        // 썸네일과 실제(원본) 이미지를 따로 등록할 수 있고, 하나만 있으면 그것을 둘 다에 사용.
+        const thumbs = (item.thumbnails && item.thumbnails.length) ? item.thumbnails : (item.images || []);
+        const fulls = (item.images && item.images.length) ? item.images : (item.thumbnails || []);
+        const thumbnailHTML = thumbs.length > 0
+            ? thumbs.map((t, i) => {
+                const full = fulls[i] || fulls[0] || t;
+                return `<img src="${addCacheBuster(t)}" alt="${item.title}" class="portfolio-zoomable" data-full="${encodeURI(full)}" title="클릭하면 크게 보기">`;
+              }).join('')
             : '<div class="profile-image-placeholder">No Image</div>';
 
         const linksHTML = (item.links || []).map(link =>
@@ -656,6 +666,17 @@ class PortfolioRenderer {
             </div>
         `).join('');
 
+        // 기여도 그래프를 모두 지운 경우엔 영역 자체를 그리지 않는다 (빈 공간 방지).
+        const contributionsBlock = contributions.length > 0
+            ? `<div class="portfolio-contributions">${contributionsHTML}</div>`
+            : '';
+
+        const metaHTML = [
+            item.subject ? `<span class="portfolio-meta-item"><strong>주제:</strong> ${item.subject}</span>` : '',
+            item.target ? `<span class="portfolio-meta-item"><strong>타겟:</strong> ${item.target}</span>` : ''
+        ].join('');
+        const metaBlock = metaHTML ? `<div class="portfolio-meta">${metaHTML}</div>` : '';
+
         return `
             <article class="portfolio-item">
                 <div class="portfolio-thumbnail">
@@ -663,14 +684,9 @@ class PortfolioRenderer {
                 </div>
                 <div class="portfolio-content">
                     <h3 class="portfolio-title">${item.title}</h3>
-                    <div class="portfolio-meta">
-                        ${item.subject ? `<span class="portfolio-meta-item">주제: ${item.subject}</span>` : ''}
-                        ${item.target ? `<span class="portfolio-meta-item">타겟: ${item.target}</span>` : ''}
-                    </div>
+                    ${metaBlock}
                     ${item.review ? `<p class="portfolio-desc">${item.review}</p>` : ''}
-                    <div class="portfolio-contributions">
-                        ${contributionsHTML}
-                    </div>
+                    ${contributionsBlock}
                     <div class="portfolio-links">
                         ${linksHTML}
                     </div>
@@ -771,6 +787,9 @@ class PageInitializer {
 
         // Initialize portfolio renderers
         this.initPortfolios();
+
+        // 작품 이미지 클릭 시 원본 크게 보기(라이트박스) — 한 번만 설치
+        this.setupImageLightbox();
 
         // Apply font settings
         this.applyFontSettings();
@@ -934,6 +953,40 @@ class PageInitializer {
             teamLink.style.display = teamDisplay;
             console.log('Team link display set to:', teamDisplay || 'default');
         }
+    }
+
+    // 작품 이미지 라이트박스: 썸네일 클릭 → 원본을 모달로. 최대폭 94vw,
+    // 세로가 길면 스크롤로 볼 수 있게 한다. 문서 전역에 위임 리스너 1개만 건다.
+    setupImageLightbox() {
+        if (window.__imgLightboxReady) return;
+        window.__imgLightboxReady = true;
+
+        const overlay = document.createElement('div');
+        overlay.className = 'img-lightbox';
+        overlay.innerHTML = `
+            <button class="img-lightbox-close" aria-label="닫기">&times;</button>
+            <div class="img-lightbox-scroll"><img class="img-lightbox-img" src="" alt=""></div>
+        `;
+        document.body.appendChild(overlay);
+        const imgEl = overlay.querySelector('.img-lightbox-img');
+        const close = () => { overlay.classList.remove('active'); imgEl.src = ''; };
+
+        overlay.addEventListener('click', (e) => {
+            // 이미지 자체가 아니라 배경/닫기버튼을 누르면 닫는다
+            if (e.target === imgEl) return;
+            close();
+        });
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
+
+        // 썸네일(.portfolio-zoomable) 클릭을 문서 레벨에서 위임 처리
+        document.addEventListener('click', (e) => {
+            const t = e.target.closest && e.target.closest('.portfolio-zoomable');
+            if (!t) return;
+            const full = t.getAttribute('data-full') || t.getAttribute('src');
+            if (!full) return;
+            imgEl.src = decodeURI(full);
+            overlay.classList.add('active');
+        });
     }
 
     initPortfolios() {
