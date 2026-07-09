@@ -834,6 +834,16 @@ class PageInitializer {
     }
 
     renderAll() {
+        // 편집 중 항목을 추가/수정하면 dataUpdated → renderAll로 섹션이 다시 그려지는데,
+        // 그 과정에서 스크롤이 맨 위로 튀는 문제가 있었다. 현재 위치를 기억해 뒀다가
+        // 재렌더 직후 복원한다. (재렌더로 편집 도구가 붙은 뒤에도 유지되도록 rAF에서도 한 번 더.)
+        const savedScrollY = window.scrollY || window.pageYOffset || 0;
+        const restoreScroll = () => {
+            if (savedScrollY > 0 && Math.abs((window.scrollY || 0) - savedScrollY) > 2) {
+                window.scrollTo(0, savedScrollY);
+            }
+        };
+
         this.applyFontSettings();
         this.applyBackgroundSettings();
         this.renderLogo();
@@ -858,6 +868,10 @@ class PageInitializer {
         }
 
         window.dispatchEvent(new CustomEvent('pageRendered'));
+
+        // 재렌더 직후 + 편집도구가 붙는 다음 프레임에서 스크롤 위치 복원
+        restoreScroll();
+        if (window.requestAnimationFrame) requestAnimationFrame(restoreScroll);
     }
 
     applySectionVisibility() {

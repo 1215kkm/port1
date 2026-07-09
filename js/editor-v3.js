@@ -687,7 +687,10 @@
         }
         if (dock.dataset.mode === 'full') {
             scaleDockFrame(dock);                // 내부에서 renderDockCards 호출
-            if (!first) scheduleFrameReload();   // 내용이 바뀌면 미리보기도 갱신(디바운스)
+            // 여기서 미리보기 iframe을 다시 로드하면 무한 루프가 생긴다:
+            // iframe 로드 → data.js가 localStorage 기록 → 부모의 storage 이벤트 →
+            // renderAll → pageRendered → decorate → buildDock → (다시) reload …
+            // 그래서 미리보기 새로고침은 "실제 편집(dataUpdated)"에서만 하도록 뺐다.
         } else {
             renderDockCards(dock);
         }
@@ -1169,6 +1172,9 @@
 
         // 데이터가 바뀌면 app.js가 재렌더 → 그 뒤에 다시 데코레이션
         window.addEventListener('dataUpdated', decorateSoon);
+        // 미리보기(iframe) 새로고침은 "실제 편집"이 있을 때만 (디바운스). storage/pageRendered
+        // 로는 돌리지 않아 무한 루프를 막는다.
+        window.addEventListener('dataUpdated', () => scheduleFrameReload());
         // 첫 렌더(Firestore 로드 후)와 크로스탭 storage 재렌더는 dataUpdated 없이
         // 일어난다 — 그때 바인딩이 새 DOM과 함께 사라지므로 pageRendered로도 재데코.
         window.addEventListener('pageRendered', decorateSoon);
