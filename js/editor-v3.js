@@ -89,6 +89,23 @@
             reader.readAsDataURL(file);
         });
     }
+    // Storage 업로드가 실패(특히 용량초과)하면 왜 base64로 넘어가는지 사용자에게 한 번 알린다.
+    let __storageAlertShown = false;
+    function notifyStorageProblem(code, msg) {
+        if (__storageAlertShown) return;
+        const c = String(code || msg || '');
+        if (/quota-exceeded|quota/i.test(c)) {
+            __storageAlertShown = true;
+            alert('⚠ 이미지 저장소(Storage) 용량이 가득 찼습니다.\n\n' +
+                '지금 올리는 이미지는 임시로 페이지 문서 안에 압축 저장됩니다. 이 방식은 한 사람당 총 1MB' +
+                ' 한도가 있어, 이미지를 많이 넣으면 저장이 안 될 수 있습니다.\n\n' +
+                '관리자에게 "Firebase Storage 용량 확보(요금제 업그레이드 또는 정리)"를 요청해주세요.');
+        } else if (/unauthorized|permission/i.test(c)) {
+            __storageAlertShown = true;
+            alert('⚠ 이미지 저장소(Storage) 권한 문제로 업로드가 거부되어, 임시로 문서에 저장합니다.\n' +
+                '관리자에게 Storage 보안 규칙 확인을 요청해주세요.');
+        }
+    }
     async function doUpload(file, path) {
         if (!file.type || !file.type.startsWith('image/')) { alert('이미지 파일만 업로드할 수 있습니다.'); return null; }
         if (file.size > 8 * 1024 * 1024) { alert('파일이 너무 큽니다. 8MB 이하 이미지를 사용해주세요.'); return null; }
@@ -101,7 +118,8 @@
                 const r = await SM.uploadImage(userId, file, path);
                 if (r && r.success && r.url) { setStatus('saved', '업로드 완료 ✓'); return r.url; }
                 console.warn('[editor-v3] Storage 실패 → 내장(base64) 대체:', r && r.error);
-            } catch (e) { console.warn('[editor-v3] Storage 예외 → 내장(base64) 대체:', e); }
+                notifyStorageProblem(r && r.code, r && r.error);
+            } catch (e) { console.warn('[editor-v3] Storage 예외 → 내장(base64) 대체:', e); notifyStorageProblem(e && e.code, e && e.message); }
         }
         // 2) 폴백: 압축 base64 (Storage 용량초과/미연결 시에도 이미지가 동작)
         //    내장 이미지는 Firestore 문서(1MB) 용량을 공유하므로 강하게 압축한다.
