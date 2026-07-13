@@ -18,12 +18,24 @@
         <div class="pf-loading-text">포트폴리오 불러오는 중…</div>
     </div>
     <script>
-        // 안전장치: 스크립트 오류 등으로 렌더가 안 되더라도 8초 후엔 무조건 화면을 연다.
-        setTimeout(function () {
-            var v = document.getElementById('pf-loading');
-            if (v) v.classList.add('hidden');
-            document.body.classList.remove('loading');
-        }, 8000);
+        // 안전장치: 렌더가 안 되더라도 결국은 화면을 연다.
+        // 8초 시점에 data.js가 살아서 아직 로딩 중이면(큰 문서는 10초+ 걸림)
+        // 최대 25초까지 더 기다리고, 그 외(스크립트 오류 등)엔 즉시 연다.
+        (function () {
+            var t0 = Date.now();
+            function forceOpen() {
+                var v = document.getElementById('pf-loading');
+                if (v) v.classList.add('hidden');
+                document.body.classList.remove('loading');
+            }
+            setTimeout(function check() {
+                if (!document.body.classList.contains('loading')) return; // 이미 정상 렌더됨
+                if (window.dataManager && !window.dataManager.data && Date.now() - t0 < 25000) {
+                    return setTimeout(check, 1000);
+                }
+                forceOpen();
+            }, 8000);
+        })();
     </script>
     <!-- Header -->
     <header class="header">
