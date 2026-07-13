@@ -697,7 +697,13 @@
                 } catch (e) { }
                 [500, 1200, 2500].forEach(t => setTimeout(() => scaleDockFrame(dock), t));
             });
-            frame.src = 'portfolio.html';
+            // 도크 미리보기 소스:
+            //  · 내 포트폴리오 편집 → ?preview=local (Firestore를 안 거치고 localStorage의
+            //    현재 편집본을 그대로 표시 — 빠르고, 서버의 옛 데이터로 캐시를 되돌리지 않음)
+            //  · 관리자가 남의 것 편집 → ?u=<uid> (그 회원의 화면; view-mode라 아무것도 안 씀)
+            frame.src = dm.isAdminEdit
+                ? ('portfolio.html?u=' + encodeURIComponent(dm.userId))
+                : 'portfolio.html?preview=local';
             dock.querySelector('.ev3-dock-reopen').onclick = () => setDockMode('titles');
             dock.querySelectorAll('.ev3-dock-modes button').forEach(btn => btn.onclick = () => setDockMode(btn.dataset.m));
             dock.querySelector('.ev3-dock-add').onclick = addSectionModal;
@@ -720,7 +726,7 @@
             const doc = frame.contentDocument; if (!doc || !doc.head) return;
             if (!doc.getElementById('ev3-mini-style')) {
                 const st = doc.createElement('style'); st.id = 'ev3-mini-style';
-                st.textContent = '.section{min-height:0 !important} .intro-page{height:auto !important} body.loading .main,body.loading .header,body.loading .section-nav{opacity:1 !important;visibility:visible !important}';
+                st.textContent = '.section{min-height:0 !important} .intro-page{height:auto !important} body.loading .main,body.loading .header,body.loading .section-nav{opacity:1 !important;visibility:visible !important} #pf-loading{display:none !important}';
                 doc.head.appendChild(st);
             }
         } catch (e) { }
@@ -1162,11 +1168,11 @@
             if (window.AuthManager) { try { await window.AuthManager.signOut(); } catch (e) { } }
             location.href = 'login.html';
         };
-        // 미리보기: 로그인한 오너 컨텍스트(?u= 없이)로 연다. ?u=<uid>는 view-mode라
-        // Firestore만 읽어서, 아직 서버 저장 전이면 기본(샘플) 데이터가 떠버린다.
-        // ?u= 없이 열면 loadFromFirestore가 localStorage로 폴백해 실제 내 편집분을 보여준다.
+        // 미리보기: 내 것 편집이면 ?u= 없이(로그인 오너 컨텍스트 — 저장 전 편집분까지 보임),
+        // 관리자가 남의 것을 편집 중이면 배너(showAdminEditBanner)가 걸어둔
+        // portfolio.html?u=<그 회원> 링크를 절대 덮어쓰지 않는다.
         const previewBtn = $('#ev3-preview-btn');
-        if (previewBtn) previewBtn.href = 'portfolio.html';
+        if (previewBtn && !dm.isAdminEdit) previewBtn.href = 'portfolio.html';
 
         // 스킨(템플릿) 선택 — 기본(V3) + 등록된 스킨들. 고르면 그 스킨 편집 화면으로 이동
         const skinSel = $('#ev3-skin-select');

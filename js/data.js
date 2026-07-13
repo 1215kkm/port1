@@ -25,6 +25,11 @@ function getStorageManager() {
     return StorageManager;
 }
 
+// 이 페이지가 iframe(편집기 도크 미리보기 등) 안에서 열렸는지
+function isEmbeddedFrame() {
+    try { return window.self !== window.top; } catch (e) { return true; }
+}
+
 // Default Data Structure
 const defaultData = {
     // Site Settings
@@ -602,6 +607,16 @@ class DataManager {
     }
 
     async _doInit(viewUserId = null) {
+        // 편집기 도크 미리보기(iframe) 전용 모드: 서버를 거치지 않고 localStorage의
+        // "지금 편집 중인" 데이터를 그대로 보여준다. Firestore를 읽지 않으므로
+        // 아직 서버에 커밋되지 않은 옛 데이터로 localStorage를 되돌리는 사고
+        // (편집 내용이 눈앞에서 사라지는 버그)가 원천 차단된다.
+        if (new URLSearchParams(window.location.search).get('preview') === 'local') {
+            this.isViewMode = true;   // 미리보기는 절대 저장하지 않음
+            this.data = this.loadFromLocalStorage();
+            return this.data;
+        }
+
         // Try to initialize Firebase
         this.isFirebaseReady = await initFirebase();
 
@@ -669,7 +684,9 @@ class DataManager {
                 // Sync to localStorage for offline access.
                 // In admin-edit mode we must NOT cache another user's data over
                 // the admin's own 'portfolio_data'.
-                if (!this.isAdminEdit) this.saveToLocalStorage();
+                // iframe(도크 미리보기 등) 안에서도 기록 금지 — 부모 창이 방금 저장한
+                // 최신 localStorage를 서버의 옛 스냅샷으로 되돌려버릴 수 있다.
+                if (!this.isAdminEdit && !isEmbeddedFrame()) this.saveToLocalStorage();
             } else if (this.isAdminEdit) {
                 // Target has no doc yet — start from defaults, don't overwrite anything on load.
                 this.data = JSON.parse(JSON.stringify(defaultData));
@@ -763,7 +780,7 @@ class DataManager {
         // failures are still surfaced separately via dataSaveError.
         // In admin-edit mode skip localStorage — it would clobber the admin's own
         // cached portfolio. The edit still persists to the target's Firestore doc.
-        if (!this.isAdminEdit) this.saveToLocalStorage();
+        if (!this.isAdminEdit && !isEmbeddedFrame()) this.saveToLocalStorage();
         window.dispatchEvent(new CustomEvent('dataUpdated', { detail: this.data }));
 
         try {

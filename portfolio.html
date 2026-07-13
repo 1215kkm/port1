@@ -9,9 +9,22 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css">
 
     <!-- Main CSS -->
-    <link rel="stylesheet" href="css/style.css?v=3">
+    <link rel="stylesheet" href="css/style.css?v=4">
 </head>
-<body>
+<body class="loading">
+    <!-- 실데이터 렌더 전 샘플 노출 방지 가림막 — app.js 첫 렌더 후 제거 -->
+    <div id="pf-loading" class="pf-loading">
+        <div class="pf-loading-spinner"></div>
+        <div class="pf-loading-text">포트폴리오 불러오는 중…</div>
+    </div>
+    <script>
+        // 안전장치: 스크립트 오류 등으로 렌더가 안 되더라도 8초 후엔 무조건 화면을 연다.
+        setTimeout(function () {
+            var v = document.getElementById('pf-loading');
+            if (v) v.classList.add('hidden');
+            document.body.classList.remove('loading');
+        }, 8000);
+    </script>
     <!-- Header -->
     <header class="header">
         <div class="header-inner">
@@ -263,9 +276,9 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/modern-screenshot@4/dist/index.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script src="js/data.js?v=6"></script>
+    <script src="js/data.js?v=7"></script>
     <script src="js/pdf-font.js"></script>
-    <script src="js/app.js?v=7"></script>
+    <script src="js/app.js?v=8"></script>
     <script type="module" src="js/owner-menu.js?v=4"></script>
 
     <!-- Analytics Tracking -->

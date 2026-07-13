@@ -818,6 +818,15 @@ class PageInitializer {
         // 그 사이에 걸린 바인딩이 전부 교체된 DOM과 함께 사라진다.
         window.dispatchEvent(new CustomEvent('pageRendered'));
 
+        // 실데이터 렌더 완료 — 로딩 가림막(#pf-loading, portfolio.html 전용)을 걷는다.
+        // 정적 HTML의 샘플(홍길동) 내용이 로드 전에 노출되는 것을 막는 장치.
+        const veil = document.getElementById('pf-loading');
+        if (veil) {
+            document.body.classList.remove('loading');
+            veil.classList.add('hidden');
+            setTimeout(() => veil.remove(), 500);
+        }
+
         // Listen for data updates
         window.addEventListener('dataUpdated', () => {
             this.data = dataManager.getData();
@@ -827,7 +836,14 @@ class PageInitializer {
         // Listen for storage events (cross-tab updates)
         window.addEventListener('storage', (e) => {
             if (e.key === 'portfolio_data') {
-                this.data = dataManager.loadData();
+                // localStorage 캐시는 "내 포트폴리오"만 담는다. 남의 것을 보고 있거나
+                // (view mode) 관리자가 남의 것을 편집 중일 때(admin edit) 이 이벤트로
+                // 다시 그리면 화면이 내 데이터로 뒤바뀐다 — 건너뛴다.
+                if (dataManager.isViewMode || dataManager.isAdminEdit) return;
+                // dataManager의 메모리 데이터도 함께 갱신 — 화면(DOM)과 편집기가 읽는
+                // 데이터가 서로 다른 버전이 되는 것을 방지.
+                dataManager.data = dataManager.loadData();
+                this.data = dataManager.data;
                 this.renderAll();
             }
         });
