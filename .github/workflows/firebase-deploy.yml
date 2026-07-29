@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - claude/disable-base64-fallback-sg6aj
+      - claude/scrollskin-edit-banner-22nk70
 
 jobs:
   deploy:
