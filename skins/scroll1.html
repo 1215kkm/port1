@@ -61,6 +61,10 @@
     [data-htrack]{flex-direction:column !important; transform:none !important; width:100% !important; gap:20px !important;}
     [data-htrack] > div{width:100% !important; height:300px !important;}
 
+    /* Banner (horizontal, below POPUP) */
+    [data-screen-label="Banner"]{padding:56px 20px !important;}
+    [data-banner] [data-s1-media]{height:140px !important;}
+
     /* Projects (POSTER) sticky title -> stack */
     [data-screen-label="Projects"] > div{flex-direction:column !important; gap:40px !important; align-items:center !important; text-align:center !important;}
     [data-screen-label="Projects"] > div > div:first-child{width:100% !important; text-align:center !important;}
@@ -133,13 +137,13 @@
             <span style="font-size:22px; font-weight:700;">타업무경력</span>
             <span style="font-size:18px; color:rgba(255,255,255,0.45);">총 2년 6개월</span>
           </div>
-          <div style="display:flex; justify-content:space-between; align-items:center; padding:16px 0; border-top:1px solid rgba(255,255,255,0.08); font-size:18px;">
-            <span><b style="font-weight:700;">1.</b> [CU] 점장</span>
-            <span style="color:rgba(255,255,255,0.5);">2024.03 ~ 2025.02 &nbsp; <b style="color:#e08524;">1년</b></span>
+          <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:16px; padding:16px 0; border-top:1px solid rgba(255,255,255,0.08); font-size:18px; word-break:keep-all;">
+            <span style="flex:1;"><b style="font-weight:700;">1.</b> [CU] 점장</span>
+            <span style="flex:none; white-space:nowrap; color:rgba(255,255,255,0.5);">2024.03 ~ 2025.02 &nbsp; <b style="color:#e08524;">1년</b></span>
           </div>
-          <div style="display:flex; justify-content:space-between; align-items:center; padding:16px 0; border-top:1px solid rgba(255,255,255,0.08); font-size:18px;">
-            <span><b style="font-weight:700;">2.</b> [GS25] 파트타임 알바</span>
-            <span style="color:rgba(255,255,255,0.5);">2024.03 ~ 2025.02 &nbsp; <b style="color:#e08524;">1년6개월</b></span>
+          <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:16px; padding:16px 0; border-top:1px solid rgba(255,255,255,0.08); font-size:18px; word-break:keep-all;">
+            <span style="flex:1;"><b style="font-weight:700;">2.</b> [GS25] 파트타임 알바</span>
+            <span style="flex:none; white-space:nowrap; color:rgba(255,255,255,0.5);">2024.03 ~ 2025.02 &nbsp; <b style="color:#e08524;">1년6개월</b></span>
           </div>
         </div>
       </div>
@@ -275,6 +279,15 @@
             <div data-s1-media="" style="flex:none; width:480px; height:640px; background:#d2d2d2; display:flex; align-items:center; justify-content:center; color:#7a7a7a; font-family:'SFMono-Regular',Consolas,monospace; font-size:18px;">WORK 3</div>
           
         </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== BANNER (horizontal, below POPUP) ===== -->
+  <section data-screen-label="Banner" style="background:#0a0a0a; padding:80px 56px;">
+    <div style="max-width:1600px; margin:0 auto; display:flex; flex-direction:column; gap:24px;">
+      <div data-banner="" data-reveal="" style="width:100%;">
+        <div data-s1-media="" style="width:100%; height:220px; background:#d2d2d2; border-radius:12px; overflow:hidden; display:flex; align-items:center; justify-content:center; color:#7a7a7a; font-family:'SFMono-Regular',Consolas,monospace; font-size:18px;">가로형 배너 이미지를 등록하세요 (예: 1600×220)</div>
       </div>
     </div>
   </section>

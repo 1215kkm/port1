@@ -29,9 +29,30 @@
     '[data-team]',                              // TEAM WORK 카드
     '[data-typo]',                              // 타이포그래피 행
     '[data-s1-row]',                            // 프로필 정보 행 (런타임 생성)
-    '[data-s1-rep]'                             // 경력·AI·통계·연락처·디렉션 등 (HTML 마커)
+    '[data-s1-rep]',                            // 경력·AI·통계·연락처·디렉션 등 (HTML 마커)
+    '[data-banner]'                             // POPUP 아래 가로형 배너
   ];
-  var TEXT_TAGS = ['H1', 'H2', 'H3', 'H4', 'H5', 'P', 'SPAN'];
+  var TEXT_TAGS = ['H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'P', 'SPAN', 'DIV'];
+  // structural/marker attributes: a DIV carrying one of these is a layout
+  // wrapper (repeatable unit, media box, row, section shell, ...), never a
+  // plain text leaf, even when its only children happen to be inline tags.
+  var DIV_STRUCTURAL_ATTRS = [
+    'data-s1-media', 'data-s1-rep', 'data-project', 'data-team', 'data-htrack',
+    'data-s1-row', 'data-vlog', 'data-teamwrap', 'data-worksec', 'data-hsec',
+    'data-hpin', 'data-panel', 'data-about', 'data-projects', 'data-banner'
+  ];
+  function isStructuralDiv(el) {
+    for (var i = 0; i < DIV_STRUCTURAL_ATTRS.length; i++) { if (el.hasAttribute(DIV_STRUCTURAL_ATTRS[i])) return true; }
+    return false;
+  }
+  // a DIV counts as an editable text leaf only if every direct child is an
+  // inline formatting tag (or there are no element children at all) — a DIV
+  // that wraps other DIVs/sections is a layout container, not text.
+  function isTextLeaf(el) {
+    var kids = el.children;
+    for (var i = 0; i < kids.length; i++) { if (kids[i].tagName !== 'BR') return false; }
+    return !!(el.textContent && el.textContent.trim());
+  }
 
   var snapshot = null;   // clean HTML captured at edit-start (for cancel)
   var editing = false;
@@ -213,6 +234,7 @@
         // only leaf-ish: a SPAN with child elements that aren't inline-formatting -> skip
         if (el.querySelector('section, [data-s1-media], .s1-tool')) return;
         if (el.closest('[contenteditable="true"]')) return; // ancestor already editable
+        if (tag === 'DIV' && (isStructuralDiv(el) || !isTextLeaf(el))) return; // skip layout wrappers
         el.setAttribute('contenteditable', 'true');
         el.spellcheck = false;
       });
