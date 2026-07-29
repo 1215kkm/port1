@@ -96,19 +96,29 @@
     fab = document.createElement('div');
     fab.className = 's1-fab';
     document.body.appendChild(fab);
+    document.body.classList.add('s1-has-toolbar');   // reserve top space (matches the V3 editor's top toolbar)
     renderFab();
     // hidden file input for uploads
     var fi = document.createElement('input');
     fi.type = 'file'; fi.accept = 'image/*'; fi.id = 's1-file-input'; fi.style.display = 'none';
     document.body.appendChild(fi);
   }
+  // top bar, split into a left info zone + right button zone — same shape as the
+  // V3 editor's toolbar (css/editor-v3.css .ev3-toolbar) so switching between
+  // skins mid-edit doesn't feel like a different app.
   function renderFab() {
     if (!fab) return;
     if (editing) {
       fab.innerHTML =
-        '<span class="s1-status">편집 중 — 글자 클릭, 블록에 마우스 올려 ＋/🗑/🔗</span>' +
-        '<button class="s1-save-btn">💾 저장</button>' +
-        '<button class="s1-exit-btn">✖ 취소</button>';
+        '<div class="s1-fab-left">' +
+          '<span class="s1-fab-logo">✏️ 편집모드 <small>스크롤</small></span>' +
+          '<span class="s1-fab-hint">글자 클릭, 블록에 마우스 올려 ＋/🗑/🔗</span>' +
+        '</div>' +
+        '<div class="s1-fab-right">' +
+          '<span class="s1-status">편집 중…</span>' +
+          '<button class="s1-save-btn">💾 저장</button>' +
+          '<button class="s1-exit-btn">✖ 취소</button>' +
+        '</div>';
       fab.querySelector('.s1-save-btn').onclick = function () { exitEdit(true); };
       fab.querySelector('.s1-exit-btn').onclick = function () { exitEdit(false); };
       statusEl = fab.querySelector('.s1-status');
@@ -120,9 +130,16 @@
         skinOpts += '<option value="../' + s.file + '"' + (s.id === 'scroll1' ? ' selected' : '') + '>'
           + (s.icon ? s.icon + ' ' : '') + s.name + ' 스킨</option>';
       });
-      fab.innerHTML = '<select class="s1-skin-select" title="스킨 선택">' + skinOpts + '</select>'
-        + '<button class="s1-share-btn" title="보기 전용 공유 링크 복사">🔗 공유</button>'
-        + '<button class="s1-edit-btn">✏️ 편집하기</button>';
+      fab.innerHTML =
+        '<div class="s1-fab-left">' +
+          '<span class="s1-fab-logo">🖥️ 스크롤 스킨</span>' +
+          '<span class="s1-fab-hint">편집하기를 눌러 화면에서 바로 수정하세요</span>' +
+        '</div>' +
+        '<div class="s1-fab-right">' +
+          '<select class="s1-skin-select" title="스킨 선택">' + skinOpts + '</select>' +
+          '<button class="s1-share-btn" title="보기 전용 공유 링크 복사">🔗 공유</button>' +
+          '<button class="s1-edit-btn">✏️ 편집하기</button>' +
+        '</div>';
       fab.querySelector('.s1-edit-btn').onclick = enterEdit;
       fab.querySelector('.s1-share-btn').onclick = copyShareLink;
       var sel = fab.querySelector('.s1-skin-select');

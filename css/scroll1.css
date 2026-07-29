@@ -4,42 +4,43 @@
    every element is reachable and editable regardless of scroll position. */
 
 /* ---------- floating owner control ----------
-   Positioned to match the V3 skin's owner-menu: left edge, vertically centered,
-   dark rounded-right panel with controls stacked in a column. Keeps skin UIs
-   consistent across templates. */
+   Fixed top bar split into a left info zone + right button zone — same shape
+   as the V3 editor's toolbar (css/editor-v3.css .ev3-toolbar), so switching
+   between the default skin and this one mid-edit feels like one app. */
 .s1-fab {
-  position: fixed; left: 0; top: 50%; transform: translateY(-50%); z-index: 100000;
-  display: flex; flex-direction: column; gap: 8px; align-items: stretch;
-  padding: 10px; background: rgba(0,0,0,.85); border-radius: 0 14px 14px 0;
-  box-shadow: 0 4px 20px rgba(0,0,0,.35);
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100000;
+  min-height: 48px; display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 8px; padding: 8px 16px;
+  background: #16162a; color: #fff;
+  box-shadow: 0 2px 10px rgba(0,0,0,.25);
   font-family: 'Pretendard', -apple-system, sans-serif;
 }
-.s1-fab button {
-  border: none; border-radius: 10px; padding: 11px 16px; font-size: 14px; font-weight: 700;
-  cursor: pointer; text-align: center; white-space: nowrap;
-  transition: transform .12s ease, opacity .2s, filter .12s;
-}
-.s1-fab button:hover { transform: translateX(2px); filter: brightness(1.06); }
-.s1-fab .s1-edit-btn { background: #e08524; color: #1a1a1a; }
-.s1-fab .s1-save-btn { background: #2ec27e; color: #06301c; }
-.s1-fab .s1-exit-btn { background: #3a3a3a; color: #eee; }
-.s1-fab .s1-share-btn { background: #3b82f6; color: #fff; }
-.s1-fab .s1-status { font-size: 12px; color: #ddd; text-align: center; line-height: 1.5; padding: 2px 4px 4px; }
-.s1-fab .s1-skin-select {
-  border: none; border-radius: 10px; padding: 10px 12px; font-size: 13px; font-weight: 700;
-  background: #2a2a2a; color: #eee; cursor: pointer; width: 100%;
+.s1-fab-left { display: flex; align-items: center; gap: 14px; min-width: 0; }
+.s1-fab-right { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.s1-fab-logo { font-weight: 700; color: #f2c98a; white-space: nowrap; font-size: 14px; }
+.s1-fab-logo small { font-size: 11px; opacity: .7; font-weight: 500; }
+.s1-fab-hint { font-size: 12px; color: #9aa0b5; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.s1-fab .s1-status { font-size: 12px; color: #6ee7b7; white-space: nowrap; }
+.s1-fab button, .s1-fab select {
+  border: none; border-radius: 6px; padding: 7px 12px; font-size: 13px; font-weight: 600;
+  cursor: pointer; white-space: nowrap; line-height: 1;
+  transition: filter .12s, background .12s;
   font-family: 'Pretendard', sans-serif;
 }
+.s1-fab button:hover { filter: brightness(1.1); }
+.s1-fab .s1-edit-btn { background: #e08524; color: #1a1a1a; }
+.s1-fab .s1-save-btn { background: #2ec27e; color: #06301c; }
+.s1-fab .s1-exit-btn { background: #2a2a4a; color: #d7d7ea; }
+.s1-fab .s1-exit-btn:hover { background: #3a3a5a; filter: none; }
+.s1-fab .s1-share-btn { background: #2a2a4a; color: #d7d7ea; }
+.s1-fab .s1-share-btn:hover { background: #3a3a5a; filter: none; }
+.s1-fab .s1-skin-select { background: #2a2a4a; color: #eee; }
 
-/* mobile: dock to the bottom as a horizontal bar, mirroring the V3 owner-menu */
-@media (max-width: 768px) {
-  .s1-fab {
-    left: 0; right: 0; top: auto; bottom: 0; transform: none;
-    flex-direction: row; justify-content: center; align-items: center;
-    flex-wrap: wrap; border-radius: 14px 14px 0 0; padding: 8px 12px;
-  }
-  .s1-fab .s1-skin-select { width: auto; }
-  .s1-fab .s1-status { width: 100%; order: -1; }
+/* reserve top space for the bar (matches body.edit-mode in editor-v3.css) */
+body.s1-has-toolbar { padding-top: 52px; }
+
+@media (max-width: 720px) {
+  .s1-fab-hint { display: none; }
 }
 
 /* ---------- editing affordances ---------- */
